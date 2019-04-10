@@ -12,7 +12,7 @@
 #include <unistd.h>
 
 
-#define PUERTO "6667"
+#define PUERTO "6666"
 #define BACKLOG 5			// Define cuantas conexiones vamos a mantener pendientes al mismo tiempo
 #define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
 
