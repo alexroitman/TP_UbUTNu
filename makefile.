@@ -1,0 +1,22 @@
+COMPILER=gcc
+BIN_PATH=bin
+default: make all
+all:
+	
+	$(COMPILER) -pthread -o Kernel/Kernel.c Kernel
+	
+
+clean:
+	rm -rf bin
+
+kernel:
+	mkdir -p $(BIN_PATH)
+	$(COMPILER) -pthread -o Kernel/Kernel.c   $(BIN_PATH)/Kernel
+
+memoria:
+	mkdir -p $(BIN_PATH)
+		$(COMPILER) -pthread -o Memoria/Memoria.c  $(BIN_PATH)/Memoria
+
+
+# Contemplamos algunos Alias para subsanar posibles diferencias de escritura
+

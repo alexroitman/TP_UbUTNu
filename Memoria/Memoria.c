@@ -5,7 +5,7 @@
  *      Author: utnso
  */
 
-#include "Kernel.h"
+#include "Memoria.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -16,7 +16,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #define IP "127.0.0.1"
-#define PUERTOESCUCHA "6666"
+#define PUERTOESCUCHA "6667"
 #define PUERTOESCRIBE "6666"
 #define BACKLOG 5			// Define cuantas conexiones vamos a mantener pendientes al mismo tiempo
 #define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
@@ -28,22 +28,21 @@ struct addrinfo *serverInfo;
 
 int main() {
 	//char* consulta = leerConsola();
-	int socket_servidor = levantarServidor();
 	int socket_cliente = levantarCliente();
-
+	int socket_servidor = levantarServidor();
 	pthread_t hilo_Server;
 	pthread_t hilo_Cliente;
-	pthread_create(&hilo_Server, NULL, (void*) recibirMensajeDeMemoria,
+	pthread_create(&hilo_Server, NULL, (void*) recibirMensajeDeKernel,
 			(int*) socket_servidor);
-	pthread_create(&hilo_Cliente, NULL, (void*) enviarMensajeAMemoria,
+	pthread_create(&hilo_Cliente, NULL, (void*) enviarMensajeAKernel,
 			(int*) socket_cliente);
-	//pthread_join(hilo_Server,NULL);
+	pthread_join(hilo_Server,NULL);
 	pthread_join(hilo_Cliente,NULL);
 	cerrarConexiones(socket_cliente, socket_servidor);
 	return 0;
 }
 
-void recibirMensajeDeMemoria(int serverSocket) {
+void recibirMensajeDeKernel(int serverSocket) {
 	char package[PACKAGESIZE];
 	int status = 1;		// Estructura que manjea el status de los recieve.
 
@@ -56,7 +55,7 @@ void recibirMensajeDeMemoria(int serverSocket) {
 	}
 }
 
-void enviarMensajeAMemoria(int clienteSocket) {
+void enviarMensajeAKernel(int clienteSocket) {
 	int enviar = 1;
 	char message[PACKAGESIZE];
 
