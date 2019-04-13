@@ -28,8 +28,8 @@ struct addrinfo *serverInfo;
 
 int main() {
 	//char* consulta = leerConsola();
-	int socket_cliente = levantarCliente();
 	int socket_servidor = levantarServidor();
+	int socket_cliente = levantarCliente();
 	pthread_t hilo_Server;
 	pthread_t hilo_Cliente;
 	pthread_create(&hilo_Server, NULL, (void*) recibirMensajeDeKernel,
@@ -38,18 +38,24 @@ int main() {
 			(int*) socket_cliente);
 	pthread_join(hilo_Server,NULL);
 	pthread_join(hilo_Cliente,NULL);
-	cerrarConexiones(socket_cliente, socket_servidor);
+	cerrarConexiones(/*socket_cliente*/ socket_servidor);
 	return 0;
 }
 
 void recibirMensajeDeKernel(int serverSocket) {
+
+	struct sockaddr_in addr;			// Esta estructura contendra los datos de la conexion del cliente. IP, puerto, etc.
+	socklen_t addrlen = sizeof(addr);
+
+	int socketCliente = accept(serverSocket, (struct sockaddr *) &addr, &addrlen);
 	char package[PACKAGESIZE];
 	int status = 1;		// Estructura que manjea el status de los recieve.
 
 	printf("Cliente conectado. Esperando mensajes:\n");
 
 	while (status != 0) {
-		status = recv(serverSocket, (void*) package, PACKAGESIZE, 0);
+		status = recv(socketCliente, (void*) package, PACKAGESIZE, 0);
+
 		if (status != 0)
 			printf("%s", package);
 	}
@@ -83,7 +89,9 @@ int levantarCliente() {
 	serverSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype,
 			serverInfo->ai_protocol);
 
-	connect(serverSocket, serverInfo->ai_addr, serverInfo->ai_addrlen);
+	while(connect(serverSocket, serverInfo->ai_addr, serverInfo->ai_addrlen) != 0){
+			connect(serverSocket, serverInfo->ai_addr, serverInfo->ai_addrlen);
+		}
 	freeaddrinfo(serverInfo);	// No lo necesitamos mas
 	return serverSocket;
 }
@@ -102,6 +110,7 @@ int levantarServidor() {
 
 	bind(listenningSocket, serverInfo->ai_addr, serverInfo->ai_addrlen);
 	freeaddrinfo(serverInfo); // Ya no lo vamos a necesitar
+
 
 	listen(listenningSocket, BACKLOG);
 	return listenningSocket;

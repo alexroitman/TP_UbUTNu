@@ -17,7 +17,7 @@
 #include <pthread.h>
 #define IP "127.0.0.1"
 #define PUERTOESCUCHA "6666"
-#define PUERTOESCRIBE "6666"
+#define PUERTOESCRIBE "6667"
 #define BACKLOG 5			// Define cuantas conexiones vamos a mantener pendientes al mismo tiempo
 #define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
 char package[PACKAGESIZE];
@@ -37,20 +37,24 @@ int main() {
 			(int*) socket_servidor);
 	pthread_create(&hilo_Cliente, NULL, (void*) enviarMensajeAMemoria,
 			(int*) socket_cliente);
-	//pthread_join(hilo_Server,NULL);
+	pthread_join(hilo_Server,NULL);
 	pthread_join(hilo_Cliente,NULL);
 	cerrarConexiones(socket_cliente, socket_servidor);
 	return 0;
 }
 
 void recibirMensajeDeMemoria(int serverSocket) {
+	struct sockaddr_in addr;			// Esta estructura contendra los datos de la conexion del cliente. IP, puerto, etc.
+		socklen_t addrlen = sizeof(addr);
+
+		int socketCliente = accept(serverSocket, (struct sockaddr *) &addr, &addrlen);
 	char package[PACKAGESIZE];
 	int status = 1;		// Estructura que manjea el status de los recieve.
 
 	printf("Cliente conectado. Esperando mensajes:\n");
 
 	while (status != 0) {
-		status = recv(serverSocket, (void*) package, PACKAGESIZE, 0);
+		status = recv(socketCliente, (void*) package, PACKAGESIZE, 0);
 		if (status != 0)
 			printf("%s", package);
 	}
@@ -68,7 +72,6 @@ void enviarMensajeAMemoria(int clienteSocket) {
 			enviar = 0;			// Chequeo que el usuario no quiera salir
 		if (enviar)
 			send(clienteSocket, message, strlen(message) + 1, 0); // Solo envio si el usuario no quiere salir.
-
 	}
 }
 
@@ -84,7 +87,10 @@ int levantarCliente() {
 	serverSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype,
 			serverInfo->ai_protocol);
 
-	connect(serverSocket, serverInfo->ai_addr, serverInfo->ai_addrlen);
+
+	while(connect(serverSocket, serverInfo->ai_addr, serverInfo->ai_addrlen) != 0){
+		connect(serverSocket, serverInfo->ai_addr, serverInfo->ai_addrlen);
+	}
 	freeaddrinfo(serverInfo);	// No lo necesitamos mas
 	return serverSocket;
 }
@@ -105,6 +111,7 @@ int levantarServidor() {
 	freeaddrinfo(serverInfo); // Ya no lo vamos a necesitar
 
 	listen(listenningSocket, BACKLOG);
+
 	return listenningSocket;
 }
 
