@@ -1,0 +1,19 @@
+/*
+ * pkernel.c
+ *
+ *  Created on: 18 abr. 2019
+ *      Author: utnso
+ */
+
+#include <sock/sockets-lib.h>
+#define IP "127.0.0.1"
+#define PUERTO "2000"
+#include <pthread.h>
+int main(){
+	printf("hola mundo");
+	int socket_cliente = levantarCliente(PUERTO,IP);
+	enviarMensaje(socket_cliente);
+	close(socket_cliente);
+	return 0;
+}
+

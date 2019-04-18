@@ -1,0 +1,14 @@
+/*
+ * pkernel.c
+ *
+ *  Created on: 18 abr. 2019
+ *      Author: utnso
+ */
+
+#include <sock/sockets-lib.h>
+int main(){
+	fprint("hola mundo");
+
+	return 0;
+}
+

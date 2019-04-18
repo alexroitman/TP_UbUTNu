@@ -1,0 +1,10 @@
+10:59:05 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+Building target: Memoria
+Invoking: GCC C Linker
+gcc -L"/home/utnso/Operativos/sockets-lib/Debug" -o "Memoria"  ./memoria.o   -lsockets-lib -lpthread
+Finished building target: Memoria
+ 
+
+10:59:18 Build Finished (took 13s.287ms)
+
