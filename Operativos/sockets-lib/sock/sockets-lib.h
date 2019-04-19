@@ -26,5 +26,5 @@ int levantarServidor(char* puerto);
 void enviarMensaje(int clienteSocket);
 int aceptarCliente(int serverSocket);
 void recibirMensaje(int socketServidor);
-
+void cerrarConexiones(int socket_cliente,int socket_servidor);
 #endif /* SOCKETS_LIB_H_ */

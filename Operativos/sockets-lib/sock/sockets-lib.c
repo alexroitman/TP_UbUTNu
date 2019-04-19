@@ -61,6 +61,8 @@ void enviarMensaje(int clienteSocket) {
 			enviar = 0;			// Chequeo que el usuario no quiera salir
 		if (enviar)
 			send(clienteSocket, message, strlen(message) + 1, 0); // Solo envio si el usuario no quiere salir.
+		recv(clienteSocket, (void*) package, PACKAGESIZE, 0);
+		printf("%s\n", package);
 	}
 }
 
@@ -70,6 +72,7 @@ int aceptarCliente(int serverSocket) {
 
 		int socketCliente = accept(serverSocket, (struct sockaddr *) &addr, &addrlen);
 		printf("Cliente conectado. Esperando mensajes:\n");
+		recibirMensaje(socketCliente);
 		return socketCliente;
 }
 void recibirMensaje(int socketServidor){
@@ -85,4 +88,3 @@ void recibirMensaje(int socketServidor){
 	}
 
 }
-
