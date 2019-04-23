@@ -1,6 +1,29 @@
-11:03:11 **** Incremental Build of configuration Debug for project sockets-lib ****
+16:57:12 **** Incremental Build of configuration Debug for project sockets-lib ****
 make all 
-make: Nothing to be done for 'all'.
+Building file: ../sock/sockets-lib.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/sockets-lib.d" -MT"sock/sockets-lib.o" -o "sock/sockets-lib.o" "../sock/sockets-lib.c"
+../sock/sockets-lib.c: In function ‘recibirMensaje’:
+../sock/sockets-lib.c:111:11: warning: format ‘%s’ expects argument of type ‘char *’, but argument 2 has type ‘t_Package_Request {aka struct <anonymous>}’ [-Wformat=]
+    printf("%s", package);
+           ^
+../sock/sockets-lib.c: In function ‘split’:
+../sock/sockets-lib.c:186:7: warning: assignment discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
+     p = str;
+       ^
+../sock/sockets-lib.c:198:7: warning: assignment discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
+     p = str;
+       ^
+../sock/sockets-lib.c:218:7: warning: assignment discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
+     p = str;
+       ^
+Finished building: ../sock/sockets-lib.c
+ 
+Building target: libsockets-lib.so
+Invoking: GCC C Linker
+gcc -shared -o "libsockets-lib.so"  ./sock/sockets-lib.o   
+Finished building target: libsockets-lib.so
+ 
 
-11:03:23 Build Finished (took 11s.425ms)
+16:57:13 Build Finished (took 1s.185ms)
 

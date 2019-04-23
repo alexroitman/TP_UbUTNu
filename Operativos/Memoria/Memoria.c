@@ -18,7 +18,7 @@ struct addrinfo *serverInfo;
 
 // Define cual va a ser el size maximo del paquete a enviar
 
-int main() {
+	int main() {
 	//char* consulta = leerConsola();
 	int socket_kernel = levantarServidor(PUERTOKERNEL);
 	pthread_t hiloescucha;

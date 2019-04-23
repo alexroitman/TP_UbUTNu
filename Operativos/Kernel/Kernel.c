@@ -24,6 +24,8 @@ int main() {
 	pthread_create(&hiloenvio, NULL, (void*) enviarMensaje, (int*) socket_memoria);
 	pthread_join(hiloenvio,NULL);
 	close(socket_memoria);
+
+
 	return 0;
 }
 /*
