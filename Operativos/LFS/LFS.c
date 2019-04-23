@@ -54,13 +54,15 @@ int CREATE(char* NOMBRE_TABLA, int TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, in
 
 int INSERT (char* NOMBRE_TABLA, int KEY, char* VALUE, int Timestamp)
 {
-
+	int particiones;
 	// ---- Verifico que la tabla exista ----
 	if (verificadorDeTabla(NOMBRE_TABLA) != 0)
 		return noExisteTabla;
 
 	// ---- Obtengo la metadata ----
-
+	particiones = buscarEnMetadata(NOMBRE_TABLA, "PARTITIONS");
+		if (particiones < 0)
+			return particiones;
 
 	// ---- Verifico si existe memoria para dumpeo ----
 
@@ -99,7 +101,7 @@ int SELECT(char* NOMBRE_TABLA, int KEY)
 		return particiones;
 
 	// ---- Calculo particion del KEY ----
-
+	particiones = KEY % particiones;
 
 	// ---- Escaneo particion objetivo ----
 
@@ -187,17 +189,15 @@ int borrarDirectorio(const char *dir)
 int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo)
 {
 	char aux[40];
-	char* token;
-	int eof;
 	FILE *fp;
 	snprintf(aux, sizeof(aux), "%s/metadata", NOMBRE_TABLA);
-	fp = fopen(aux, "w");
+	fp = fopen(aux, "r+");
 	if (!fp)
 		return noAbreMetadata;
 	fgets(aux, 40, fp);
-	while(strcmp(!strtok(aux, "="), objetivo))
+	while(strcmp(strtok(aux, "="), objetivo) != 0)
 	{
-		if(aux[strlen(aux)-1] == 0)
+		if(aux[strlen(aux)-1] == '\0')
 			return noExisteParametro;
 		fgets(aux, 40, fp);
 	}// probar return
