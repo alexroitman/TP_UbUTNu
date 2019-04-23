@@ -37,11 +37,18 @@
 #include <fts.h>
 #include <pthread.h>
 
+// Estructuras
+typedef struct {
+	int particiones;
+	int consistencia;
+	int tiempo_compactacion;
+} metadata;
+
 // APIs
 int SELECT(char* NOMBRE_TABLA, int KEY);
 int INSERT (char* NOMBRE_TABLA, int KEY, char* VALUE, int Timestamp);
 int CREATE(char* NOMBRE_TABLA, int TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME);
-//METADATA DESCRIBE(char* NOMBRE_TABLA);
+metadata DESCRIBE(char* NOMBRE_TABLA);
 int DROP(char* NOMBRE_TABLA);
 
 // Funciones de tabla

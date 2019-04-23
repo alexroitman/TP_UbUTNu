@@ -111,6 +111,30 @@ int SELECT(char* NOMBRE_TABLA, int KEY)
 	return todoJoya;
 }
 
+metadata DESCRIBE (char* NOMBRE_TABLA){
+	metadata myMetadata;
+
+	// ---- Verifico que la tabla exista ----
+	if (verificadorDeTabla(NOMBRE_TABLA) != 0)
+		return noExisteTabla;
+
+	// ---- Obtengo la metadata ----
+	myMetadata.particiones = buscarEnMetadata(NOMBRE_TABLA, "PARTITIONS");
+	myMetadata.consistencia = buscarEnMetadata(NOMBRE_TABLA, "CONSISTENCY");
+	myMetadata.tiempo_compactacion= buscarEnMetadata(NOMBRE_TABLA, "COMPACTION_TIME");
+
+	if (myMetadata.particiones  < 0)
+		return myMetadata.particiones;
+
+	return myMetadata;
+}
+
+metadata DESCRIBE(){
+	// HAY QUE RECORRER DIRECTORIO POR DIRECTORIO BUSCANDO LA METADATA DE CADA UNO
+	// MIRAR BIEN COMO MOSTRARLO
+	// HABRIA QUE TENER UN ARCHIVO CON EL NOMBRE DE TODAS LAS TABLAS
+}
+
 
 // Funciones de tabla
 
