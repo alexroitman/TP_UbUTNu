@@ -14,16 +14,16 @@ int main (void)
 	int errorHandler;
 
 //	PRUEBA COMANDO CREATE
-//	errorHandler = CREATE("TABLA1",1,4,1);
+//	errorHandler = CREATE("tables/TABLA1",1,4,1);
 
 //	PRUEBA COMANDO INSERT
-//	errorHandler = INSERT("TABLA1", 3, "Mi nombre es Lissandra", 1548421507);
+//	errorHandler = INSERT("tables/TABLA1", 3, "Mi nombre es Lissandra", 1548421507);
 
 //	PRUEBA COMANDO DROP
-//	errorHandler = DROP("TABLA1");
+//	errorHandler = DROP("tables/TABLA1");
 
 //	PRUEBA COMANDO SELECT
-	errorHandler = SELECT("TABLA1", 6);
+	errorHandler = SELECT("tables/TABLA1", 6);
 
 	if(errorHandler) {logeoDeErrores(errorHandler, logger);}
 	return 0;
@@ -129,10 +129,22 @@ metadata DESCRIBE (char* NOMBRE_TABLA){
 	return myMetadata;
 }
 
-metadata DESCRIBE(){
-	// HAY QUE RECORRER DIRECTORIO POR DIRECTORIO BUSCANDO LA METADATA DE CADA UNO
-	// MIRAR BIEN COMO MOSTRARLO
-	// HABRIA QUE TENER UN ARCHIVO CON EL NOMBRE DE TODAS LAS TABLAS
+int DESCRIBE(){
+	struct dirent *dp;
+	DIR *dir = opendir("tables");
+
+	// Unable to open directory stream
+	if (!dir)
+		return -1;
+
+	while ((dp = readdir(dir)) != 0){
+		DESCRIBE(dp->d_name);
+	}
+
+	// Close directory stream
+	closedir(dir);
+
+	return todoJoya;
 }
 
 
@@ -272,4 +284,35 @@ void logeoDeErrores(int errorHandler, t_log* logger)
 				log_info(logger, "El parametro solicitado no existe");
 				break;
 		}
+}
+
+metadata* listarDirectorios(char *dir){
+	FTS* ftsp;
+	    FTSENT* curr;
+	    char* directorios[] = {(char *) dir, NULL};
+
+	    ftsp = fts_open(directorios, FTS_NOCHDIR | FTS_PHYSICAL | FTS_XDEV, NULL);
+	    if (!ftsp)
+	    	return -1;
+	    while ((curr = fts_read(ftsp)))
+	    {
+	        switch (curr->fts_info)
+	        {
+	        case FTS_NS:
+	        case FTS_DNR:
+	        case FTS_ERR:
+	        	return -1;
+	            break;
+
+	        case FTS_DP:
+	        case FTS_F:
+	        case FTS_SL:
+	        case FTS_SLNONE:
+	        case FTS_DEFAULT:
+	            if (remove(curr->fts_accpath) < 0)
+	            	return -1;
+	            break;
+	        }
+	    }
+	    fts_close(ftsp);
 }

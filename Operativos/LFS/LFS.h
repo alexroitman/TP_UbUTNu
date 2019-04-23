@@ -36,6 +36,7 @@
 #include <time.h>
 #include <fts.h>
 #include <pthread.h>
+#include <dirent.h>
 
 // Estructuras
 typedef struct {
