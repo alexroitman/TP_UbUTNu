@@ -19,10 +19,10 @@
 #define carpetaNoCreada -2
 #define metadataNoCreada -3
 #define BINNoCreado -4
-#define noExisteTabla -5
 #define tablaNoEliminada -6
 #define noAbreMetadata -7
 #define noExisteParametro -8
+#define noExisteTabla -9
 
 #include <sys/stat.h>
 #include <sys/types.h>

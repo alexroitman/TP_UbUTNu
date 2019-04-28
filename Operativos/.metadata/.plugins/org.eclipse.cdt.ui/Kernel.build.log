@@ -1,4 +1,4 @@
-16:57:13 **** Incremental Build of configuration Default for project Kernel ****
+18:29:49 **** Incremental Build of configuration Default for project Kernel ****
 make all 
 Building target: Kernel
 Invoking: GCC C Linker
@@ -6,5 +6,5 @@ gcc -L"/home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o 
 Finished building target: Kernel
  
 
-16:57:14 Build Finished (took 936ms)
+18:30:04 Build Finished (took 14s.976ms)
 

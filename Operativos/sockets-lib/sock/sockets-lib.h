@@ -16,6 +16,7 @@ char package[PACKAGESIZE];
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <commons/string.h>
 #include <sys/socket.h>
 #include <netdb.h>
 struct addrinfo hints;

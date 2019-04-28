@@ -9,7 +9,7 @@
 
 
 #define IP "127.0.0.1"
-#define PUERTOMEM "6667"
+#define PUERTOMEM "7878"
 #define BACKLOG 5			// Define cuantas conexiones vamos a mantener pendientes al mismo tiempo
 #define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
 char package[PACKAGESIZE];
@@ -24,8 +24,6 @@ int main() {
 	pthread_create(&hiloenvio, NULL, (void*) enviarMensaje, (int*) socket_memoria);
 	pthread_join(hiloenvio,NULL);
 	close(socket_memoria);
-
-
 	return 0;
 }
 /*
