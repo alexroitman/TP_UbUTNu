@@ -94,8 +94,12 @@ void recibirMensaje(int socketServidor){
 			memcpy(&(header_long), buffer, buffer_size);
 			printf("header long: %d",header_long);
 			if (!status) status=0;
-			status = recv(socketServidor, package.header, header_long, 0);
-			printf("Header que recibi: %s",package.header);
+
+			char* header = malloc(package.message_long_header);
+			status = recv(socketServidor, header, header_long, 0);
+			printf("Header que recibi: %s",header);
+			package.header = header;
+			free(header);
 			if (!status) status=0;
 
 			uint32_t message_long_query;
@@ -109,6 +113,7 @@ void recibirMensaje(int socketServidor){
 
 
 			free(buffer);
+			sleep(3);
 		if (status != 0)
 		send(socketServidor, "Recibi tu msg",14, 0);
 	}
@@ -127,6 +132,7 @@ char* serializarRequest(t_Package_Request *package){
 
 	size_to_send =  package->message_long_header;
 	memcpy(serializedPackage + offset, package->header, size_to_send);
+	offset += size_to_send;
 
 	size_to_send =  sizeof(package->message_long_query);
 	memcpy(serializedPackage + offset, &(package->message_long_query), size_to_send);
@@ -134,7 +140,6 @@ char* serializarRequest(t_Package_Request *package){
 
 	size_to_send =  package->message_long_query;
 	memcpy(serializedPackage + offset, package->query, size_to_send);
-
 	return serializedPackage;
 }
 
@@ -145,10 +150,14 @@ void llenarPaqueteRequest(t_Package_Request *package,char* msg){
  	// Me guardo lugar para el \0
 	char** spliteado = string_n_split(msg,2," ");
 	package->message_long_header= string_length(spliteado[0]) + 1;
-	package->message_long_query= string_length(spliteado[1]) + 1;
+	printf("%d\n", package->message_long_header);
+	package->message_long_query= string_length(spliteado[1]);
+	printf("%d\n", package->message_long_query);
 	package->header=spliteado[0];
 	package->query=spliteado[1];
+	printf("%s", package->query);
 	(package->header)[strlen(package->header)] = '\0';
+	printf("header:%s\n", package->header);
 	package->total_size = sizeof(package->message_long_header) + package->message_long_header+ sizeof(package->message_long_query) + package->message_long_query;
 
 	// Si, este ultimo valor es calculable. Pero a fines didacticos la calculo aca y la guardo a futuro, ya que no se modificara en otro lado.
