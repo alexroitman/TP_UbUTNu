@@ -48,7 +48,7 @@ int levantarServidor(char* puerto) {
 
 	return listenningSocket;
 }
-
+/*
 void enviarMensaje(int clienteSocket) {
 	int enviar = 1;
 	char message[PACKAGESIZE];
@@ -68,7 +68,7 @@ void enviarMensaje(int clienteSocket) {
 			dispose_package(&serializedPackage);
 			//recv(clienteSocket, (void*) message, PACKAGESIZE, 0);
 	}
-}
+}*/
 
 int aceptarCliente(int serverSocket) {
 	struct sockaddr_in addr;			// Esta estructura contendra los datos de la conexion del cliente. IP, puerto, etc.
@@ -79,6 +79,15 @@ int aceptarCliente(int serverSocket) {
 		recibirMensaje(socketCliente);
 		return socketCliente;
 }
+
+int enviarPaquete(int clienteSocket,tPaquete* paquete_a_enviar){
+	return send(clienteSocket,(tPaquete*) paquete_a_enviar,paquete_a_enviar->length,0);
+}
+
+int recibirPaquete(int socketReceptor,char** serializado){
+	return recv(socketReceptor,&(serializado),21,MSG_WAITALL);
+}
+/*
 void recibirMensaje(int socketServidor){
 
 	int status = 1;		// Estructura que manjea el status de los recieve.
@@ -97,8 +106,8 @@ void recibirMensaje(int socketServidor){
 
 			char* header = malloc(package.message_long_header);
 			status = recv(socketServidor, header, header_long, 0);
-			printf("Header que recibi: %s",header);
 			package.header = header;
+			printf("Header que recibii: %s",package.header);
 			free(header);
 			if (!status) status=0;
 
@@ -118,48 +127,46 @@ void recibirMensaje(int socketServidor){
 		send(socketServidor, "Recibi tu msg",14, 0);
 	}
 
-}
-char* serializarRequest(t_Package_Request *package){
+}*/
+tPaquete* serializarRequest(t_Package_Request package){
 
-	char *serializedPackage = malloc(package->total_size);
+	tPaquete *serializedPackage = malloc(sizeof(package));
 
 	int offset = 0;
 	int size_to_send;
 
-	size_to_send =  sizeof(package->message_long_header);
-	memcpy(serializedPackage + offset, &(package->message_long_header), size_to_send);
+	size_to_send =  strlen(package.header)+1;
+	memcpy(serializedPackage->payload + offset, package.header, size_to_send);
 	offset += size_to_send;
 
-	size_to_send =  package->message_long_header;
-	memcpy(serializedPackage + offset, package->header, size_to_send);
-	offset += size_to_send;
+	size_to_send =  strlen(package.query)+1;
+	memcpy(serializedPackage->payload + offset, package.query, size_to_send);
+	serializedPackage->length = offset + size_to_send;
 
-	size_to_send =  sizeof(package->message_long_query);
-	memcpy(serializedPackage + offset, &(package->message_long_query), size_to_send);
-	offset += size_to_send;
-
-	size_to_send =  package->message_long_query;
-	memcpy(serializedPackage + offset, package->query, size_to_send);
 	return serializedPackage;
 }
 
-
+t_Package_Request* desSerializarRequest(char** packSerializado){
+	t_Package_Request *tpack = malloc(strlen(packSerializado)*sizeof(char));
+	int offset=0;
+	int size_to_send;
+	for(size_to_send=1;(packSerializado+offset)[size_to_send-1]!= '\0';size_to_send++);
+	tpack->header=malloc(size_to_send);
+	memcpy(tpack->header,packSerializado+offset,size_to_send);
+	for(size_to_send=1;(packSerializado+offset)[size_to_send-1]!= '\0';size_to_send++);
+	tpack->query=malloc(size_to_send);
+	memcpy(tpack->query,packSerializado+offset,size_to_send);
+	return tpack;
+}
 
 void llenarPaqueteRequest(t_Package_Request *package,char* msg){
 	// Me guardo los datos del usuario y el mensaje que manda
  	// Me guardo lugar para el \0
 	char** spliteado = string_n_split(msg,2," ");
-	package->message_long_header= string_length(spliteado[0]) + 1;
-	printf("%d\n", package->message_long_header);
-	package->message_long_query= string_length(spliteado[1]);
-	printf("%d\n", package->message_long_query);
 	package->header=spliteado[0];
 	package->query=spliteado[1];
-	printf("%s", package->query);
-	(package->header)[strlen(package->header)] = '\0';
-	printf("header:%s\n", package->header);
-	package->total_size = sizeof(package->message_long_header) + package->message_long_header+ sizeof(package->message_long_query) + package->message_long_query;
-
+	//printf("%s", package->query);
+	//(package->header)[strlen(package->header)] = '\0';
 	// Si, este ultimo valor es calculable. Pero a fines didacticos la calculo aca y la guardo a futuro, ya que no se modificara en otro lado.
 }
 
@@ -167,63 +174,4 @@ void llenarPaqueteRequest(t_Package_Request *package,char* msg){
 void dispose_package(char **package){
 	free(*package);
 }
-int split (const char *str, char c, char ***arr)
-{
-    int count = 1;
-    int token_len = 1;
-    int i = 0;
-    char *p;
-    char *t;
 
-    p = str;
-    while (*p != '\0')
-    {
-        if (*p == c)
-            count++;
-        p++;
-    }
-
-    *arr = (char**) malloc(sizeof(char*) * count);
-    if (*arr == NULL)
-        exit(1);
-
-    p = str;
-    while (*p != '\0')
-    {
-        if (*p == c)
-        {
-            (*arr)[i] = (char*) malloc( sizeof(char) * token_len );
-            if ((*arr)[i] == NULL)
-                exit(1);
-
-            token_len = 0;
-            i++;
-        }
-        p++;
-        token_len++;
-    }
-    (*arr)[i] = (char*) malloc( sizeof(char) * token_len );
-    if ((*arr)[i] == NULL)
-        exit(1);
-
-    i = 0;
-    p = str;
-    t = ((*arr)[i]);
-    while (*p != '\0')
-    {
-        if (*p != c && *p != '\0')
-        {
-            *t = *p;
-            t++;
-        }
-        else
-        {
-            *t = '\0';
-            i++;
-            t = ((*arr)[i]);
-        }
-        p++;
-    }
-
-    return count;
-}

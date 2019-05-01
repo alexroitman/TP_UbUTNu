@@ -1,10 +1,32 @@
-18:30:58 **** Incremental Build of configuration Debug for project Memoria ****
+10:50:43 **** Incremental Build of configuration Debug for project Memoria ****
 make all 
+Building file: ../Memoria.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"Memoria.d" -MT"Memoria.o" -o "Memoria.o" "../Memoria.c"
+../Memoria.c: In function ‘main’:
+../Memoria.c:27:18: warning: implicit declaration of function ‘recibirPaquete’ [-Wimplicit-function-declaration]
+  socket_kernel = recibirPaquete(socket_kernel,&serializado);
+                  ^
+../Memoria.c:28:29: warning: passing argument 1 of ‘desSerializarRequest’ from incompatible pointer type [-Wincompatible-pointer-types]
+  miP = desSerializarRequest(serializado);
+                             ^
+In file included from ../Memoria.h:17:0,
+                 from ../Memoria.c:8:
+/home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:54:20: note: expected ‘char *’ but argument is of type ‘char **’
+ t_Package_Request* desSerializarRequest(char* packSerializado);
+                    ^
+../Memoria.c:23:21: warning: variable ‘miP’ set but not used [-Wunused-but-set-variable]
+  t_Package_Request* miP;
+                     ^
+Finished building: ../Memoria.c
+ 
 Building target: Memoria
 Invoking: GCC C Linker
-gcc -L"/home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Memoria"  ./Memoria.o   -lsockets-lib -lpthread
-Finished building target: Memoria
- 
+gcc -L"/home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Memoria"  ./Memoria.o   -lsockets-lib -lcommons -lpthread
+/home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug/libsockets-lib.so: undefined reference to `recibirMensaje'
+collect2: error: ld returned 1 exit status
+make: *** [Memoria] Error 1
+makefile:32: recipe for target 'Memoria' failed
 
-18:31:16 Build Finished (took 17s.320ms)
+10:50:59 Build Finished (took 15s.423ms)
 

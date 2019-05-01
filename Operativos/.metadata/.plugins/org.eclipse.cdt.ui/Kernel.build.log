@@ -1,10 +1,12 @@
-18:29:49 **** Incremental Build of configuration Default for project Kernel ****
+10:43:10 **** Incremental Build of configuration Default for project Kernel ****
 make all 
 Building target: Kernel
 Invoking: GCC C Linker
-gcc -L"/home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Kernel"  ./Kernel.o   -lsockets-lib -lpthread
-Finished building target: Kernel
- 
+gcc -L"/home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Kernel"  ./Kernel.o   -lsockets-lib -lcommons -lpthread
+/usr/bin/ld: cannot find -lsockets-lib
+makefile:32: recipe for target 'Kernel' failed
+collect2: error: ld returned 1 exit status
+make: *** [Kernel] Error 1
 
-18:30:04 Build Finished (took 14s.976ms)
+10:43:23 Build Finished (took 12s.536ms)
 

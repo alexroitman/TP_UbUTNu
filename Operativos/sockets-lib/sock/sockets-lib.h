@@ -11,6 +11,7 @@
 #include <unistd.h>
 #define BACKLOG 5			// Define cuantas conexiones vamos a mantener pendientes al mismo tiempo
 #define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
+#define MAX_BUFFER 1024
 char package[PACKAGESIZE];
 #include <stdio.h>
 #include <string.h>
@@ -25,11 +26,8 @@ struct addrinfo *serverInfo;
 typedef struct{
 
 	char* header;
-	uint32_t message_long_header;
 	char* query;
-	uint32_t message_long_query;
-
-	uint32_t total_size;			// NOTA: Es calculable. Aca lo tenemos por fines didacticos!
+			// NOTA: Es calculable. Aca lo tenemos por fines didacticos!
 } t_Package_Request;
 typedef struct{
 
@@ -37,13 +35,23 @@ typedef struct{
 	uint32_t message_long;
 	uint32_t total_size;			// NOTA: Es calculable. Aca lo tenemos por fines didacticos!
 } t_Package_Response;
+
+typedef struct{
+	int8_t type;
+	int16_t length;
+	char payload[MAX_BUFFER];
+}tPaquete;
+
+
+
 int levantarCliente(char* puerto,char* ip);
 int levantarServidor(char* puerto);
 void enviarMensaje(int clienteSocket);
 int aceptarCliente(int serverSocket);
 void recibirMensaje(int socketServidor);
 void cerrarConexiones(int socket_cliente,int socket_servidor);
-char* serializarRequest(t_Package_Request *package);
+tPaquete* serializarRequest(t_Package_Request package);
+t_Package_Request* desSerializarRequest(char** packSerializado);
 char* serializarResponse(t_Package_Response *package);
 void llenarPaqueteRequest(t_Package_Request *package,char msg[]);
 void llenarPaqueteResponse(t_Package_Response *package);
