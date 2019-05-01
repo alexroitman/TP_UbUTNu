@@ -1,0 +1,134 @@
+#include "comunicacion.h"
+
+int serializarRequest(t_Package_Request packageRequest,
+		tPaquete* paqueteSerializado) {
+
+	paqueteSerializado = malloc(sizeof(package));
+
+	int offset = 0;
+	int size_to_send;
+
+	size_to_send = strlen(packageRequest.header) + 1;
+	memcpy(paqueteSerializado->payload + offset, packageRequest.header,
+			size_to_send);
+	offset += size_to_send;
+
+	size_to_send = strlen(packageRequest.query) + 1;
+	memcpy(paqueteSerializado->payload + offset, packageRequest.query,
+			size_to_send);
+	paqueteSerializado->length = offset + size_to_send;
+
+	return paqueteSerializado;
+}
+
+int desSerializarRequest(tPaquete paqueteSerializado,
+		t_Package_Request* packageRequest) {
+	packageRequest = malloc(strlen(paqueteSerializado) * sizeof(char));
+	int offset = 0;
+	int size_to_send;
+
+	for (size_to_send = 1;
+			(paqueteSerializado + offset)[size_to_send - 1] != '\0';
+			size_to_send++)
+		;
+	packageRequest->header = malloc(size_to_send);
+	memcpy(packageRequest->header, paqueteSerializado + offset, size_to_send);
+
+	offset += size_to_send;
+
+	for (size_to_send = 1;
+			(paqueteSerializado + offset)[size_to_send - 1] != '\0';
+			size_to_send++)
+		;
+	packageRequest->query = malloc(size_to_send);
+	memcpy(packageRequest->query, paqueteSerializado + offset, size_to_send);
+
+	return packageRequest;
+}
+
+int enviarPaquete(int clienteSocket, tPaquete paquete_a_enviar) {
+	return send(clienteSocket, (tPaquete) paquete_a_enviar,	paquete_a_enviar->length, 0);
+}
+
+int recibirPaquete(int socketReceptor, tPaquete* paquete_a_recibir) {
+	return recv(socketReceptor, &(paquete_a_recibir), sizeof(tPaquete),
+			MSG_WAITALL);
+	switch (paquete_a_recibir->type) {
+
+	case INSERT:
+		tInsert* insertARecibir;
+		desSerializarInsert(paquete_a_recibir,insertARecibir);
+		break;
+	case SELECT:
+		tSelect* selectARecibir;
+		desSerializarSelect(selectARecibir, paquete_a_recibir);
+		break;
+	case CREATE:
+		tCreate* createARecibir;
+		desSserializarcreate(createARecibir, paquete_a_recibir);
+		break;
+	case DESCRIBE:
+		tDescribe describeARecibir;
+		desSerializarDescribe(describeARecibir, paquete_a_recibir);
+		break;
+	case DROP:
+		tDrop dropARecibir;
+		desSserializarDescribe(dropARecibir, paquete_a_recibir);
+		break;
+	case JOURNAL:
+		tJournal journalARecibir;
+		desSerializarJournal(journalARecibir, paquete_a_recibir);
+
+		break;
+	case ADD:
+		tAdd addARecibir;
+		desSerializarAdd(addARecibir, paquete_a_recibir);
+		break;
+	default:
+	}
+
+}
+int serializarSelect(tSelect packageSelect, tPaquete* paqueteSerializado) {
+	paqueteSerializado = malloc(sizeof(packageSelect));
+
+	int offset = 0;
+	int size_to_send;
+
+
+	memcpy(paqueteSerializado->type + offset, SELECT,1);//sizeof(int8_t)
+	offset += 1;
+
+	size_to_send = strlen(packageSelect.nombre_tabla) + 1;
+	(packageSelect.nombre_tabla)[strlen(packageSelect.nombre_tabla)]='\0';
+	memcpy(paqueteSerializado->payload + offset, packageSelect.nombre_tabla,size_to_send);
+	offset+=size_to_send;
+
+	size_to_send = sizeof(int);
+	memcpy(paqueteSerializado->payload + offset, packageSelect.key,size_to_send);
+
+
+	paqueteSerializado->length = offset + size_to_send;
+
+	return paqueteSerializado;
+}
+/*
+int desSerializarSelect(tPaquete paqueteSerializado, tSelect* packageSelect){
+	packageSelect = malloc(sizeof(paqueteSerializado));
+		int offset = 0;
+		int size_to_send;
+
+		for (size_to_send = 1;(paqueteSerializado + offset)[size_to_send - 1] != '\0';size_to_send++);packageSelect->header = malloc(size_to_send);
+		memcpy(packageRequest->header, paqueteSerializado + offset, size_to_send);
+
+		offset += size_to_send;
+
+		for (size_to_send = 1;
+				(paqueteSerializado + offset)[size_to_send - 1] != '\0';
+				size_to_send++)
+			;
+		packageRequest->query = malloc(size_to_send);
+		memcpy(packageRequest->query, paqueteSerializado + offset, size_to_send);
+
+		return packageRequest;
+
+}*/

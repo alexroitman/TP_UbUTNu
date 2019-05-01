@@ -8,6 +8,7 @@
 #include "sockets-lib.h"
 
 #include <stdio.h>
+#include "comunicacion.h"
 int levantarCliente(char* puerto,char* ip) {
 
 	memset(&hints, 0, sizeof(hints));
@@ -48,27 +49,6 @@ int levantarServidor(char* puerto) {
 
 	return listenningSocket;
 }
-/*
-void enviarMensaje(int clienteSocket) {
-	int enviar = 1;
-	char message[PACKAGESIZE];
-	t_Package_Request package;
-	char *serializedPackage;
-	printf("Conectado al servidor. Bienvenido al sistema, ya puede enviar mensajes. Escriba 'exit' para salir\n");
-
-	while (enviar) {
-		fgets(message, PACKAGESIZE, stdin);	// Lee una linea en el stdin (lo que escribimos en la consola) hasta encontrar un \n (y lo incluye) o llegar a PACKAGESIZE.
-		if (!strcmp(message, "exit\n"))
-			enviar = 0;			// Chequeo que el usuario no quiera salir
-		llenarPaqueteRequest(&package,message);
-		if (enviar)
-			serializedPackage =serializarRequest(&package);
-			send(clienteSocket, serializedPackage, package.total_size, 0); // Solo envio si el usuario no quiere salir.
-
-			dispose_package(&serializedPackage);
-			//recv(clienteSocket, (void*) message, PACKAGESIZE, 0);
-	}
-}*/
 
 int aceptarCliente(int serverSocket) {
 	struct sockaddr_in addr;			// Esta estructura contendra los datos de la conexion del cliente. IP, puerto, etc.
@@ -76,88 +56,12 @@ int aceptarCliente(int serverSocket) {
 
 		int socketCliente = accept(serverSocket, (struct sockaddr *) &addr, &addrlen);
 		printf("Cliente conectado. Esperando mensajes:\n");
-		recibirMensaje(socketCliente);
+
 		return socketCliente;
 }
 
-int enviarPaquete(int clienteSocket,tPaquete* paquete_a_enviar){
-	return send(clienteSocket,(tPaquete*) paquete_a_enviar,paquete_a_enviar->length,0);
-}
-
-int recibirPaquete(int socketReceptor,char** serializado){
-	return recv(socketReceptor,&(serializado),21,MSG_WAITALL);
-}
-/*
-void recibirMensaje(int socketServidor){
-
-	int status = 1;		// Estructura que manjea el status de los recieve.
-
-	t_Package_Request package;
-	while (status != 0) {
-		int status;
-			int buffer_size;
-			char *buffer = malloc(buffer_size = sizeof(uint32_t));
-
-			uint32_t header_long;
-			status = recv(socketServidor, buffer, sizeof(package.message_long_header), 0);
-			memcpy(&(header_long), buffer, buffer_size);
-			printf("header long: %d",header_long);
-			if (!status) status=0;
-
-			char* header = malloc(package.message_long_header);
-			status = recv(socketServidor, header, header_long, 0);
-			package.header = header;
-			printf("Header que recibii: %s",package.header);
-			free(header);
-			if (!status) status=0;
-
-			uint32_t message_long_query;
-			status = recv(socketServidor, buffer, sizeof(package.message_long_query), 0);
-			memcpy(&(message_long_query), buffer, buffer_size);
-			if (!status) status=0;
-
-			status = recv(socketServidor, package.query, message_long_query, 0);
-			printf("Query que recibi: %s",package.query);
-			if (!status) status=0;
 
 
-			free(buffer);
-			sleep(3);
-		if (status != 0)
-		send(socketServidor, "Recibi tu msg",14, 0);
-	}
-
-}*/
-tPaquete* serializarRequest(t_Package_Request package){
-
-	tPaquete *serializedPackage = malloc(sizeof(package));
-
-	int offset = 0;
-	int size_to_send;
-
-	size_to_send =  strlen(package.header)+1;
-	memcpy(serializedPackage->payload + offset, package.header, size_to_send);
-	offset += size_to_send;
-
-	size_to_send =  strlen(package.query)+1;
-	memcpy(serializedPackage->payload + offset, package.query, size_to_send);
-	serializedPackage->length = offset + size_to_send;
-
-	return serializedPackage;
-}
-
-t_Package_Request* desSerializarRequest(char** packSerializado){
-	t_Package_Request *tpack = malloc(strlen(packSerializado)*sizeof(char));
-	int offset=0;
-	int size_to_send;
-	for(size_to_send=1;(packSerializado+offset)[size_to_send-1]!= '\0';size_to_send++);
-	tpack->header=malloc(size_to_send);
-	memcpy(tpack->header,packSerializado+offset,size_to_send);
-	for(size_to_send=1;(packSerializado+offset)[size_to_send-1]!= '\0';size_to_send++);
-	tpack->query=malloc(size_to_send);
-	memcpy(tpack->query,packSerializado+offset,size_to_send);
-	return tpack;
-}
 
 void llenarPaqueteRequest(t_Package_Request *package,char* msg){
 	// Me guardo los datos del usuario y el mensaje que manda

@@ -20,12 +20,12 @@ struct addrinfo *serverInfo;
 
 int main() {
 	int socket_memoria = levantarCliente(PUERTOMEM,IP);
-	t_Package_Request paqueteRequest;
-	paqueteRequest.header="SELECT";
-	paqueteRequest.query = "HOLA";
-	tPaquete* miPaquete;
+	tSelect paqueteSelect;
+	paqueteSelect.key=4;
+	paqueteSelect.nombre_tabla= "HOLA";
+	tPaquete miPaquete;
 
-	miPaquete=serializarRequest(paqueteRequest);
-	int bytes = enviarPaquete(socket_memoria,miPaquete);
+	int respuesta= serializarSelect(paqueteSelect,&miPaquete);
+	int bytes = enviarPaquete(socket_memoria,&miPaquete);
 	close(socket_memoria);
 }

@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <sock/sockets-lib.h>
+#include <sock/comunicacion.h>
 
 #ifndef MEMORIA_MEMORIA_H_
 #define MEMORIA_MEMORIA_H_

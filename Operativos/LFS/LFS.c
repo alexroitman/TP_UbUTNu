@@ -110,23 +110,23 @@ int SELECT(char* NOMBRE_TABLA, int KEY)
 
 	return todoJoya;
 }
+/*
+int DESCRIBE (char* NOMBRE_TABLA,metadata *myMetadata){
 
-metadata DESCRIBE (char* NOMBRE_TABLA){
-	metadata myMetadata;
 
 	// ---- Verifico que la tabla exista ----
 	if (verificadorDeTabla(NOMBRE_TABLA) != 0)
 		return noExisteTabla;
 
 	// ---- Obtengo la metadata ----
-	myMetadata.particiones = buscarEnMetadata(NOMBRE_TABLA, "PARTITIONS");
-	myMetadata.consistencia = buscarEnMetadata(NOMBRE_TABLA, "CONSISTENCY");
-	myMetadata.tiempo_compactacion= buscarEnMetadata(NOMBRE_TABLA, "COMPACTION_TIME");
+	myMetadata->particiones = buscarEnMetadata(NOMBRE_TABLA, "PARTITIONS");
+	myMetadata->consistencia = buscarEnMetadata(NOMBRE_TABLA, "CONSISTENCY");
+	myMetadata->tiempo_compactacion= buscarEnMetadata(NOMBRE_TABLA, "COMPACTION_TIME");
 
-	if (myMetadata.particiones  < 0)
-		return myMetadata.particiones;
+	if (myMetadata->particiones  < 0)
+		return myMetadata->particiones;
 
-	return myMetadata;
+	return 1;
 }
 
 int DESCRIBE(){
@@ -146,7 +146,7 @@ int DESCRIBE(){
 
 	return todoJoya;
 }
-
+*/
 
 // Funciones de tabla
 

@@ -1,0 +1,38 @@
+/*
+ * comunicacion.h
+ *
+ *  Created on: 1 may. 2019
+ *      Author: utnso
+ */
+
+#ifndef SOCK_COMUNICACION_H_
+#define SOCK_COMUNICACION_H_
+#define MAX_BUFFER 1024
+
+typedef struct{
+
+	char* header;
+	char* query;
+			// NOTA: Es calculable. Aca lo tenemos por fines didacticos!
+} t_Package_Request;
+typedef struct{
+
+	char* message;
+	uint32_t message_long;
+	uint32_t total_size;			// NOTA: Es calculable. Aca lo tenemos por fines didacticos!
+} t_Package_Response;
+
+typedef struct{
+	int8_t type;
+	int16_t length;
+	char payload[MAX_BUFFER];
+}tPaquete;
+
+
+int serializarRequest(t_Package_Request packageRequest, tPaquete* paqueteSerializado);
+int desSerializarRequest(tPaquete paqueteSerializado, t_Package_Request* packageRequest);
+
+
+
+
+#endif /* SOCK_COMUNICACION_H_ */

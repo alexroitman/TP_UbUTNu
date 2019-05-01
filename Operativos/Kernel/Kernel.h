@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <sock/sockets-lib.h>
+#include <sock/comunicacion.h>
 
 #ifndef KERNEL_KERNEL_H_
 #define KERNEL_KERNEL_H_

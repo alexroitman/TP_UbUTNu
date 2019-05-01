@@ -1,0 +1,6 @@
+sock/comuniacion.o: ../sock/comuniacion.c ../sock/comunicacion.h \
+ ../sock/sockets-lib.h
+
+../sock/comunicacion.h:
+
+../sock/sockets-lib.h:

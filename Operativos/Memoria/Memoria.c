@@ -20,12 +20,12 @@ struct addrinfo *serverInfo;
 
 	int main() {
 	int socket_kernel = levantarServidor(PUERTOKERNEL);
-	t_Package_Request* miP;
 	aceptarCliente(socket_kernel);
-	char** serializado;
+	tPaquete tpack;
+	tSelect packRecibido;
 
-	int bytes = recibirPaquete(socket_kernel,&serializado);
-	miP = desSerializarRequest(serializado);
+	while(recibirPaquete(socket_kernel,&tpack) == -1);
+	int okey = desSerializarSelect(&tpack,&packRecibido);
 	close(socket_kernel);
 }
 /*

@@ -1,53 +1,6 @@
-20:26:59 **** Incremental Build of configuration Default for project LFS ****
+15:27:02 **** Incremental Build of configuration Default for project LFS ****
 make all 
-Building file: ../LFS.c
-Invoking: GCC C Compiler
-gcc -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
-../LFS.c: In function ‘CREATE’:
-../LFS.c:37:7: warning: unused variable ‘aux’ [-Wunused-variable]
-  char aux[strlen(NOMBRE_TABLA)+10];
-       ^
-In file included from ../LFS.c:8:0:
-../LFS.c: In function ‘DESCRIBE’:
-../LFS.h:25:23: error: incompatible types when returning type ‘int’ but ‘metadata {aka struct <anonymous>}’ was expected
- #define noExisteTabla -9
-                       ^
-../LFS.c:119:10: note: in expansion of macro ‘noExisteTabla’
-   return noExisteTabla;
-          ^
-../LFS.c:127:10: error: incompatible types when returning type ‘int’ but ‘metadata {aka struct <anonymous>}’ was expected
-   return myMetadata.particiones;
-          ^
-../LFS.c: At top level:
-../LFS.c:132:5: error: conflicting types for ‘DESCRIBE’
- int DESCRIBE(){
-     ^
-../LFS.c:114:10: note: previous definition of ‘DESCRIBE’ was here
-subdir.mk:18: recipe for target 'LFS.o' failed
- metadata DESCRIBE (char* NOMBRE_TABLA){
-          ^
-../LFS.c: In function ‘listarDirectorios’:
-../LFS.c:296:14: warning: return makes pointer from integer without a cast [-Wint-conversion]
-       return -1;
-              ^
-../LFS.c:304:18: warning: return makes pointer from integer without a cast [-Wint-conversion]
-           return -1;
-                  ^
-../LFS.c:313:22: warning: return makes pointer from integer without a cast [-Wint-conversion]
-               return -1;
-                      ^
-../LFS.c: In function ‘buscarEnMetadata’:
-../LFS.c:233:2: warning: ignoring return value of ‘fgets’, declared with attribute warn_unused_result [-Wunused-result]
-  fgets(aux, 40, fp);
-  ^
-../LFS.c:238:3: warning: ignoring return value of ‘fgets’, declared with attribute warn_unused_result [-Wunused-result]
-   fgets(aux, 40, fp);
-   ^
-../LFS.c: In function ‘listarDirectorios’:
-../LFS.c:318:1: warning: control reaches end of non-void function [-Wreturn-type]
- }
- ^
-make: *** [LFS.o] Error 1
+make: Nothing to be done for 'all'.
 
-20:27:12 Build Finished (took 12s.590ms)
+15:27:03 Build Finished (took 515ms)
 
