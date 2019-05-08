@@ -1,6 +1,10 @@
-17:33:25 **** Incremental Build of configuration Debug for project Memoria ****
+00:20:32 **** Incremental Build of configuration Debug for project Memoria ****
 make all 
-make: Nothing to be done for 'all'.
+Building target: Memoria
+Invoking: GCC C Linker
+gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Memoria"  ./Memoria.o   -lsockets-lib -lcommons -lpthread
+Finished building target: Memoria
+ 
 
-17:33:26 Build Finished (took 609ms)
+00:20:32 Build Finished (took 563ms)
 

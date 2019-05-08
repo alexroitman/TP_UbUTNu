@@ -1,3 +1,0 @@
-sock/sockets-lib.o: ../sock/sockets-lib.c ../sock/sockets-lib.h
-
-../sock/sockets-lib.h:

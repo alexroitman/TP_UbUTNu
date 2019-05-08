@@ -21,11 +21,17 @@ struct addrinfo *serverInfo;
 int main() {
 	int socket_memoria = levantarCliente(PUERTOMEM,IP);
 	tSelect paqueteSelect;
+	paqueteSelect.type=SELECT;
 	paqueteSelect.key=4;
-	paqueteSelect.nombre_tabla= "HOLA";
-	tPaquete miPaquete;
+	paqueteSelect.nombre_tabla= "HOLA\0";
+	paqueteSelect.nombre_tabla_long= strlen(paqueteSelect.nombre_tabla);
+	paqueteSelect.length=sizeof(paqueteSelect.type) +sizeof(paqueteSelect.nombre_tabla_long)+paqueteSelect.nombre_tabla_long+sizeof(paqueteSelect.key);
 
-	int respuesta= serializarSelect(paqueteSelect,&miPaquete);
-	int bytes = enviarPaquete(socket_memoria,&miPaquete);
-	close(socket_memoria);
+
+	char* respuesta= serializarSelect(&paqueteSelect);
+	printf("%c",respuesta);
+
+	enviarPaquete(socket_memoria,respuesta,paqueteSelect.length);
+
+	//close(socket_memoria);
 }

@@ -19,14 +19,17 @@ struct addrinfo *serverInfo;
 // Define cual va a ser el size maximo del paquete a enviar
 
 	int main() {
-	int socket_kernel = levantarServidor(PUERTOKERNEL);
-	aceptarCliente(socket_kernel);
+	int socket_sv = levantarServidor(PUERTOKERNEL);
+	int socket_cli=aceptarCliente(socket_sv);
 	tPaquete tpack;
 	tSelect packRecibido;
-
-	while(recibirPaquete(socket_kernel,&tpack) == -1);
-	int okey = desSerializarSelect(&tpack,&packRecibido);
-	close(socket_kernel);
+	while(recibirPaquete(socket_cli) == -1)
+	{
+		recibirPaquete(socket_cli);
+	}
+	//int okey = desSerializarSelect(&tpack,&packRecibido);
+	close(socket_cli);
+	close(socket_sv);
 }
 /*
 void parsearMensaje(t_Package *paquete){

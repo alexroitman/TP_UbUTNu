@@ -1,4 +1,4 @@
-17:39:47 **** Incremental Build of configuration Debug for project sockets-lib ****
+00:20:31 **** Incremental Build of configuration Debug for project sockets-lib ****
 make all 
 Building file: ../sock/comuniacion.c
 Invoking: GCC C Compiler
@@ -8,32 +8,42 @@ gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/comuniacion.d" -
   return paqueteSerializado;
          ^
 ../sock/comuniacion.c: In function ‘recibirPaquete’:
-../sock/comuniacion.c:39:8: warning: unused variable ‘addARecibir’ [-Wunused-variable]
+../sock/comuniacion.c:36:10: warning: format ‘%s’ expects argument of type ‘char *’, but argument 2 has type ‘type * {aka enum <anonymous> *}’ [-Wformat=]
+   printf("recibi algo:%s",&header);
+          ^
+../sock/comuniacion.c:45:8: warning: unused variable ‘addARecibir’ [-Wunused-variable]
   tAdd* addARecibir;
         ^
-../sock/comuniacion.c:38:12: warning: unused variable ‘journalARecibir’ [-Wunused-variable]
+../sock/comuniacion.c:44:12: warning: unused variable ‘journalARecibir’ [-Wunused-variable]
   tJournal* journalARecibir;
             ^
-../sock/comuniacion.c:37:9: warning: unused variable ‘dropARecibir’ [-Wunused-variable]
+../sock/comuniacion.c:43:9: warning: unused variable ‘dropARecibir’ [-Wunused-variable]
   tDrop* dropARecibir;
          ^
-../sock/comuniacion.c:36:13: warning: unused variable ‘describeARecibir’ [-Wunused-variable]
+../sock/comuniacion.c:42:13: warning: unused variable ‘describeARecibir’ [-Wunused-variable]
   tDescribe* describeARecibir;
              ^
-../sock/comuniacion.c:34:11: warning: unused variable ‘insertARecibir’ [-Wunused-variable]
+../sock/comuniacion.c:41:11: warning: unused variable ‘selectARecibir’ [-Wunused-variable]
+  tSelect* selectARecibir;
+           ^
+../sock/comuniacion.c:40:11: warning: unused variable ‘insertARecibir’ [-Wunused-variable]
   tInsert* insertARecibir;
            ^
-../sock/comuniacion.c:33:11: warning: unused variable ‘createARecibir’ [-Wunused-variable]
+../sock/comuniacion.c:39:11: warning: unused variable ‘createARecibir’ [-Wunused-variable]
   tCreate* createARecibir;
            ^
-../sock/comuniacion.c:32:6: warning: unused variable ‘algo3’ [-Wunused-variable]
-  int algo3 = recv(socketReceptor, &(paquete_a_recibir->payload), paquete_a_recibir->length, MSG_WAITALL);
-      ^
-../sock/comuniacion.c:31:6: warning: unused variable ‘algo2’ [-Wunused-variable]
-  int algo2 = recv(socketReceptor, &(paquete_a_recibir->length), sizeof(int16_t), MSG_WAITALL);
-      ^
-../sock/comuniacion.c:48:3: warning: ‘selectARecibir’ may be used uninitialized in this function [-Wmaybe-uninitialized]
-   desSerializarSelect( paquete_a_recibir, selectARecibir);
+../sock/comuniacion.c: In function ‘desSerializarHeader’:
+../sock/comuniacion.c:122:10: warning: passing argument 1 of ‘memcpy’ makes pointer from integer without a cast [-Wint-conversion]
+   memcpy(recibido, buffer, sizeof(int));
+          ^
+In file included from ../sock/sockets-lib.h:17:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/string.h:42:14: note: expected ‘void * restrict’ but argument is of type ‘int’
+ extern void *memcpy (void *__restrict __dest, const void *__restrict __src,
+              ^
+../sock/comuniacion.c:122:3: warning: ‘recibido’ is used uninitialized in this function [-Wuninitialized]
+   memcpy(recibido, buffer, sizeof(int));
    ^
 Finished building: ../sock/comuniacion.c
  
@@ -43,5 +53,5 @@ gcc -shared -o "libsockets-lib.so"  ./sock/comuniacion.o ./sock/sockets-lib.o   
 Finished building target: libsockets-lib.so
  
 
-17:39:57 Build Finished (took 9s.549ms)
+00:20:32 Build Finished (took 697ms)
 

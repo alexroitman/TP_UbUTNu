@@ -1,6 +1,0 @@
-Kernel.o: ../Kernel.c ../Kernel.h \
- /home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h
-
-../Kernel.h:
-
-/home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:

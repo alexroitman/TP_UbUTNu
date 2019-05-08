@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">
-<refactoring comment="Rename resource &apos;sockets-lib/sock/comuniacion&apos; to &apos;comuniacion.c&apos;" description="Rename resource &apos;comuniacion&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="sock/comuniacion" name="comuniacion.c" stamp="1556723446725" updateReferences="true"/>
-</session>

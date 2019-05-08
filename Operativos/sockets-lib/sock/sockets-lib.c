@@ -15,7 +15,7 @@ int levantarCliente(char* puerto,char* ip) {
 
 		hints.ai_family = AF_UNSPEC; // Permite que la maquina se encargue de verificar si usamos IPv4 o IPv6
 		hints.ai_socktype =SOCK_STREAM; // Indica que usaremos el protocolo TCP
-
+		struct addrinfo *serverInfo;
 		getaddrinfo(ip, puerto, &hints, &serverInfo); // Carga en serverInfo los datos de la conexion
 
 		int serverSocket;
@@ -36,7 +36,7 @@ int levantarServidor(char* puerto) {
 	hints.ai_family = AF_UNSPEC;		// No importa si uso IPv4 o IPv6
 	hints.ai_flags = AI_PASSIVE;// Asigna el address del localhost: 127.0.0.1
 	hints.ai_socktype = SOCK_STREAM;	// Indica que usaremos el protocolo TCP
-
+	struct addrinfo *serverInfo;
 	getaddrinfo(NULL, puerto, &hints, &serverInfo); // Notar que le pasamos NULL como IP, ya que le indicamos que use localhost en AI_PASSIVE
 	int listenningSocket;
 	listenningSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype,

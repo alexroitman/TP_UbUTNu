@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">
-<refactoring comment="Rename resource &apos;Memoria/pmemoria.c&apos; to &apos;memoria.c&apos;" description="Rename resource &apos;pmemoria.c&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="pmemoria.c" name="memoria.c" stamp="1555593764842" updateReferences="true"/>
-</session>
