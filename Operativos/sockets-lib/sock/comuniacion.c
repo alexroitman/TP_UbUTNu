@@ -1,6 +1,7 @@
 #include "comunicacion.h"
 
-int serializarRequest(t_Package_Request packageRequest, tPaquete* paqueteSerializado) {
+int serializarRequest(t_Package_Request packageRequest,
+		tPaquete* paqueteSerializado) {
 	paqueteSerializado = malloc(sizeof(package));
 
 	int offset = 0;
@@ -19,23 +20,16 @@ int serializarRequest(t_Package_Request packageRequest, tPaquete* paqueteSeriali
 	return paqueteSerializado;
 }
 
+int enviarPaquete(int clienteSocket, char* payload, uint32_t size) {
 
-int enviarPaquete(int clienteSocket,char* payload,uint32_t size) {
-
-	return send(clienteSocket, payload,size, 0);
+	return send(clienteSocket, payload, size, 0);
 }
 
 int recibirPaquete(int socketReceptor) {
 
-
-
 	type header;
-	int algo = recv(socketReceptor,&header, sizeof(type), MSG_WAITALL);
-	if(algo!=-1)
-	{
-		printf("recibi algo:%s",&header);
-	}
-return algo;
+	int algo = recv(socketReceptor, &header, sizeof(type), MSG_WAITALL);
+
 	tCreate* createARecibir;
 	tInsert* insertARecibir;
 	tSelect* selectARecibir;
@@ -43,8 +37,7 @@ return algo;
 	tDrop* dropARecibir;
 	tJournal* journalARecibir;
 	tAdd* addARecibir;
-}
-	/*switch (paquete_a_recibir->type) {
+	switch (header) {
 
 	case INSERT:
 
@@ -52,7 +45,8 @@ return algo;
 		break;
 	case SELECT:
 
-		desSerializarSelect( paquete_a_recibir, selectARecibir);
+		printf("recibi un select");
+		desSerializarSelect(selectARecibir, socketReceptor);
 		break;
 	case CREATE:
 
@@ -68,7 +62,7 @@ return algo;
 		break;
 	case JOURNAL:
 
-	//	desSerializarJournal( paquete_a_recibir,journalARecibir);
+		//	desSerializarJournal( paquete_a_recibir,journalARecibir);
 
 		break;
 	case ADD:
@@ -77,8 +71,9 @@ return algo;
 		break;
 
 	}
-	return algo;*/
+	return algo;
 
+}
 
 char* serializarSelect(tSelect* packageSelect) {
 
@@ -97,82 +92,39 @@ char* serializarSelect(tSelect* packageSelect) {
 
 
 	size_to_send = packageSelect->nombre_tabla_long;
-	memcpy(serializedPackage + offset,&(packageSelect->nombre_tabla),size_to_send);
+	memcpy(serializedPackage + offset,(packageSelect->nombre_tabla),size_to_send);
 	offset+=size_to_send;
 
 
-	size_to_send = sizeof(int);
+	size_to_send = sizeof(uint32_t);
 	memcpy(serializedPackage + offset ,&packageSelect->key,size_to_send);
 
 
 	return serializedPackage;
 }
 
+int desSerializarSelect(tSelect* packageSelect, int socket) {// LO RECIBE PERO NO LO PUEDO METER EN EL STRUCT
 
-int desSerializarHeader(char* payload,int socket){
+	int status;
+	int buffer_size;
+	char *buffer = malloc(buffer_size = sizeof(uint32_t));
 
-		int status;
-		int buffer_size;
-		char *buffer = malloc(buffer_size = sizeof(SELECT));
+	uint32_t nombrelong;
+	status = recv(socket, buffer, sizeof(packageSelect->nombre_tabla_long), 0);//recibo la longitud
+	memcpy(&(nombrelong), buffer, buffer_size);
+	if (!status)
+		return 0;
+	status = recv(socket, buffer, nombrelong, 0);//recibo el nombre de la tabla
 
+	if (!status)
+		return 0;
 
+	status = recv(socket, buffer, sizeof(packageSelect->key), 0);//recibo el nombre de la key
+	if (!status)
+		return 0;
 
-		status = recv(socket, buffer, SELECT, 0);
-		int recibido;
-		memcpy(recibido, buffer, sizeof(int));
-		if (!status) return 0;
+	free(buffer);
 
-
-		free(buffer);
-
-		return status;
-	/*
-int desSerializarSelect(tSelect* packageSelect,int socket){
-
-		int status;
-		int buffer_size;
-		char *buffer = malloc(buffer_size = sizeof(uint32_t));
-
-
-		uint32_t username_long;
-		status = recv(socket, buffer, sizeof(package->username_long), 0);
-		memcpy(&(username_long), buffer, buffer_size);
-		if (!status) return 0;
-
-		status = recv(socket, package->username, username_long, 0);
-		if (!status) return 0;
-
-		uint32_t message_long;
-		status = recv(socket, buffer, sizeof(package->message_long), 0);
-		memcpy(&(message_long), buffer, buffer_size);
-		if (!status) return 0;
-
-		status = recv(socket, package->message, message_long, 0);
-		if (!status) return 0;
-
-
-		free(buffer);
-
-		return status;
-
-
-
-	*/
-
-
-	/*
-	packageSelect = malloc(sizeof(paqueteSerializado));
-		int offset = 0;
-		int size_to_send;
-		for (size_to_send = 1;(paqueteSerializado->payload)[size_to_send - 1] != '\0';size_to_send++);
-
-		memcpy(&(packageSelect->nombre_tabla), paqueteSerializado + offset, size_to_send);
-
-		offset += size_to_send;
-	    size_to_send = sizeof(int);
-
-		memcpy(&(packageSelect->key), paqueteSerializado + offset, size_to_send);
-
-		return 0;*/
+	return status;
 
 }

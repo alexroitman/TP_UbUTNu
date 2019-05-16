@@ -1,59 +1,44 @@
-00:18:49 **** Incremental Build of configuration Debug for project sockets-lib ****
-make all 
-make: Nothing to be done for 'all'.
-00:18:49 **** Incremental Build of configuration Default for project Kernel ****
-make all 
-Building target: Kernel
-Invoking: GCC C Linker
-gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Kernel"  ./Kernel.o   -lsockets-lib -lcommons -lpthread
-Finished building target: Kernel
- 
-00:20:31 **** Incremental Build of configuration Debug for project sockets-lib ****
+22:49:53 **** Incremental Build of configuration Debug for project sockets-lib ****
 make all 
 Building file: ../sock/comuniacion.c
 Invoking: GCC C Compiler
 gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/comuniacion.d" -MT"sock/comuniacion.o" -o "sock/comuniacion.o" "../sock/comuniacion.c"
 ../sock/comuniacion.c: In function ‘serializarRequest’:
-../sock/comuniacion.c:19:9: warning: return makes integer from pointer without a cast [-Wint-conversion]
+../sock/comuniacion.c:20:9: warning: return makes integer from pointer without a cast [-Wint-conversion]
   return paqueteSerializado;
          ^
 ../sock/comuniacion.c: In function ‘recibirPaquete’:
-../sock/comuniacion.c:36:10: warning: format ‘%s’ expects argument of type ‘char *’, but argument 2 has type ‘type * {aka enum <anonymous> *}’ [-Wformat=]
-   printf("recibi algo:%s",&header);
-          ^
-../sock/comuniacion.c:45:8: warning: unused variable ‘addARecibir’ [-Wunused-variable]
+../sock/comuniacion.c:39:8: warning: unused variable ‘addARecibir’ [-Wunused-variable]
   tAdd* addARecibir;
         ^
-../sock/comuniacion.c:44:12: warning: unused variable ‘journalARecibir’ [-Wunused-variable]
+../sock/comuniacion.c:38:12: warning: unused variable ‘journalARecibir’ [-Wunused-variable]
   tJournal* journalARecibir;
             ^
-../sock/comuniacion.c:43:9: warning: unused variable ‘dropARecibir’ [-Wunused-variable]
+../sock/comuniacion.c:37:9: warning: unused variable ‘dropARecibir’ [-Wunused-variable]
   tDrop* dropARecibir;
          ^
-../sock/comuniacion.c:42:13: warning: unused variable ‘describeARecibir’ [-Wunused-variable]
+../sock/comuniacion.c:36:13: warning: unused variable ‘describeARecibir’ [-Wunused-variable]
   tDescribe* describeARecibir;
              ^
-../sock/comuniacion.c:41:11: warning: unused variable ‘selectARecibir’ [-Wunused-variable]
-  tSelect* selectARecibir;
-           ^
-../sock/comuniacion.c:40:11: warning: unused variable ‘insertARecibir’ [-Wunused-variable]
+../sock/comuniacion.c:34:11: warning: unused variable ‘insertARecibir’ [-Wunused-variable]
   tInsert* insertARecibir;
            ^
-../sock/comuniacion.c:39:11: warning: unused variable ‘createARecibir’ [-Wunused-variable]
+../sock/comuniacion.c:33:11: warning: unused variable ‘createARecibir’ [-Wunused-variable]
   tCreate* createARecibir;
            ^
-../sock/comuniacion.c: In function ‘desSerializarHeader’:
-../sock/comuniacion.c:122:10: warning: passing argument 1 of ‘memcpy’ makes pointer from integer without a cast [-Wint-conversion]
-   memcpy(recibido, buffer, sizeof(int));
-          ^
-In file included from ../sock/sockets-lib.h:17:0,
+../sock/comuniacion.c: In function ‘desSerializarSelect’:
+../sock/comuniacion.c:124:24: warning: passing argument 2 of ‘recv’ makes pointer from integer without a cast [-Wint-conversion]
+  status = recv(socket, packageSelect->key, sizeof(packageSelect->key), 0);
+                        ^
+In file included from ../sock/sockets-lib.h:21:0,
                  from ../sock/comunicacion.h:11,
                  from ../sock/comuniacion.c:1:
-/usr/include/string.h:42:14: note: expected ‘void * restrict’ but argument is of type ‘int’
- extern void *memcpy (void *__restrict __dest, const void *__restrict __src,
-              ^
-../sock/comuniacion.c:122:3: warning: ‘recibido’ is used uninitialized in this function [-Wuninitialized]
-   memcpy(recibido, buffer, sizeof(int));
+/usr/include/i386-linux-gnu/sys/socket.h:156:16: note: expected ‘void *’ but argument is of type ‘int’
+ extern ssize_t recv (int __fd, void *__buf, size_t __n, int __flags);
+                ^
+../sock/comuniacion.c: In function ‘recibirPaquete’:
+../sock/comuniacion.c:49:3: warning: ‘selectARecibir’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+   desSerializarSelect(selectARecibir, socketReceptor);
    ^
 Finished building: ../sock/comuniacion.c
  
@@ -62,7 +47,609 @@ Invoking: GCC C Linker
 gcc -shared -o "libsockets-lib.so"  ./sock/comuniacion.o ./sock/sockets-lib.o   -lcommons
 Finished building target: libsockets-lib.so
  
-00:20:32 **** Incremental Build of configuration Debug for project Memoria ****
+22:50:05 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+Building file: ../sock/comuniacion.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/comuniacion.d" -MT"sock/comuniacion.o" -o "sock/comuniacion.o" "../sock/comuniacion.c"
+../sock/comuniacion.c: In function ‘serializarRequest’:
+../sock/comuniacion.c:20:9: warning: return makes integer from pointer without a cast [-Wint-conversion]
+  return paqueteSerializado;
+         ^
+../sock/comuniacion.c: In function ‘recibirPaquete’:
+../sock/comuniacion.c:39:8: warning: unused variable ‘addARecibir’ [-Wunused-variable]
+  tAdd* addARecibir;
+        ^
+../sock/comuniacion.c:38:12: warning: unused variable ‘journalARecibir’ [-Wunused-variable]
+  tJournal* journalARecibir;
+            ^
+../sock/comuniacion.c:37:9: warning: unused variable ‘dropARecibir’ [-Wunused-variable]
+  tDrop* dropARecibir;
+         ^
+../sock/comuniacion.c:36:13: warning: unused variable ‘describeARecibir’ [-Wunused-variable]
+  tDescribe* describeARecibir;
+             ^
+../sock/comuniacion.c:34:11: warning: unused variable ‘insertARecibir’ [-Wunused-variable]
+  tInsert* insertARecibir;
+           ^
+../sock/comuniacion.c:33:11: warning: unused variable ‘createARecibir’ [-Wunused-variable]
+  tCreate* createARecibir;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarSelect’:
+../sock/comuniacion.c:124:24: warning: passing argument 2 of ‘recv’ makes pointer from integer without a cast [-Wint-conversion]
+  status = recv(socket, packageSelect->key, sizeof(packageSelect->key), 0);
+                        ^
+In file included from ../sock/sockets-lib.h:21:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/i386-linux-gnu/sys/socket.h:156:16: note: expected ‘void *’ but argument is of type ‘int’
+ extern ssize_t recv (int __fd, void *__buf, size_t __n, int __flags);
+                ^
+../sock/comuniacion.c: In function ‘recibirPaquete’:
+../sock/comuniacion.c:49:3: warning: ‘selectARecibir’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+   desSerializarSelect(selectARecibir, socketReceptor);
+   ^
+Finished building: ../sock/comuniacion.c
+ 
+Building target: libsockets-lib.so
+Invoking: GCC C Linker
+gcc -shared -o "libsockets-lib.so"  ./sock/comuniacion.o ./sock/sockets-lib.o   -lcommons
+Finished building target: libsockets-lib.so
+ 
+22:50:05 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+Building target: Memoria
+Invoking: GCC C Linker
+gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Memoria"  ./Memoria.o   -lsockets-lib -lcommons -lpthread
+Finished building target: Memoria
+ 
+22:51:33 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+Building file: ../sock/comuniacion.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/comuniacion.d" -MT"sock/comuniacion.o" -o "sock/comuniacion.o" "../sock/comuniacion.c"
+../sock/comuniacion.c: In function ‘serializarRequest’:
+../sock/comuniacion.c:20:9: warning: return makes integer from pointer without a cast [-Wint-conversion]
+  return paqueteSerializado;
+         ^
+../sock/comuniacion.c: In function ‘recibirPaquete’:
+../sock/comuniacion.c:39:8: warning: unused variable ‘addARecibir’ [-Wunused-variable]
+  tAdd* addARecibir;
+        ^
+../sock/comuniacion.c:38:12: warning: unused variable ‘journalARecibir’ [-Wunused-variable]
+  tJournal* journalARecibir;
+            ^
+../sock/comuniacion.c:37:9: warning: unused variable ‘dropARecibir’ [-Wunused-variable]
+  tDrop* dropARecibir;
+         ^
+../sock/comuniacion.c:36:13: warning: unused variable ‘describeARecibir’ [-Wunused-variable]
+  tDescribe* describeARecibir;
+             ^
+../sock/comuniacion.c:34:11: warning: unused variable ‘insertARecibir’ [-Wunused-variable]
+  tInsert* insertARecibir;
+           ^
+../sock/comuniacion.c:33:11: warning: unused variable ‘createARecibir’ [-Wunused-variable]
+  tCreate* createARecibir;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarSelect’:
+../sock/comuniacion.c:124:24: warning: passing argument 2 of ‘recv’ makes pointer from integer without a cast [-Wint-conversion]
+  status = recv(socket, packageSelect->key, sizeof(packageSelect->key), 0);
+                        ^
+In file included from ../sock/sockets-lib.h:21:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/i386-linux-gnu/sys/socket.h:156:16: note: expected ‘void *’ but argument is of type ‘int’
+ extern ssize_t recv (int __fd, void *__buf, size_t __n, int __flags);
+                ^
+../sock/comuniacion.c: In function ‘recibirPaquete’:
+../sock/comuniacion.c:49:3: warning: ‘selectARecibir’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+   desSerializarSelect(selectARecibir, socketReceptor);
+   ^
+Finished building: ../sock/comuniacion.c
+ 
+Building target: libsockets-lib.so
+Invoking: GCC C Linker
+gcc -shared -o "libsockets-lib.so"  ./sock/comuniacion.o ./sock/sockets-lib.o   -lcommons
+Finished building target: libsockets-lib.so
+ 
+22:51:34 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+Building target: Memoria
+Invoking: GCC C Linker
+gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Memoria"  ./Memoria.o   -lsockets-lib -lcommons -lpthread
+Finished building target: Memoria
+ 
+22:52:02 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+Building file: ../sock/comuniacion.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/comuniacion.d" -MT"sock/comuniacion.o" -o "sock/comuniacion.o" "../sock/comuniacion.c"
+../sock/comuniacion.c: In function ‘serializarRequest’:
+../sock/comuniacion.c:20:9: warning: return makes integer from pointer without a cast [-Wint-conversion]
+  return paqueteSerializado;
+         ^
+../sock/comuniacion.c: In function ‘recibirPaquete’:
+../sock/comuniacion.c:39:8: warning: unused variable ‘addARecibir’ [-Wunused-variable]
+  tAdd* addARecibir;
+        ^
+../sock/comuniacion.c:38:12: warning: unused variable ‘journalARecibir’ [-Wunused-variable]
+  tJournal* journalARecibir;
+            ^
+../sock/comuniacion.c:37:9: warning: unused variable ‘dropARecibir’ [-Wunused-variable]
+  tDrop* dropARecibir;
+         ^
+../sock/comuniacion.c:36:13: warning: unused variable ‘describeARecibir’ [-Wunused-variable]
+  tDescribe* describeARecibir;
+             ^
+../sock/comuniacion.c:34:11: warning: unused variable ‘insertARecibir’ [-Wunused-variable]
+  tInsert* insertARecibir;
+           ^
+../sock/comuniacion.c:33:11: warning: unused variable ‘createARecibir’ [-Wunused-variable]
+  tCreate* createARecibir;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarSelect’:
+../sock/comuniacion.c:124:24: warning: passing argument 2 of ‘recv’ makes pointer from integer without a cast [-Wint-conversion]
+  status = recv(socket, packageSelect->key, sizeof(packageSelect->key), 0);
+                        ^
+In file included from ../sock/sockets-lib.h:21:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/i386-linux-gnu/sys/socket.h:156:16: note: expected ‘void *’ but argument is of type ‘int’
+ extern ssize_t recv (int __fd, void *__buf, size_t __n, int __flags);
+                ^
+../sock/comuniacion.c: In function ‘recibirPaquete’:
+../sock/comuniacion.c:49:3: warning: ‘selectARecibir’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+   desSerializarSelect(selectARecibir, socketReceptor);
+   ^
+Finished building: ../sock/comuniacion.c
+ 
+Building target: libsockets-lib.so
+Invoking: GCC C Linker
+gcc -shared -o "libsockets-lib.so"  ./sock/comuniacion.o ./sock/sockets-lib.o   -lcommons
+Finished building target: libsockets-lib.so
+ 
+22:52:03 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+Building target: Memoria
+Invoking: GCC C Linker
+gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Memoria"  ./Memoria.o   -lsockets-lib -lcommons -lpthread
+Finished building target: Memoria
+ 
+22:54:58 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+Building file: ../sock/comuniacion.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/comuniacion.d" -MT"sock/comuniacion.o" -o "sock/comuniacion.o" "../sock/comuniacion.c"
+../sock/comuniacion.c: In function ‘serializarRequest’:
+../sock/comuniacion.c:20:9: warning: return makes integer from pointer without a cast [-Wint-conversion]
+  return paqueteSerializado;
+         ^
+../sock/comuniacion.c: In function ‘recibirPaquete’:
+../sock/comuniacion.c:39:8: warning: unused variable ‘addARecibir’ [-Wunused-variable]
+  tAdd* addARecibir;
+        ^
+../sock/comuniacion.c:38:12: warning: unused variable ‘journalARecibir’ [-Wunused-variable]
+  tJournal* journalARecibir;
+            ^
+../sock/comuniacion.c:37:9: warning: unused variable ‘dropARecibir’ [-Wunused-variable]
+  tDrop* dropARecibir;
+         ^
+../sock/comuniacion.c:36:13: warning: unused variable ‘describeARecibir’ [-Wunused-variable]
+  tDescribe* describeARecibir;
+             ^
+../sock/comuniacion.c:34:11: warning: unused variable ‘insertARecibir’ [-Wunused-variable]
+  tInsert* insertARecibir;
+           ^
+../sock/comuniacion.c:33:11: warning: unused variable ‘createARecibir’ [-Wunused-variable]
+  tCreate* createARecibir;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarSelect’:
+../sock/comuniacion.c:117:30: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  *packageSelect->nombre_tabla=malloc(nombrelong);
+                              ^
+../sock/comuniacion.c:124:24: warning: passing argument 2 of ‘recv’ makes pointer from integer without a cast [-Wint-conversion]
+  status = recv(socket, packageSelect->key, sizeof(packageSelect->key), 0);
+                        ^
+In file included from ../sock/sockets-lib.h:21:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/i386-linux-gnu/sys/socket.h:156:16: note: expected ‘void *’ but argument is of type ‘int’
+ extern ssize_t recv (int __fd, void *__buf, size_t __n, int __flags);
+                ^
+../sock/comuniacion.c: In function ‘recibirPaquete’:
+../sock/comuniacion.c:49:3: warning: ‘selectARecibir’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+   desSerializarSelect(selectARecibir, socketReceptor);
+   ^
+Finished building: ../sock/comuniacion.c
+ 
+Building target: libsockets-lib.so
+Invoking: GCC C Linker
+gcc -shared -o "libsockets-lib.so"  ./sock/comuniacion.o ./sock/sockets-lib.o   -lcommons
+Finished building target: libsockets-lib.so
+ 
+22:54:59 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+Building target: Memoria
+Invoking: GCC C Linker
+gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Memoria"  ./Memoria.o   -lsockets-lib -lcommons -lpthread
+Finished building target: Memoria
+ 
+22:55:45 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+Building file: ../sock/comuniacion.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/comuniacion.d" -MT"sock/comuniacion.o" -o "sock/comuniacion.o" "../sock/comuniacion.c"
+../sock/comuniacion.c: In function ‘serializarRequest’:
+../sock/comuniacion.c:20:9: warning: return makes integer from pointer without a cast [-Wint-conversion]
+  return paqueteSerializado;
+         ^
+../sock/comuniacion.c: In function ‘recibirPaquete’:
+../sock/comuniacion.c:39:8: warning: unused variable ‘addARecibir’ [-Wunused-variable]
+  tAdd* addARecibir;
+        ^
+../sock/comuniacion.c:38:12: warning: unused variable ‘journalARecibir’ [-Wunused-variable]
+sock/subdir.mk:21: recipe for target 'sock/comuniacion.o' failed
+  tJournal* journalARecibir;
+            ^
+../sock/comuniacion.c:37:9: warning: unused variable ‘dropARecibir’ [-Wunused-variable]
+  tDrop* dropARecibir;
+         ^
+../sock/comuniacion.c:36:13: warning: unused variable ‘describeARecibir’ [-Wunused-variable]
+  tDescribe* describeARecibir;
+             ^
+../sock/comuniacion.c:34:11: warning: unused variable ‘insertARecibir’ [-Wunused-variable]
+  tInsert* insertARecibir;
+           ^
+../sock/comuniacion.c:33:11: warning: unused variable ‘createARecibir’ [-Wunused-variable]
+  tCreate* createARecibir;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarSelect’:
+../sock/comuniacion.c:117:32: error: lvalue required as left operand of assignment
+  &(packageSelect->nombre_tabla)=malloc(nombrelong);
+                                ^
+../sock/comuniacion.c:124:24: warning: passing argument 2 of ‘recv’ makes pointer from integer without a cast [-Wint-conversion]
+  status = recv(socket, packageSelect->key, sizeof(packageSelect->key), 0);
+                        ^
+In file included from ../sock/sockets-lib.h:21:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/i386-linux-gnu/sys/socket.h:156:16: note: expected ‘void *’ but argument is of type ‘int’
+ extern ssize_t recv (int __fd, void *__buf, size_t __n, int __flags);
+                ^
+make: *** [sock/comuniacion.o] Error 1
+22:55:45 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+Building target: Memoria
+Invoking: GCC C Linker
+gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Memoria"  ./Memoria.o   -lsockets-lib -lcommons -lpthread
+/usr/bin/ld: cannot find -lsockets-lib
+collect2: error: ld returned 1 exit status
+makefile:32: recipe for target 'Memoria' failed
+make: *** [Memoria] Error 1
+22:55:58 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+Building file: ../sock/comuniacion.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/comuniacion.d" -MT"sock/comuniacion.o" -o "sock/comuniacion.o" "../sock/comuniacion.c"
+../sock/comuniacion.c: In function ‘serializarRequest’:
+../sock/comuniacion.c:20:9: warning: return makes integer from pointer without a cast [-Wint-conversion]
+  return paqueteSerializado;
+         ^
+../sock/comuniacion.c: In function ‘recibirPaquete’:
+../sock/comuniacion.c:39:8: warning: unused variable ‘addARecibir’ [-Wunused-variable]
+  tAdd* addARecibir;
+        ^
+../sock/comuniacion.c:38:12: warning: unused variable ‘journalARecibir’ [-Wunused-variable]
+  tJournal* journalARecibir;
+            ^
+../sock/comuniacion.c:37:9: warning: unused variable ‘dropARecibir’ [-Wunused-variable]
+  tDrop* dropARecibir;
+         ^
+sock/subdir.mk:21: recipe for target 'sock/comuniacion.o' failed
+../sock/comuniacion.c:36:13: warning: unused variable ‘describeARecibir’ [-Wunused-variable]
+  tDescribe* describeARecibir;
+             ^
+../sock/comuniacion.c:34:11: warning: unused variable ‘insertARecibir’ [-Wunused-variable]
+  tInsert* insertARecibir;
+           ^
+../sock/comuniacion.c:33:11: warning: unused variable ‘createARecibir’ [-Wunused-variable]
+  tCreate* createARecibir;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarSelect’:
+../sock/comuniacion.c:117:32: error: lvalue required as left operand of assignment
+  &(packageSelect->nombre_tabla)=malloc(nombrelong);
+                                ^
+../sock/comuniacion.c:124:24: warning: passing argument 2 of ‘recv’ makes pointer from integer without a cast [-Wint-conversion]
+  status = recv(socket, packageSelect->key, sizeof(packageSelect->key), 0);
+                        ^
+In file included from ../sock/sockets-lib.h:21:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/i386-linux-gnu/sys/socket.h:156:16: note: expected ‘void *’ but argument is of type ‘int’
+ extern ssize_t recv (int __fd, void *__buf, size_t __n, int __flags);
+                ^
+make: *** [sock/comuniacion.o] Error 1
+22:55:59 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+Building target: Memoria
+Invoking: GCC C Linker
+gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Memoria"  ./Memoria.o   -lsockets-lib -lcommons -lpthread
+/usr/bin/ld: cannot find -lsockets-lib
+collect2: error: ld returned 1 exit status
+make: *** [Memoria] Error 1
+makefile:32: recipe for target 'Memoria' failed
+22:56:18 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+Building file: ../sock/comuniacion.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/comuniacion.d" -MT"sock/comuniacion.o" -o "sock/comuniacion.o" "../sock/comuniacion.c"
+../sock/comuniacion.c: In function ‘serializarRequest’:
+../sock/comuniacion.c:20:9: warning: return makes integer from pointer without a cast [-Wint-conversion]
+  return paqueteSerializado;
+         ^
+../sock/comuniacion.c: In function ‘recibirPaquete’:
+../sock/comuniacion.c:39:8: warning: unused variable ‘addARecibir’ [-Wunused-variable]
+  tAdd* addARecibir;
+        ^
+../sock/comuniacion.c:38:12: warning: unused variable ‘journalARecibir’ [-Wunused-variable]
+  tJournal* journalARecibir;
+            ^
+../sock/comuniacion.c:37:9: warning: unused variable ‘dropARecibir’ [-Wunused-variable]
+  tDrop* dropARecibir;
+         ^
+../sock/comuniacion.c:36:13: warning: unused variable ‘describeARecibir’ [-Wunused-variable]
+  tDescribe* describeARecibir;
+             ^
+../sock/comuniacion.c:34:11: warning: unused variable ‘insertARecibir’ [-Wunused-variable]
+  tInsert* insertARecibir;
+           ^
+../sock/comuniacion.c:33:11: warning: unused variable ‘createARecibir’ [-Wunused-variable]
+  tCreate* createARecibir;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarSelect’:
+../sock/comuniacion.c:124:24: warning: passing argument 2 of ‘recv’ makes pointer from integer without a cast [-Wint-conversion]
+  status = recv(socket, packageSelect->key, sizeof(packageSelect->key), 0);
+                        ^
+In file included from ../sock/sockets-lib.h:21:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/i386-linux-gnu/sys/socket.h:156:16: note: expected ‘void *’ but argument is of type ‘int’
+ extern ssize_t recv (int __fd, void *__buf, size_t __n, int __flags);
+                ^
+../sock/comuniacion.c: In function ‘recibirPaquete’:
+../sock/comuniacion.c:49:3: warning: ‘selectARecibir’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+   desSerializarSelect(selectARecibir, socketReceptor);
+   ^
+Finished building: ../sock/comuniacion.c
+ 
+Building target: libsockets-lib.so
+Invoking: GCC C Linker
+gcc -shared -o "libsockets-lib.so"  ./sock/comuniacion.o ./sock/sockets-lib.o   -lcommons
+Finished building target: libsockets-lib.so
+ 
+22:56:19 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+Building target: Memoria
+Invoking: GCC C Linker
+gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Memoria"  ./Memoria.o   -lsockets-lib -lcommons -lpthread
+Finished building target: Memoria
+ 
+22:57:10 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+Building file: ../sock/comuniacion.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/comuniacion.d" -MT"sock/comuniacion.o" -o "sock/comuniacion.o" "../sock/comuniacion.c"
+../sock/comuniacion.c: In function ‘serializarRequest’:
+../sock/comuniacion.c:20:9: warning: return makes integer from pointer without a cast [-Wint-conversion]
+  return paqueteSerializado;
+         ^
+../sock/comuniacion.c: In function ‘recibirPaquete’:
+../sock/comuniacion.c:39:8: warning: unused variable ‘addARecibir’ [-Wunused-variable]
+  tAdd* addARecibir;
+        ^
+../sock/comuniacion.c:38:12: warning: unused variable ‘journalARecibir’ [-Wunused-variable]
+  tJournal* journalARecibir;
+            ^
+../sock/comuniacion.c:37:9: warning: unused variable ‘dropARecibir’ [-Wunused-variable]
+  tDrop* dropARecibir;
+         ^
+../sock/comuniacion.c:36:13: warning: unused variable ‘describeARecibir’ [-Wunused-variable]
+  tDescribe* describeARecibir;
+             ^
+../sock/comuniacion.c:34:11: warning: unused variable ‘insertARecibir’ [-Wunused-variable]
+  tInsert* insertARecibir;
+           ^
+../sock/comuniacion.c:33:11: warning: unused variable ‘createARecibir’ [-Wunused-variable]
+  tCreate* createARecibir;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarSelect’:
+../sock/comuniacion.c:124:24: warning: passing argument 2 of ‘recv’ makes pointer from integer without a cast [-Wint-conversion]
+  status = recv(socket, packageSelect->key, sizeof(packageSelect->key), 0);
+                        ^
+In file included from ../sock/sockets-lib.h:21:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/i386-linux-gnu/sys/socket.h:156:16: note: expected ‘void *’ but argument is of type ‘int’
+ extern ssize_t recv (int __fd, void *__buf, size_t __n, int __flags);
+                ^
+../sock/comuniacion.c: In function ‘recibirPaquete’:
+../sock/comuniacion.c:49:3: warning: ‘selectARecibir’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+   desSerializarSelect(selectARecibir, socketReceptor);
+   ^
+Finished building: ../sock/comuniacion.c
+ 
+Building target: libsockets-lib.so
+Invoking: GCC C Linker
+gcc -shared -o "libsockets-lib.so"  ./sock/comuniacion.o ./sock/sockets-lib.o   -lcommons
+Finished building target: libsockets-lib.so
+ 
+22:57:11 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+Building target: Memoria
+Invoking: GCC C Linker
+gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Memoria"  ./Memoria.o   -lsockets-lib -lcommons -lpthread
+Finished building target: Memoria
+ 
+22:57:41 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+Building file: ../sock/comuniacion.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/comuniacion.d" -MT"sock/comuniacion.o" -o "sock/comuniacion.o" "../sock/comuniacion.c"
+../sock/comuniacion.c: In function ‘serializarRequest’:
+../sock/comuniacion.c:20:9: warning: return makes integer from pointer without a cast [-Wint-conversion]
+  return paqueteSerializado;
+         ^
+../sock/comuniacion.c: In function ‘recibirPaquete’:
+../sock/comuniacion.c:39:8: warning: unused variable ‘addARecibir’ [-Wunused-variable]
+  tAdd* addARecibir;
+        ^
+../sock/comuniacion.c:38:12: warning: unused variable ‘journalARecibir’ [-Wunused-variable]
+  tJournal* journalARecibir;
+            ^
+../sock/comuniacion.c:37:9: warning: unused variable ‘dropARecibir’ [-Wunused-variable]
+  tDrop* dropARecibir;
+         ^
+../sock/comuniacion.c:36:13: warning: unused variable ‘describeARecibir’ [-Wunused-variable]
+  tDescribe* describeARecibir;
+             ^
+../sock/comuniacion.c:34:11: warning: unused variable ‘insertARecibir’ [-Wunused-variable]
+  tInsert* insertARecibir;
+           ^
+../sock/comuniacion.c:33:11: warning: unused variable ‘createARecibir’ [-Wunused-variable]
+  tCreate* createARecibir;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarSelect’:
+../sock/comuniacion.c:118:24: warning: passing argument 2 of ‘recv’ makes pointer from integer without a cast [-Wint-conversion]
+  status = recv(socket, *packageSelect->nombre_tabla, nombrelong, 0);
+                        ^
+In file included from ../sock/sockets-lib.h:21:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/i386-linux-gnu/sys/socket.h:156:16: note: expected ‘void *’ but argument is of type ‘char’
+ extern ssize_t recv (int __fd, void *__buf, size_t __n, int __flags);
+                ^
+../sock/comuniacion.c:124:24: warning: passing argument 2 of ‘recv’ makes pointer from integer without a cast [-Wint-conversion]
+  status = recv(socket, packageSelect->key, sizeof(packageSelect->key), 0);
+                        ^
+In file included from ../sock/sockets-lib.h:21:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/i386-linux-gnu/sys/socket.h:156:16: note: expected ‘void *’ but argument is of type ‘int’
+ extern ssize_t recv (int __fd, void *__buf, size_t __n, int __flags);
+                ^
+../sock/comuniacion.c: In function ‘recibirPaquete’:
+../sock/comuniacion.c:49:3: warning: ‘selectARecibir’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+   desSerializarSelect(selectARecibir, socketReceptor);
+   ^
+Finished building: ../sock/comuniacion.c
+ 
+Building target: libsockets-lib.so
+Invoking: GCC C Linker
+gcc -shared -o "libsockets-lib.so"  ./sock/comuniacion.o ./sock/sockets-lib.o   -lcommons
+Finished building target: libsockets-lib.so
+ 
+22:57:41 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+Building target: Memoria
+Invoking: GCC C Linker
+gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Memoria"  ./Memoria.o   -lsockets-lib -lcommons -lpthread
+Finished building target: Memoria
+ 
+22:58:23 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+Building file: ../sock/comuniacion.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/comuniacion.d" -MT"sock/comuniacion.o" -o "sock/comuniacion.o" "../sock/comuniacion.c"
+../sock/comuniacion.c: In function ‘serializarRequest’:
+../sock/comuniacion.c:20:9: warning: return makes integer from pointer without a cast [-Wint-conversion]
+  return paqueteSerializado;
+         ^
+../sock/comuniacion.c: In function ‘recibirPaquete’:
+../sock/comuniacion.c:39:8: warning: unused variable ‘addARecibir’ [-Wunused-variable]
+  tAdd* addARecibir;
+        ^
+../sock/comuniacion.c:38:12: warning: unused variable ‘journalARecibir’ [-Wunused-variable]
+  tJournal* journalARecibir;
+            ^
+../sock/comuniacion.c:37:9: warning: unused variable ‘dropARecibir’ [-Wunused-variable]
+  tDrop* dropARecibir;
+         ^
+../sock/comuniacion.c:36:13: warning: unused variable ‘describeARecibir’ [-Wunused-variable]
+  tDescribe* describeARecibir;
+             ^
+../sock/comuniacion.c:34:11: warning: unused variable ‘insertARecibir’ [-Wunused-variable]
+  tInsert* insertARecibir;
+           ^
+../sock/comuniacion.c:33:11: warning: unused variable ‘createARecibir’ [-Wunused-variable]
+  tCreate* createARecibir;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarSelect’:
+../sock/comuniacion.c:124:24: warning: passing argument 2 of ‘recv’ makes pointer from integer without a cast [-Wint-conversion]
+  status = recv(socket, packageSelect->key, sizeof(packageSelect->key), 0);
+                        ^
+In file included from ../sock/sockets-lib.h:21:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/i386-linux-gnu/sys/socket.h:156:16: note: expected ‘void *’ but argument is of type ‘int’
+ extern ssize_t recv (int __fd, void *__buf, size_t __n, int __flags);
+                ^
+../sock/comuniacion.c: In function ‘recibirPaquete’:
+../sock/comuniacion.c:49:3: warning: ‘selectARecibir’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+   desSerializarSelect(selectARecibir, socketReceptor);
+   ^
+Finished building: ../sock/comuniacion.c
+ 
+Building target: libsockets-lib.so
+Invoking: GCC C Linker
+gcc -shared -o "libsockets-lib.so"  ./sock/comuniacion.o ./sock/sockets-lib.o   -lcommons
+Finished building target: libsockets-lib.so
+ 
+22:58:23 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+Building target: Memoria
+Invoking: GCC C Linker
+gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Memoria"  ./Memoria.o   -lsockets-lib -lcommons -lpthread
+Finished building target: Memoria
+ 
+23:00:14 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+Building file: ../sock/comuniacion.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/comuniacion.d" -MT"sock/comuniacion.o" -o "sock/comuniacion.o" "../sock/comuniacion.c"
+../sock/comuniacion.c: In function ‘serializarRequest’:
+../sock/comuniacion.c:20:9: warning: return makes integer from pointer without a cast [-Wint-conversion]
+  return paqueteSerializado;
+         ^
+../sock/comuniacion.c: In function ‘recibirPaquete’:
+../sock/comuniacion.c:39:8: warning: unused variable ‘addARecibir’ [-Wunused-variable]
+  tAdd* addARecibir;
+        ^
+../sock/comuniacion.c:38:12: warning: unused variable ‘journalARecibir’ [-Wunused-variable]
+  tJournal* journalARecibir;
+            ^
+../sock/comuniacion.c:37:9: warning: unused variable ‘dropARecibir’ [-Wunused-variable]
+  tDrop* dropARecibir;
+         ^
+../sock/comuniacion.c:36:13: warning: unused variable ‘describeARecibir’ [-Wunused-variable]
+  tDescribe* describeARecibir;
+             ^
+../sock/comuniacion.c:34:11: warning: unused variable ‘insertARecibir’ [-Wunused-variable]
+  tInsert* insertARecibir;
+           ^
+../sock/comuniacion.c:33:11: warning: unused variable ‘createARecibir’ [-Wunused-variable]
+  tCreate* createARecibir;
+           ^
+../sock/comuniacion.c:49:3: warning: ‘selectARecibir’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+   desSerializarSelect(selectARecibir, socketReceptor);
+   ^
+Finished building: ../sock/comuniacion.c
+ 
+Building target: libsockets-lib.so
+Invoking: GCC C Linker
+gcc -shared -o "libsockets-lib.so"  ./sock/comuniacion.o ./sock/sockets-lib.o   -lcommons
+Finished building target: libsockets-lib.so
+ 
+23:00:15 **** Incremental Build of configuration Debug for project Memoria ****
 make all 
 Building target: Memoria
 Invoking: GCC C Linker

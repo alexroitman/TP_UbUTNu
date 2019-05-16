@@ -23,8 +23,8 @@ int main() {
 	tSelect paqueteSelect;
 	paqueteSelect.type=SELECT;
 	paqueteSelect.key=4;
-	paqueteSelect.nombre_tabla= "HOLA\0";
-	paqueteSelect.nombre_tabla_long= strlen(paqueteSelect.nombre_tabla);
+	paqueteSelect.nombre_tabla= "HOLA";
+	paqueteSelect.nombre_tabla_long= strlen(paqueteSelect.nombre_tabla)+1;
 	paqueteSelect.length=sizeof(paqueteSelect.type) +sizeof(paqueteSelect.nombre_tabla_long)+paqueteSelect.nombre_tabla_long+sizeof(paqueteSelect.key);
 
 

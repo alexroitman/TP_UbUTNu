@@ -18,7 +18,7 @@ struct addrinfo *serverInfo;
 
 // Define cual va a ser el size maximo del paquete a enviar
 
-	int main() {
+ 	int main() {
 	int socket_sv = levantarServidor(PUERTOKERNEL);
 	int socket_cli=aceptarCliente(socket_sv);
 	tPaquete tpack;
@@ -27,7 +27,7 @@ struct addrinfo *serverInfo;
 	{
 		recibirPaquete(socket_cli);
 	}
-	//int okey = desSerializarSelect(&tpack,&packRecibido);
+
 	close(socket_cli);
 	close(socket_sv);
 }

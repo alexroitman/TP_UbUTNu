@@ -90,7 +90,7 @@ int serializarDrop(tDrop packageDrop, tPaquete* paqueteSerializado);
 int desSerializarDrop(tPaquete* paqueteSerializado, tDrop* packageDrop);
 
 char* serializarSelect(tSelect* packageSelect);
-int desSerializarSelect(tPaquete* paqueteSerializado, tSelect* packageSelect);
+int desSerializarSelect(tSelect* packageSelect,int socket);
 
 int serializarCreate(tCreate packageCreate, tPaquete* paqueteSerializado);
 int desSerializarCreate(tPaquete* paqueteSerializado, tCreate* packageCreate);
