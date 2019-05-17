@@ -55,7 +55,7 @@ int aceptarCliente(int serverSocket) {
 	socklen_t addrlen = sizeof(addr);
 
 		int socketCliente = accept(serverSocket, (struct sockaddr *) &addr, &addrlen);
-		printf("Cliente conectado. Esperando mensajes:\n");
+		printf("Cliente conectado. Esperando mensajes: \n");
 
 		return socketCliente;
 }

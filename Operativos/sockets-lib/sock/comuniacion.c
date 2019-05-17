@@ -20,6 +20,7 @@ int serializarRequest(t_Package_Request packageRequest,
 	return paqueteSerializado;
 }
 
+
 int enviarPaquete(int clienteSocket, char* payload, uint32_t size) {
 
 	return send(clienteSocket, payload, size, 0);
@@ -30,13 +31,13 @@ int recibirPaquete(int socketReceptor) {
 	type header;
 	int algo = recv(socketReceptor, &header, sizeof(type), MSG_WAITALL);
 
-	tCreate* createARecibir;
-	tInsert* insertARecibir;
-	tSelect* selectARecibir;
-	tDescribe* describeARecibir;
-	tDrop* dropARecibir;
-	tJournal* journalARecibir;
-	tAdd* addARecibir;
+	tCreate createARecibir;
+	tInsert insertARecibir;
+	tSelect selectARecibir;
+	tDescribe describeARecibir;
+	tDrop dropARecibir;
+	tJournal journalARecibir;
+	tAdd addARecibir;
 	switch (header) {
 
 	case INSERT:
@@ -44,9 +45,10 @@ int recibirPaquete(int socketReceptor) {
 		//desSerializarInsert(paquete_a_recibir,insertARecibir);
 		break;
 	case SELECT:
+		selectARecibir.type=header;
 
-		printf("recibi un select");
-		desSerializarSelect(selectARecibir, socketReceptor);
+		desSerializarSelect(&selectARecibir, socketReceptor);
+		printf("recibi un SELECT %s %d \n",selectARecibir.nombre_tabla,selectARecibir.key);
 		break;
 	case CREATE:
 
@@ -92,13 +94,15 @@ char* serializarSelect(tSelect* packageSelect) {
 
 
 	size_to_send = packageSelect->nombre_tabla_long;
+
 	memcpy(serializedPackage + offset,(packageSelect->nombre_tabla),size_to_send);
 	offset+=size_to_send;
 
 
-	size_to_send = sizeof(uint32_t);
+	size_to_send = sizeof(int);
 	memcpy(serializedPackage + offset ,&packageSelect->key,size_to_send);
 
+	packageSelect->length=sizeof(packageSelect->type) +sizeof(packageSelect->nombre_tabla_long)+packageSelect->nombre_tabla_long+sizeof(packageSelect->key);
 
 	return serializedPackage;
 }
@@ -110,16 +114,16 @@ int desSerializarSelect(tSelect* packageSelect, int socket) {// LO RECIBE PERO N
 	char *buffer = malloc(buffer_size = sizeof(uint32_t));
 
 	uint32_t nombrelong;
-	status = recv(socket, buffer, sizeof(packageSelect->nombre_tabla_long), 0);//recibo la longitud
+	status = recv(socket, buffer, sizeof((packageSelect->nombre_tabla_long)), 0);//recibo la longitud
 	memcpy(&(nombrelong), buffer, buffer_size);
 	if (!status)
 		return 0;
-	status = recv(socket, buffer, nombrelong, 0);//recibo el nombre de la tabla
+	status = recv(socket, packageSelect->nombre_tabla, nombrelong, 0);//recibo el nombre de la tabla
 
 	if (!status)
 		return 0;
 
-	status = recv(socket, buffer, sizeof(packageSelect->key), 0);//recibo el nombre de la key
+	status = recv(socket, &packageSelect->key , sizeof(packageSelect->key), 0);//recibo el nombre de la key
 	if (!status)
 		return 0;
 
