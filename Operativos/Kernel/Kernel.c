@@ -22,7 +22,6 @@ int main() {
 	int socket_memoria = levantarCliente(PUERTOMEM,IP);
 	char consulta[256]="";
 	tSelect paqueteSelect;
-	tInsert paqueteInsert;
 	int consultaOk = 0;
 	char** tempSplit;
 	type typeHeader;
@@ -46,17 +45,6 @@ int main() {
 			printf("no entendi tu header \n");
 		}
 	}
-
-/*	switch (typeHeader) {
-		case INSERT:
-			printf("mandaste un insert bro \n");
-			break;
-		case SELECT:
-			cargarPaqueteSelect(&paqueteSelect,consulta);
-			serializado= serializarSelect(&paqueteSelect);
-			break;
-	}
-*/
 	if(strcmp(serializado,"")){
 		enviarPaquete(socket_memoria,serializado,paqueteSelect.length);
 	}
