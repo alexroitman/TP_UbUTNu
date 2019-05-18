@@ -6,6 +6,8 @@
  */
 
 #include <stdio.h>
+#include <ctype.h>
+
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -21,13 +23,14 @@
 #define MAX_MESSAGE_SIZE 300
 
 
-char* leerConsola(); //Lee la consulta y devuelve el string
-
+type leerConsola(); //Lee la consulta y devuelve el string
+type validarSegunHeader(char* header);
 bool analizarConsulta();
 
 void run();
 
 void add();
+void cargarPaqueteSelect();
 
 
 

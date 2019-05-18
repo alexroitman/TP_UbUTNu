@@ -1,6 +1,6 @@
-12:32:18 **** Incremental Build of configuration Debug for project sockets-lib ****
+16:15:48 **** Incremental Build of configuration Debug for project sockets-lib ****
 make all 
 make: Nothing to be done for 'all'.
 
-12:32:19 Build Finished (took 410ms)
+16:15:49 Build Finished (took 310ms)
 

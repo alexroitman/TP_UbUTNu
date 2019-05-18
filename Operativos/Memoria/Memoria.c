@@ -21,8 +21,6 @@ struct addrinfo *serverInfo;
  	int main() {
 	int socket_sv = levantarServidor(PUERTOKERNEL);
 	int socket_cli=aceptarCliente(socket_sv);
-	tPaquete tpack;
-	tSelect packRecibido;
 	while(recibirPaquete(socket_cli) == -1)
 	{
 		recibirPaquete(socket_cli);

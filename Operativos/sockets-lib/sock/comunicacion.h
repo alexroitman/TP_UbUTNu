@@ -18,7 +18,8 @@ CREATE,
 DESCRIBE,
 DROP,
 JOURNAL,
-ADD}type;
+ADD,
+NIL}type;
 typedef struct {
 
 char* header;
@@ -40,13 +41,16 @@ char payload[MAX_BUFFER];
 } tPaquete;
 
 typedef struct {
+type type;
+uint32_t nombre_tabla_long;
 char* nombre_tabla;
 int key;									//INSERT
 char* value;
+uint32_t length;
 } tInsert;
 
 typedef struct {
-	type type;
+type type;
 uint32_t nombre_tabla_long;
 char* nombre_tabla;							//SELECT
 int key;

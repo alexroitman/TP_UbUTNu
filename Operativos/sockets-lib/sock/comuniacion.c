@@ -46,9 +46,8 @@ int recibirPaquete(int socketReceptor) {
 		break;
 	case SELECT:
 		selectARecibir.type=header;
-
 		desSerializarSelect(&selectARecibir, socketReceptor);
-		printf("recibi un SELECT %s %d \n",selectARecibir.nombre_tabla,selectARecibir.key);
+		printf("recibi un una consulta SELECT de la tabla %s con le key %d \n",selectARecibir.nombre_tabla,selectARecibir.key);
 		break;
 	case CREATE:
 

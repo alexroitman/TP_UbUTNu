@@ -1,6 +1,44 @@
-12:31:58 **** Incremental Build of configuration Default for project LFS ****
+11:14:21 **** Build of configuration Default for project LFS ****
 make all 
-make: Nothing to be done for 'all'.
+Building file: ../LFS.c
+Invoking: GCC C Compiler
+gcc -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+../LFS.c: In function ‘CREATE’:
+../LFS.c:37:7: warning: unused variable ‘aux’ [-Wunused-variable]
+  char aux[strlen(NOMBRE_TABLA)+10];
+       ^
+../LFS.c: In function ‘listarDirectorios’:
+../LFS.c:296:14: warning: return makes pointer from integer without a cast [-Wint-conversion]
+       return -1;
+              ^
+../LFS.c:304:18: warning: return makes pointer from integer without a cast [-Wint-conversion]
+           return -1;
+                  ^
+../LFS.c:313:22: warning: return makes pointer from integer without a cast [-Wint-conversion]
+               return -1;
+                      ^
+../LFS.c: In function ‘buscarEnMetadata’:
+../LFS.c:233:2: warning: ignoring return value of ‘fgets’, declared with attribute warn_unused_result [-Wunused-result]
+  fgets(aux, 40, fp);
+  ^
+../LFS.c:238:3: warning: ignoring return value of ‘fgets’, declared with attribute warn_unused_result [-Wunused-result]
+   fgets(aux, 40, fp);
+   ^
+../LFS.c: In function ‘listarDirectorios’:
+../LFS.c:318:1: warning: control reaches end of non-void function [-Wreturn-type]
+ }
+ ^
+../LFS.c: In function ‘crearBinarios’:
+../LFS.c:182:2: warning: ‘fp’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+  fclose(fp);
+  ^
+Finished building: ../LFS.c
+ 
+Building target: LFS
+Invoking: GCC C++ Linker
+g++  -o "LFS"  ./LFS.o   -lcommons
+Finished building target: LFS
+ 
 
-12:31:58 Build Finished (took 460ms)
+11:14:22 Build Finished (took 1s.670ms)
 
