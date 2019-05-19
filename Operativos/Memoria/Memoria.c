@@ -23,15 +23,19 @@ int main() {
 	type header;
 	while (1) {
 		header = leerHeader(socket_cli);
-		//recibirPaquete(socket_cli);
 		tSelect packSelect;
+		tInsert packInsert;
 		packSelect.type = header;
 		switch (header) {
 		case SELECT:
 			desSerializarSelect(&packSelect,socket_cli);
 			printf("recibi un una consulta SELECT de la tabla %s con le key %d \n",
 					packSelect.nombre_tabla, packSelect.key);
-			free(packSelect);
+			break;
+		case INSERT:
+			desSerializarInsert(&packInsert,socket_cli);
+			printf("recibi un una consulta INSERT de la tabla %s con le key %d y el value %s \n",
+					packInsert.nombre_tabla, packInsert.key, packInsert.value);
 			break;
 		}
 	}

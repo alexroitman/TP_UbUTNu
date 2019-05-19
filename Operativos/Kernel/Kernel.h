@@ -31,7 +31,7 @@ void run();
 
 void add();
 void cargarPaqueteSelect();
-
+void cargarPaqueteInsert();
 
 
 

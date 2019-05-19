@@ -44,7 +44,8 @@ typedef struct {
 type type;
 uint32_t nombre_tabla_long;
 char* nombre_tabla;
-int key;									//INSERT
+int key;//INSERT
+uint32_t value_long;
 char* value;
 uint32_t length;
 } tInsert;
@@ -87,8 +88,8 @@ int serializarRequest(t_Package_Request packageRequest,
 int desSerializarRequest(tPaquete* paqueteSerializado,
 	t_Package_Request* packageRequest);
 
-int serializarInsert(tInsert packageInsert, tPaquete* paqueteSerializado);
-int desSerializarInsert(tPaquete* paqueteSerializado, tInsert* packageInsert);
+int desSerializarInsert(tInsert* packageInsert, int socket);
+char* serializarInsert(tInsert* packageInsert);
 
 int serializarDrop(tDrop packageDrop, tPaquete* paqueteSerializado);
 int desSerializarDrop(tPaquete* paqueteSerializado, tDrop* packageDrop);
