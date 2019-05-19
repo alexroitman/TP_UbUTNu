@@ -20,41 +20,14 @@ struct addrinfo *serverInfo;
 int main() {
 	int socket_memoria = levantarCliente(PUERTOMEM, IP);
 	char consulta[256] = "";
-	tSelect paqueteSelect;
-	tInsert paqueteInsert;
-	int consultaOk = 0;
-	char** tempSplit;
-	type typeHeader;
-	char* serializado = "";
 	while (1) {
 
 		fgets(consulta, 256, stdin);
-		tempSplit = string_n_split(consulta, 2, " ");
-		if (strcmp(tempSplit[0], "")) {
-			typeHeader = validarSegunHeader(tempSplit[0]);
-			if (typeHeader == SELECT) {
-				cargarPaqueteSelect(&paqueteSelect, consulta);
-				serializado = serializarSelect(&paqueteSelect);
-				enviarPaquete(socket_memoria, serializado, paqueteSelect.length);
-				consultaOk = 1;
-			}
-			if (typeHeader == INSERT) {
-				cargarPaqueteInsert(&paqueteInsert,consulta);
-				serializado = serializarInsert(&paqueteInsert);
-				enviarPaquete(socket_memoria, serializado, paqueteInsert.length);
-				printf("serializo el insert \n");
-				consultaOk = 1;
-			}
-		}
+		int consultaOk = despacharQuery(consulta, socket_memoria);
 		if (!consultaOk) {
 			printf("no entendi tu header \n");
 		}
-
-		if (strcmp(serializado, "")) {
-
-		}
-		consultaOk=0;
-		serializado="";
+		consultaOk = 0;
 	}
 
 	//close(socket_memoria);
@@ -90,7 +63,8 @@ void cargarPaqueteSelect(tSelect *pack, char* cons) {
 void cargarPaqueteInsert(tInsert *pack, char* cons) {
 	char** spliteado;
 	spliteado = string_n_split(cons, 4, " ");
-	if (strcmp(spliteado[1], "") && strcmp(spliteado[2], "") && strcmp(spliteado[3], "")) {
+	if (strcmp(spliteado[1], "") && strcmp(spliteado[2], "")
+			&& strcmp(spliteado[3], "")) {
 		pack->type = INSERT;
 		pack->nombre_tabla = spliteado[1];
 		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
@@ -98,14 +72,46 @@ void cargarPaqueteInsert(tInsert *pack, char* cons) {
 		printf("long tabla: %d \n", pack->nombre_tabla_long);
 		pack->key = atoi(spliteado[2]);
 		pack->value = spliteado[3];
-		pack->value_long = strlen(spliteado[3])+1;
+		pack->value_long = strlen(spliteado[3]) + 1;
 		printf("value: %s \n", pack->value);
 		printf("value long: %d \n", pack->value_long);
 		pack->length = sizeof(pack->type) + sizeof(pack->nombre_tabla_long)
-				+ pack->nombre_tabla_long + sizeof(pack->key) + sizeof(pack->value_long) + pack->value_long;
+				+ pack->nombre_tabla_long + sizeof(pack->key)
+				+ sizeof(pack->value_long) + pack->value_long;
 	} else {
 		printf("no entendi tu consulta\n");
 	}
 }
 
+int despacharQuery(char* consulta, int socket_memoria) {
+	char** tempSplit;
+	tSelect paqueteSelect;
+	tInsert paqueteInsert;
+	type typeHeader;
+	char* serializado = "";
+	int consultaOk = 0;
+	tempSplit = string_n_split(consulta, 2, " ");
+	if (strcmp(tempSplit[0], "")) {
+		typeHeader = validarSegunHeader(tempSplit[0]);
+		switch (typeHeader) {
+		case SELECT:
+			cargarPaqueteSelect(&paqueteSelect, consulta);
+			serializado = serializarSelect(&paqueteSelect);
+			enviarPaquete(socket_memoria, serializado, paqueteSelect.length);
+			consultaOk = 1;
+			break;
+		case INSERT:
+			cargarPaqueteInsert(&paqueteInsert, consulta);
+			serializado = serializarInsert(&paqueteInsert);
+			enviarPaquete(socket_memoria, serializado, paqueteInsert.length);
+			printf("serializo el insert \n");
+			consultaOk = 1;
+			break;
+		default:
+			printf("para macho que no se, estoy aprendiendo\n");
+			break;
+		}
 
+	}
+	return consultaOk;
+}

@@ -1,10 +1,13 @@
-20:06:09 **** Incremental Build of configuration Default for project Kernel ****
+20:21:11 **** Incremental Build of configuration Default for project Kernel ****
 make all 
 Building file: ../Kernel.c
 Invoking: GCC C Compiler
 gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"Kernel.d" -MT"Kernel.o" -o "Kernel.o" "../Kernel.c"
 ../Kernel.c: In function ‘main’:
-../Kernel.c:31:3: warning: ignoring return value of ‘fgets’, declared with attribute warn_unused_result [-Wunused-result]
+../Kernel.c:26:20: warning: implicit declaration of function ‘despacharQuery’ [-Wimplicit-function-declaration]
+   int consultaOk = despacharQuery(consulta, socket_memoria);
+                    ^
+../Kernel.c:25:3: warning: ignoring return value of ‘fgets’, declared with attribute warn_unused_result [-Wunused-result]
    fgets(consulta, 256, stdin);
    ^
 Finished building: ../Kernel.c
@@ -15,5 +18,5 @@ gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Kernel"  
 Finished building target: Kernel
  
 
-20:06:10 Build Finished (took 837ms)
+20:21:12 Build Finished (took 881ms)
 
