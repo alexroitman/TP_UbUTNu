@@ -1,6 +1,34 @@
-20:21:16 **** Incremental Build of configuration Debug for project sockets-lib ****
+16:02:22 **** Incremental Build of configuration Debug for project sockets-lib ****
 make all 
-make: Nothing to be done for 'all'.
+Building file: ../sock/comuniacion.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/comuniacion.d" -MT"sock/comuniacion.o" -o "sock/comuniacion.o" "../sock/comuniacion.c"
+../sock/comuniacion.c: In function ‘serializarRequest’:
+../sock/comuniacion.c:20:9: warning: return makes integer from pointer without a cast [-Wint-conversion]
+  return paqueteSerializado;
+         ^
+../sock/comuniacion.c: In function ‘leerHeader’:
+../sock/comuniacion.c:32:6: warning: unused variable ‘algo’ [-Wunused-variable]
+  int algo = recv(socket, &header, sizeof(type), MSG_WAITALL);
+      ^
+../sock/comuniacion.c: In function ‘desSerializarSelect’:
+../sock/comuniacion.c:88:21: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  packageSelect->key = malloc(sizeof(int));
+                     ^
+../sock/comuniacion.c:75:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+  uint32_t nombrelong;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarInsert’:
+../sock/comuniacion.c:153:21: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  packageInsert->key = malloc(sizeof(int));
+                     ^
+Finished building: ../sock/comuniacion.c
+ 
+Building target: libsockets-lib.so
+Invoking: GCC C Linker
+gcc -shared -o "libsockets-lib.so"  ./sock/comuniacion.o ./sock/sockets-lib.o   -lcommons
+Finished building target: libsockets-lib.so
+ 
 
-20:21:16 Build Finished (took 375ms)
+16:02:24 Build Finished (took 1s.436ms)
 

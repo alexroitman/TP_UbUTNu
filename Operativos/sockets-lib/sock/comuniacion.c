@@ -75,12 +75,13 @@ int desSerializarSelect(tSelect* packageSelect, int socket) {
 	uint32_t nombrelong;
 	status = recv(socket, buffer, sizeof((packageSelect->nombre_tabla_long)),
 			0); //recibo la longitud
-	memcpy(&(nombrelong), buffer, buffer_size);
+	memcpy(&(packageSelect->nombre_tabla_long), buffer, buffer_size);
+
 	if (!status)
 		return 0;
-	packageSelect->nombre_tabla = malloc(nombrelong);
+	packageSelect->nombre_tabla = malloc(packageSelect->nombre_tabla_long);
 
-	status = recv(socket, packageSelect->nombre_tabla, nombrelong, 0); //recibo el nombre de la tabla
+	status = recv(socket, packageSelect->nombre_tabla, packageSelect->nombre_tabla_long, 0); //recibo el nombre de la tabla
 
 	if (!status)
 		return 0;

@@ -6,9 +6,31 @@
  */
 
 #include "LFS.h"
-
+#define PUERTOLFS "7879"
 int main (void)
 {
+		int socket_sv = levantarServidor(PUERTOLFS);
+		int socket_cli = aceptarCliente(socket_sv);
+		type header;
+			while (1) {
+				header = leerHeader(socket_cli);
+				tSelect packSelect;
+				tInsert packInsert;
+				packSelect.type = header;
+				switch (header) {
+				case SELECT:
+					desSerializarSelect(&packSelect,socket_cli);
+					printf("recibi un una consulta SELECT de la tabla %s con le key %d \n",
+							packSelect.nombre_tabla, packSelect.key);
+					break;
+				case INSERT:
+					desSerializarInsert(&packInsert,socket_cli);
+					printf("recibi un una consulta INSERT de la tabla %s con le key %d y el value %s \n",
+							packInsert.nombre_tabla, packInsert.key, packInsert.value);
+					break;
+				}
+			}
+
 	t_log* logger = iniciar_logger();
 //	t_config* metadata = config_create("metadata");
 	int errorHandler;
@@ -23,16 +45,19 @@ int main (void)
 //	errorHandler = DROP("tables/TABLA1");
 
 //	PRUEBA COMANDO SELECT
-	errorHandler = SELECT("tables/TABLA1", 6);
+//	errorHandler = SELECT("tables/TABLA1", 6);
 
 	if(errorHandler) {logeoDeErrores(errorHandler, logger);}
+	close(socket_cli);
+			close(socket_sv);
+
 	return 0;
 }
 
 // APIs
 
 
-int CREATE(char* NOMBRE_TABLA, int TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME)
+int Create(char* NOMBRE_TABLA, int TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME)
 {
 	char aux[strlen(NOMBRE_TABLA)+10];
 	// ---- Verifico que la tabla no exista ----
@@ -52,7 +77,7 @@ int CREATE(char* NOMBRE_TABLA, int TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, in
 	return todoJoya;
 }
 
-int INSERT (char* NOMBRE_TABLA, int KEY, char* VALUE, int Timestamp)
+int Insert (char* NOMBRE_TABLA, int KEY, char* VALUE, int Timestamp)
 {
 	int particiones;
 	// ---- Verifico que la tabla exista ----
@@ -75,7 +100,7 @@ int INSERT (char* NOMBRE_TABLA, int KEY, char* VALUE, int Timestamp)
 	return todoJoya;
 }
 
-int DROP(char* NOMBRE_TABLA)
+int Drop(char* NOMBRE_TABLA)
 {
 
 	// ---- Verifico que la tabla exista ----
@@ -88,7 +113,7 @@ int DROP(char* NOMBRE_TABLA)
 	return todoJoya;
 }
 
-int SELECT(char* NOMBRE_TABLA, int KEY)
+int SelectApi(char* NOMBRE_TABLA, int KEY)
 {
 	int particiones;
 	// ---- Verifico que la tabla exista ----

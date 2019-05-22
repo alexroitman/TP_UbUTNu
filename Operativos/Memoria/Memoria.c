@@ -14,12 +14,14 @@
 char package[PACKAGESIZE];
 struct addrinfo hints;
 struct addrinfo *serverInfo;
-
+#define PUERTOLFS "7879"
 // Define cual va a ser el size maximo del paquete a enviar
 
 int main() {
 	int socket_sv = levantarServidor(PUERTOKERNEL);
 	int socket_cli = aceptarCliente(socket_sv);
+	int socket_lfs = levantarCliente(PUERTOLFS, IP);
+
 	type header;
 	while (1) {
 		header = leerHeader(socket_cli);
@@ -29,8 +31,10 @@ int main() {
 		switch (header) {
 		case SELECT:
 			desSerializarSelect(&packSelect,socket_cli);
-			printf("recibi un una consulta SELECT de la tabla %s con le key %d \n",
-					packSelect.nombre_tabla, packSelect.key);
+			packSelect.type=header;
+			char* aEnviar=serializarSelect(&packSelect);
+			enviarPaquete(socket_lfs,aEnviar,packSelect.length);
+
 			break;
 		case INSERT:
 			desSerializarInsert(&packInsert,socket_cli);
@@ -39,7 +43,7 @@ int main() {
 			break;
 		}
 	}
-
+	close(socket_lfs);
 	close(socket_cli);
 	close(socket_sv);
 }

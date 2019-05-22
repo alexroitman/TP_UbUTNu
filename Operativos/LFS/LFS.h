@@ -37,7 +37,9 @@
 #include <fts.h>
 #include <pthread.h>
 #include <dirent.h>
-
+#include <sock/sockets-lib.h>
+#include <sock/comunicacion.h>
+#include <sys/socket.h>
 // Estructuras
 typedef struct {
 	int particiones;
@@ -46,11 +48,11 @@ typedef struct {
 } metadata;
 
 // APIs
-int SELECT(char* NOMBRE_TABLA, int KEY);
-int INSERT (char* NOMBRE_TABLA, int KEY, char* VALUE, int Timestamp);
-int CREATE(char* NOMBRE_TABLA, int TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME);
-metadata DESCRIBE(char* NOMBRE_TABLA);
-int DROP(char* NOMBRE_TABLA);
+int SelectApi(char* NOMBRE_TABLA, int KEY);
+int Insert (char* NOMBRE_TABLA, int KEY, char* VALUE, int Timestamp);
+int Create(char* NOMBRE_TABLA, int TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME);
+metadata Describe(char* NOMBRE_TABLA);
+int Drop(char* NOMBRE_TABLA);
 
 // Funciones de tabla
 int crearMetadata(char* NOMBRE_TABLA, int TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME);
