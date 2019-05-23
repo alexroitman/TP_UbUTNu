@@ -12,21 +12,22 @@ int main (void)
 		int socket_sv = levantarServidor(PUERTOLFS);
 		int socket_cli = aceptarCliente(socket_sv);
 		type header;
+
 			while (1) {
 				header = leerHeader(socket_cli);
-				tSelect packSelect;
-				tInsert packInsert;
-				packSelect.type = header;
+				tSelect* packSelect=malloc(sizeof(tSelect));
+				tInsert* packInsert=malloc(sizeof(tInsert));
+				packSelect->type = header;
 				switch (header) {
 				case SELECT:
-					desSerializarSelect(&packSelect,socket_cli);
+					desSerializarSelect(packSelect,socket_cli);
 					printf("recibi un una consulta SELECT de la tabla %s con le key %d \n",
-							packSelect.nombre_tabla, packSelect.key);
+							packSelect->nombre_tabla, packSelect->key);
 					break;
 				case INSERT:
-					desSerializarInsert(&packInsert,socket_cli);
+					desSerializarInsert(packInsert,socket_cli);
 					printf("recibi un una consulta INSERT de la tabla %s con le key %d y el value %s \n",
-							packInsert.nombre_tabla, packInsert.key, packInsert.value);
+							packInsert->nombre_tabla, packInsert->key, packInsert->value);
 					break;
 				}
 			}

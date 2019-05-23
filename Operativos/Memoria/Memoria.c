@@ -25,21 +25,21 @@ int main() {
 	type header;
 	while (1) {
 		header = leerHeader(socket_cli);
-		tSelect packSelect;
-		tInsert packInsert;
-		packSelect.type = header;
+		tSelect* packSelect=malloc(sizeof(tSelect));
+		tInsert* packInsert=malloc(sizeof(tInsert));
+		packSelect->type = header;
 		switch (header) {
 		case SELECT:
-			desSerializarSelect(&packSelect,socket_cli);
-			packSelect.type=header;
-			char* aEnviar=serializarSelect(&packSelect);
-			enviarPaquete(socket_lfs,aEnviar,packSelect.length);
+			desSerializarSelect(packSelect,socket_cli);
+			packSelect->type=header;
+			char* aEnviar=serializarSelect(packSelect);
+			enviarPaquete(socket_lfs,aEnviar,packSelect->length);
 
 			break;
 		case INSERT:
-			desSerializarInsert(&packInsert,socket_cli);
+			desSerializarInsert(packInsert,socket_cli);
 			printf("recibi un una consulta INSERT de la tabla %s con le key %d y el value %s \n",
-					packInsert.nombre_tabla, packInsert.key, packInsert.value);
+					packInsert->nombre_tabla, packInsert->key, packInsert->value);
 			break;
 		}
 	}
