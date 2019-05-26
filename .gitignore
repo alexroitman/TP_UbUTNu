@@ -6,7 +6,7 @@
 *.ko
 *.obj
 *.elf
-
+.metadata
 # Linker output
 *.ilk
 *.map
@@ -199,4 +199,81 @@ local.properties
 # .nfs files are created when an open file is removed but is still being accessed
 .nfs*
 
+
+
+Search or jump to…
+
+Pull requests
+Issues
+Marketplace
+Explore
+ 
+@alexroitman 
+2,777
+84,291 41,126 github/gitignore
+ Code  Pull requests 80  Projects 0  Security  Insights
+gitignore/Global/Eclipse.gitignore
+@cemremengu cemremengu Remove extra newline (#2983)
+cd49307 on 8 Mar
+@shiftkey @sherzodv @tyutyutyu @aroben @Utumno @segfly @drasolka @rlee287 @rafiw @raeglan @mimibar @fhemberger @lukoerfer @leandrodeleite @jcarsique @jayvdb @harshadsabne @gAmUssA @DenisGorbachev @pangratz @defunkt @cemremengu @arinto @apetresc @alexkaratarakis
+56 lines (41 sloc)  753 Bytes
+  
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+
+# External tool builders
+.externalToolBuilders/
+
+# Locally stored "Eclipse launch configurations"
+*.launch
+
+# PyDev specific (Python IDE for Eclipse)
+*.pydevproject
+
+# CDT-specific (C/C++ Development Tooling)
+.cproject
+
+# CDT- autotools
+.autotools
+
+# Java annotation processor (APT)
+.factorypath
+
+# PDT-specific (PHP Development Tools)
+.buildpath
+
+# sbteclipse plugin
+.target
+
+# Tern plugin
+.tern-project
+
+# TeXlipse plugin
+.texlipse
+
+# STS (Spring Tool Suite)
+.springBeans
+
+# Code Recommenders
+.recommenders/
+
+# Annotation Processing
+.apt_generated/
+
+# Scala IDE specific (Scala & Java development for Eclipse)
+.cache-main
+.scala_dependencies
+.worksheet
+
+
 # End of https://www.gitignore.io/api/c,linux,eclipse
+

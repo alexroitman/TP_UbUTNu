@@ -17,15 +17,17 @@ int main (void)
 				header = leerHeader(socket_cli);
 				tSelect* packSelect=malloc(sizeof(tSelect));
 				tInsert* packInsert=malloc(sizeof(tInsert));
-				packSelect->type = header;
+
 				switch (header) {
 				case SELECT:
 					desSerializarSelect(packSelect,socket_cli);
+					packSelect->type = header;
 					printf("recibi un una consulta SELECT de la tabla %s con le key %d \n",
 							packSelect->nombre_tabla, packSelect->key);
 					break;
 				case INSERT:
 					desSerializarInsert(packInsert,socket_cli);
+					packInsert->type = header;
 					printf("recibi un una consulta INSERT de la tabla %s con le key %d y el value %s \n",
 							packInsert->nombre_tabla, packInsert->key, packInsert->value);
 					break;

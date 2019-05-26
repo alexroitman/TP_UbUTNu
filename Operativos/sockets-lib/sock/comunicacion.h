@@ -19,6 +19,7 @@ DESCRIBE,
 DROP,
 JOURNAL,
 ADD,
+RUN,
 NIL}type;
 typedef struct {
 

@@ -20,8 +20,6 @@ int serializarRequest(t_Package_Request packageRequest,
 	return paqueteSerializado;
 }
 
-
-
 int enviarPaquete(int clienteSocket, char* payload, uint32_t size) {
 
 	return send(clienteSocket, payload, size, 0);
@@ -29,13 +27,14 @@ int enviarPaquete(int clienteSocket, char* payload, uint32_t size) {
 
 type leerHeader(int socket) {
 	type header;
-	int algo = recv(socket, &header, sizeof(type), MSG_WAITALL);
+	recv(socket, &header, sizeof(type), MSG_WAITALL);
 	return header;
 }
 
-
-
 char* serializarSelect(tSelect* packageSelect) {
+	packageSelect->length = sizeof(packageSelect->type)
+				+ sizeof(packageSelect->nombre_tabla_long)
+				+ packageSelect->nombre_tabla_long + sizeof(packageSelect->key);
 
 	char *serializedPackage = malloc(packageSelect->length);
 	int offset = 0;
@@ -59,9 +58,7 @@ char* serializarSelect(tSelect* packageSelect) {
 	size_to_send = sizeof(int);
 	memcpy(serializedPackage + offset, &packageSelect->key, size_to_send);
 
-	packageSelect->length = sizeof(packageSelect->type)
-			+ sizeof(packageSelect->nombre_tabla_long)
-			+ packageSelect->nombre_tabla_long + sizeof(packageSelect->key);
+
 
 	return serializedPackage;
 }
@@ -81,7 +78,8 @@ int desSerializarSelect(tSelect* packageSelect, int socket) {
 		return 0;
 	packageSelect->nombre_tabla = malloc(packageSelect->nombre_tabla_long);
 
-	status = recv(socket, packageSelect->nombre_tabla, packageSelect->nombre_tabla_long, 0); //recibo el nombre de la tabla
+	status = recv(socket, packageSelect->nombre_tabla,
+			packageSelect->nombre_tabla_long, 0); //recibo el nombre de la tabla
 
 	if (!status)
 		return 0;
@@ -90,17 +88,18 @@ int desSerializarSelect(tSelect* packageSelect, int socket) {
 	if (!status)
 		return 0;
 
-
 	free(buffer);
+
 
 	return status;
 
 }
 char* serializarInsert(tInsert* packageInsert) {
 
-	char *serializedPackage = malloc(packageInsert->length);
+
+	char* serializedPackage = malloc(packageInsert->length);
 	int offset = 0;
-	int size_to_send;
+	int size_to_send = 0;
 
 	size_to_send = sizeof(packageInsert->type);
 	memcpy(serializedPackage + offset, &(packageInsert->type), size_to_send); //sizeof(int8_t)
@@ -122,13 +121,15 @@ char* serializarInsert(tInsert* packageInsert) {
 
 	offset += size_to_send;
 	size_to_send = sizeof(uint32_t);
-	memcpy(serializedPackage + offset, &packageInsert->value_long, size_to_send);
+	memcpy(serializedPackage + offset, &packageInsert->value_long,
+			size_to_send);
 	offset += size_to_send;
 
 	size_to_send = packageInsert->value_long;
-	memcpy(serializedPackage + offset, (packageInsert->value),
-				size_to_send);
+	memcpy(serializedPackage + offset, (packageInsert->value), size_to_send);
 	offset += size_to_send;
+
+
 	return serializedPackage;
 }
 
@@ -141,12 +142,12 @@ int desSerializarInsert(tInsert* packageInsert, int socket) {
 	uint32_t nombrelong;
 	status = recv(socket, buffer, sizeof((packageInsert->nombre_tabla_long)),
 			0); //recibo la longitud
-	memcpy(&(nombrelong), buffer, buffer_size);
+	memcpy(&(packageInsert->nombre_tabla_long), buffer, buffer_size);
 	if (!status)
 		return 0;
-	packageInsert->nombre_tabla = malloc(nombrelong);
+	packageInsert->nombre_tabla = malloc(packageInsert->nombre_tabla_long);
 
-	status = recv(socket, packageInsert->nombre_tabla, nombrelong, 0); //recibo el nombre de la tabla
+	status = recv(socket, packageInsert->nombre_tabla, packageInsert->nombre_tabla_long, 0); //recibo el nombre de la tabla
 
 	if (!status)
 		return 0;
@@ -155,20 +156,23 @@ int desSerializarInsert(tInsert* packageInsert, int socket) {
 	if (!status)
 		return 0;
 	uint32_t valuelong;
-		status = recv(socket, buffer, sizeof((packageInsert->value_long)),
-				0); //recibo la longitud
-		memcpy(&(valuelong), buffer, buffer_size);
-		if (!status)
-			return 0;
-		packageInsert->value = malloc(valuelong);
+	status = recv(socket, buffer, sizeof((packageInsert->value_long)), 0); //recibo la longitud
+	memcpy(&(packageInsert->value_long), buffer, buffer_size);
+	if (!status)
+		return 0;
+	packageInsert->value = malloc(packageInsert->value_long);
 
-		status = recv(socket, packageInsert->value, valuelong, 0); //recibo el value
+	status = recv(socket, packageInsert->value, packageInsert->value_long, 0); //recibo el value
 
-		if (!status)
-			return 0;
+	if (!status)
+		return 0;
 
 
 	free(buffer);
+	packageInsert->length = sizeof(packageInsert->type)
+					+ sizeof(packageInsert->nombre_tabla_long)
+					+ packageInsert->nombre_tabla_long + sizeof(packageInsert->key)
+					+ sizeof(packageInsert->value_long) + packageInsert->value_long;
 
 	return status;
 
