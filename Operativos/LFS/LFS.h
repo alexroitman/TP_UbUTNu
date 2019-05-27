@@ -32,6 +32,7 @@
 #include <commons/log.h>
 #include <commons/string.h>
 #include <commons/config.h>
+#include <commons/collections/list.h>
 #include <readline/readline.h>
 #include <time.h>
 #include <fts.h>
@@ -40,12 +41,27 @@
 #include <sock/sockets-lib.h>
 #include <sock/comunicacion.h>
 #include <sys/socket.h>
+#include <stdbool.h>
+#include <dirent.h>
+#include <errno.h>
 // Estructuras
 typedef struct {
 	int particiones;
 	int consistencia;
 	int tiempo_compactacion;
 } metadata;
+
+typedef struct{
+	uint16_t key;
+	char* value;
+	long timestamp;
+} registro;
+typedef struct{
+	char* tabla;
+	t_list *registros;
+}t_memtable ;
+
+
 
 // APIs
 int SelectApi(char* NOMBRE_TABLA, int KEY);
@@ -60,6 +76,13 @@ int crearBinarios(char* NOMBRE_TABLA, int NUMERO_PARTICIONES);
 int verificadorDeTabla(char* NOMBRE_TABLA);
 int borrarDirectorio(const char* directorio);
 int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo);
+
+
+
+t_list* inicializarMemtable();
+int insertarEnMemtable(t_list* memtable,tInsert* packinsert);
+
+
 
 // Funciones de logger
 t_log* iniciar_logger(void);

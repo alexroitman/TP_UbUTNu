@@ -9,10 +9,12 @@
 #define PUERTOLFS "7879"
 int main (void)
 {
+	int errorHandler;
+
 		int socket_sv = levantarServidor(PUERTOLFS);
 		int socket_cli = aceptarCliente(socket_sv);
 		type header;
-
+		t_list* memtable=inicializarMemtable();
 			while (1) {
 				header = leerHeader(socket_cli);
 				tSelect* packSelect=malloc(sizeof(tSelect));
@@ -22,21 +24,23 @@ int main (void)
 				case SELECT:
 					desSerializarSelect(packSelect,socket_cli);
 					packSelect->type = header;
-					printf("recibi un una consulta SELECT de la tabla %s con le key %d \n",
-							packSelect->nombre_tabla, packSelect->key);
+					errorHandler=SelectApi(packSelect->nombre_tabla,packSelect->key);
+					/*printf("recibi un una consulta SELECT de la tabla %s con le key %d \n",
+							packSelect->nombre_tabla, packSelect->key);*/
 					break;
 				case INSERT:
 					desSerializarInsert(packInsert,socket_cli);
 					packInsert->type = header;
 					printf("recibi un una consulta INSERT de la tabla %s con le key %d y el value %s \n",
 							packInsert->nombre_tabla, packInsert->key, packInsert->value);
+					errorHandler=insertarEnMemtable(memtable,packInsert);
 					break;
 				}
 			}
 
 	t_log* logger = iniciar_logger();
 //	t_config* metadata = config_create("metadata");
-	int errorHandler;
+
 
 //	PRUEBA COMANDO CREATE
 //	errorHandler = CREATE("tables/TABLA1",1,4,1);
@@ -57,8 +61,64 @@ int main (void)
 	return 0;
 }
 
-// APIs
+//memtable
+t_list* inicializarMemtable(){
+	return list_create();
+}
+int insertarEnMemtable(t_list* memtable,tInsert *packinsert){
 
+	bool existeEnMemTable(t_memtable* unaTabla)
+	{
+		 if(strcmp(unaTabla->tabla,packinsert->nombre_tabla)==0)
+			return true;
+		 return false;
+	}
+
+
+	registro* reg=malloc(sizeof(registro));
+	t_memtable* tabla;
+	if(verificadorDeTabla(packinsert->nombre_tabla)==-1){
+		return noExisteTabla;
+	}
+	memcpy((uint16_t*)reg->key,(uint16_t*)packinsert->key,sizeof(packinsert->key));
+	memcpy(reg->value,packinsert->value,sizeof(packinsert->value_long));
+	//falta timestamp
+	if((tabla=list_find(memtable,existeEnMemTable))==NULL){//chequeo si existe la tabla en la memtable
+		tabla=malloc(sizeof(memtable));
+		memcpy(tabla->tabla,packinsert->nombre_tabla,sizeof(packinsert->nombre_tabla_long));//cargo la tabla en memtable
+		list_add(memtable,tabla);
+
+	}
+	else{//si existe cargo el registro
+		list_add(tabla->registros,reg);
+	}
+	free(reg);
+	free(tabla);
+	return todoJoya;
+}
+int selectEnMemtable(t_list* memtable,uint16_t key,char* tabla){
+
+
+	t_memtable* tablaSelect;
+	//tablaSelect=list_filter(memtable,esTabla);
+	if(tablaSelect!=NULL)
+	{
+		//list iterate y por cada iteracion hacer un list filter
+	}
+
+
+	free(tabla);
+	return todoJoya;//devuelvo valor del select
+}
+
+
+
+
+
+
+
+
+// APIs
 
 int Create(char* NOMBRE_TABLA, int TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME)
 {
@@ -132,7 +192,8 @@ int SelectApi(char* NOMBRE_TABLA, int KEY)
 	particiones = KEY % particiones;
 
 	// ---- Escaneo particion objetivo ----
-
+	//Escaneo en la memtable
+	//Escaneo en archivos temporales
 
 	// ---- Retorno la KEY de mayor Timestamp ----
 
@@ -213,8 +274,17 @@ int crearBinarios(char* NOMBRE_TABLA, int NUMERO_PARTICIONES)
 
 int verificadorDeTabla(char* NOMBRE_TABLA)
 {
-	struct stat st = {0};
-	return lstat(NOMBRE_TABLA, &st);
+	 struct stat stats;
+	 //falta concatenar "tables/"
+	 DIR* dir = opendir(NOMBRE_TABLA);
+	 if (dir) {
+	     /* Directory exists. */return todoJoya;
+	     closedir(dir);
+	 } else if (ENOENT == errno) {
+	     /* Directory does not exist. */
+	 } else {
+	     /* opendir() failed for some other reason. */
+	 }
 }
 
 int borrarDirectorio(const char *dir)

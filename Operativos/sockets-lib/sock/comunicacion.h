@@ -45,7 +45,7 @@ typedef struct {
 type type;
 uint32_t nombre_tabla_long;
 char* nombre_tabla;
-int key;//INSERT
+uint16_t key;//INSERT
 uint32_t value_long;
 char* value;
 uint32_t length;

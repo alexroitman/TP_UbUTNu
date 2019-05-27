@@ -116,7 +116,7 @@ char* serializarInsert(tInsert* packageInsert) {
 			size_to_send);
 	offset += size_to_send;
 
-	size_to_send = sizeof(int);
+	size_to_send = sizeof(uint16_t);
 	memcpy(serializedPackage + offset, &packageInsert->key, size_to_send);
 
 	offset += size_to_send;
@@ -151,7 +151,7 @@ int desSerializarInsert(tInsert* packageInsert, int socket) {
 
 	if (!status)
 		return 0;
-	packageInsert->key = malloc(sizeof(int));
+	packageInsert->key = malloc(sizeof(uint16_t));
 	status = recv(socket, &packageInsert->key, sizeof(packageInsert->key), 0); //recibo el key
 	if (!status)
 		return 0;
