@@ -72,7 +72,7 @@ typedef struct{
 }tPagina;
 
 typedef struct {
-	tPagina* punteroMemoria;
+	int offsetMemoria;
 	bool modificado;
 }elem_tabla_pag;
 
@@ -94,7 +94,8 @@ char package[PACKAGESIZE];
 struct addrinfo hints;
 struct addrinfo *serverInfo;
 
-tSegmento* cargarSegmentoEnTabla(tNuevoSegmento nuevoSeg,t_list* listaSeg);
+void cargarSegmentoEnTabla(char* path,t_list* listaSeg);
+tSegmento* obtenerSegmentoDeTabla(t_list* tablaSeg,int index);
 int buscarSegmentoEnTabla(char* nombreTabla, tSegmento* segmento, t_list* listaSegmentos);
 int buscarPaginaEnTabla(tSegmento* segmento, tPagina* pagina, int key);
 void recibirMensajeDeKernel();

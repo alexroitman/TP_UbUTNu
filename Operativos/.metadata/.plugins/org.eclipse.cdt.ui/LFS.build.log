@@ -1,8 +1,8 @@
-11:32:54 **** Build of configuration Default for project LFS ****
+14:57:12 **** Build of configuration Default for project LFS ****
 make all 
 Building file: ../LFS.c
 Invoking: GCC C Compiler
-gcc -I"/home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
 ../LFS.c: In function ‘main’:
 ../LFS.c:17:14: warning: implicit declaration of function ‘leerHeader’ [-Wimplicit-function-declaration]
      header = leerHeader(socket_cli);
@@ -49,9 +49,9 @@ Finished building: ../LFS.c
  
 Building target: LFS
 Invoking: GCC C++ Linker
-g++ -L"/home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "LFS"  ./LFS.o   -lsockets-lib -lcommons
+g++ -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "LFS"  ./LFS.o   -lsockets-lib -lcommons
 Finished building target: LFS
  
 
-11:32:57 Build Finished (took 2s.765ms)
+14:57:14 Build Finished (took 1s.944ms)
 
