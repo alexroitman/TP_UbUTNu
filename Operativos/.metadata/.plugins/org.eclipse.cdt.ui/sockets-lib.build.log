@@ -1,4 +1,4 @@
-16:02:22 **** Incremental Build of configuration Debug for project sockets-lib ****
+11:32:49 **** Build of configuration Debug for project sockets-lib ****
 make all 
 Building file: ../sock/comuniacion.c
 Invoking: GCC C Compiler
@@ -7,22 +7,29 @@ gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/comuniacion.d" -
 ../sock/comuniacion.c:20:9: warning: return makes integer from pointer without a cast [-Wint-conversion]
   return paqueteSerializado;
          ^
-../sock/comuniacion.c: In function ‘leerHeader’:
-../sock/comuniacion.c:32:6: warning: unused variable ‘algo’ [-Wunused-variable]
-  int algo = recv(socket, &header, sizeof(type), MSG_WAITALL);
-      ^
 ../sock/comuniacion.c: In function ‘desSerializarSelect’:
-../sock/comuniacion.c:88:21: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+../sock/comuniacion.c:86:21: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
   packageSelect->key = malloc(sizeof(int));
                      ^
-../sock/comuniacion.c:75:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+../sock/comuniacion.c:72:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
   uint32_t nombrelong;
            ^
 ../sock/comuniacion.c: In function ‘desSerializarInsert’:
-../sock/comuniacion.c:153:21: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+../sock/comuniacion.c:154:21: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
   packageInsert->key = malloc(sizeof(int));
                      ^
+../sock/comuniacion.c:158:11: warning: unused variable ‘valuelong’ [-Wunused-variable]
+  uint32_t valuelong;
+           ^
+../sock/comuniacion.c:142:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+  uint32_t nombrelong;
+           ^
 Finished building: ../sock/comuniacion.c
+ 
+Building file: ../sock/sockets-lib.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/sockets-lib.d" -MT"sock/sockets-lib.o" -o "sock/sockets-lib.o" "../sock/sockets-lib.c"
+Finished building: ../sock/sockets-lib.c
  
 Building target: libsockets-lib.so
 Invoking: GCC C Linker
@@ -30,5 +37,5 @@ gcc -shared -o "libsockets-lib.so"  ./sock/comuniacion.o ./sock/sockets-lib.o   
 Finished building target: libsockets-lib.so
  
 
-16:02:24 Build Finished (took 1s.436ms)
+11:32:51 Build Finished (took 2s.512ms)
 

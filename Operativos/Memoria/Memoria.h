@@ -13,6 +13,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <commons/collections/list.h>
 #include <pthread.h>
 #include <sock/sockets-lib.h>
 #include <sock/comunicacion.h>
@@ -64,12 +65,40 @@ typedef struct {
 	char* table;
 }t_Describe;
 
+typedef struct{
+	int timestamp;
+	int key;
+	char* value;
+}tPagina;
+
+typedef struct {
+	tPagina* punteroMemoria;
+	bool modificado;
+}elem_tabla_pag;
+
+typedef struct {
+	char* path;
+	elem_tabla_pag* tablaPaginas;
+}tSegmento;
+
+typedef struct {
+	char* path;
+	int timestamp;
+	int key;
+	char* value;
+}tNuevoSegmento;
+
+
 
 char package[PACKAGESIZE];
 struct addrinfo hints;
 struct addrinfo *serverInfo;
 
+tSegmento* cargarSegmentoEnTabla(tNuevoSegmento nuevoSeg,t_list* listaSeg);
+int buscarSegmentoEnTabla(char* nombreTabla, tSegmento* segmento, t_list* listaSegmentos);
+int buscarPaginaEnTabla(tSegmento* segmento, tPagina* pagina, int key);
 void recibirMensajeDeKernel();
+char* separarNombrePath(char* path);
 
 void enviarMensajeAKernel();
 

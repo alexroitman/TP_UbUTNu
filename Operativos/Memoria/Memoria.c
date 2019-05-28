@@ -12,6 +12,8 @@
 #define BACKLOG 5			// Define cuantas conexiones vamos a mantener pendientes al mismo tiempo
 #define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
 char package[PACKAGESIZE];
+#define CANTIDADMAXPAGINAS 10
+#define CANTIDADPAGINASMEMORIA 50
 struct addrinfo hints;
 struct addrinfo *serverInfo;
 #define PUERTOLFS "7879"
@@ -54,6 +56,76 @@ int main() {
 	close(socket_cli);
 	close(socket_sv);
 }
+
+tSegmento* cargarSegmentoEnTabla(tNuevoSegmento nuevoSeg,t_list* listaSeg){
+	elem_tabla_pag* vecPaginas = calloc(CANTIDADMAXPAGINAS,sizeof(elem_tabla_pag));
+	tSegmento* seg;
+	seg->path = nuevoSeg.path;
+	seg->tablaPaginas = vecPaginas;
+	list_add(listaSeg,seg);
+	return seg;
+}
+
+/*
+
+int cargarPaginaEnMemoria(tNuevoSegmento nuevoSeg,tSegmento* seg){
+	elem_tabla_pag* vecPaginas = seg->tablaPaginas;
+	int i;
+	for(i=0;i<CANTIDADMAXPAGINAS-1;i++){
+		//pregunto por null y por 0 porque no estoy seguro con cual de las dos se inicializa
+		if(vecPaginas[i]->punteroMemoria != NULL && vecPaginas[i]->punteroMemoria != 0){
+			//cargo la pagina en memoria
+		}
+	}
+}
+*/
+
+int buscarSegmentoEnTabla(char* nombreTabla, tSegmento* segmento, t_list* listaSegmentos){
+	bool mismoNombre (void* elemento){
+		tSegmento* seg = (tSegmento*) elemento;
+		char* path = seg->path;
+		return !strcmp(nombreTabla,separarNombrePath(path));
+	}
+	segmento = list_find(listaSegmentos, mismoNombre);
+	if(segmento != NULL){
+		return 1;
+	}
+	return -1;
+}
+
+
+char* separarNombrePath(char* path){
+	char** separado = string_split(path,"/");
+	int i =0;
+	char* nombre;
+	while(separado[i+1] != NULL){
+		i++;
+	}
+	nombre = separado[i];
+	int j = 0;
+	while(separado[j] != NULL && j != i){
+		free(separado[j]);
+	}
+	free(separado);
+	return nombre;
+}
+
+
+int buscarPaginaEnTabla(tSegmento* segmento, tPagina* pagina, int key){
+	int i;
+	elem_tabla_pag* vectorPaginas = (segmento->tablaPaginas);
+	for(i=0;i<CANTIDADMAXPAGINAS;i++){
+		tPagina* paginaAux = (tPagina*)vectorPaginas[i].punteroMemoria;
+		if(paginaAux != NULL){
+			if(paginaAux->key ==  key){
+				pagina = paginaAux;
+				return 1;
+			}
+		}
+	}
+	return -1;
+}
+
 /*
  void parsearMensaje(t_Package *paquete){
 

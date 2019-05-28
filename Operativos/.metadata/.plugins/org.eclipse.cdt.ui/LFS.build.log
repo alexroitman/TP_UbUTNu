@@ -1,6 +1,57 @@
-16:00:07 **** Incremental Build of configuration Default for project LFS ****
+11:32:54 **** Build of configuration Default for project LFS ****
 make all 
-make: Nothing to be done for 'all'.
+Building file: ../LFS.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+../LFS.c: In function ‘main’:
+../LFS.c:17:14: warning: implicit declaration of function ‘leerHeader’ [-Wimplicit-function-declaration]
+     header = leerHeader(socket_cli);
+              ^
+../LFS.c:21:5: warning: enumeration value ‘CREATE’ not handled in switch [-Wswitch]
+     switch (header) {
+     ^
+../LFS.c:21:5: warning: enumeration value ‘DESCRIBE’ not handled in switch [-Wswitch]
+../LFS.c:21:5: warning: enumeration value ‘DROP’ not handled in switch [-Wswitch]
+../LFS.c:21:5: warning: enumeration value ‘JOURNAL’ not handled in switch [-Wswitch]
+../LFS.c:21:5: warning: enumeration value ‘ADD’ not handled in switch [-Wswitch]
+../LFS.c:21:5: warning: enumeration value ‘RUN’ not handled in switch [-Wswitch]
+../LFS.c:21:5: warning: enumeration value ‘NIL’ not handled in switch [-Wswitch]
+../LFS.c: In function ‘Create’:
+../LFS.c:65:7: warning: unused variable ‘aux’ [-Wunused-variable]
+  char aux[strlen(NOMBRE_TABLA)+10];
+       ^
+../LFS.c: In function ‘listarDirectorios’:
+../LFS.c:324:14: warning: return makes pointer from integer without a cast [-Wint-conversion]
+       return -1;
+              ^
+../LFS.c:332:18: warning: return makes pointer from integer without a cast [-Wint-conversion]
+           return -1;
+                  ^
+../LFS.c:341:22: warning: return makes pointer from integer without a cast [-Wint-conversion]
+               return -1;
+                      ^
+../LFS.c: In function ‘buscarEnMetadata’:
+../LFS.c:261:2: warning: ignoring return value of ‘fgets’, declared with attribute warn_unused_result [-Wunused-result]
+  fgets(aux, 40, fp);
+  ^
+../LFS.c:266:3: warning: ignoring return value of ‘fgets’, declared with attribute warn_unused_result [-Wunused-result]
+   fgets(aux, 40, fp);
+   ^
+../LFS.c: In function ‘listarDirectorios’:
+../LFS.c:346:1: warning: control reaches end of non-void function [-Wreturn-type]
+ }
+ ^
+../LFS.c: In function ‘crearBinarios’:
+../LFS.c:210:2: warning: ‘fp’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+  fclose(fp);
+  ^
+Finished building: ../LFS.c
+ 
+Building target: LFS
+Invoking: GCC C++ Linker
+g++ -L"/home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "LFS"  ./LFS.o   -lsockets-lib -lcommons
+Finished building target: LFS
+ 
 
-16:00:08 Build Finished (took 640ms)
+11:32:57 Build Finished (took 2s.765ms)
 
