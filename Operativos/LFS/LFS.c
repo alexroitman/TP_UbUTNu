@@ -6,7 +6,10 @@
  */
 
 #include "LFS.h"
+
 #define PUERTOLFS "7879"
+t_log* logger;
+t_list* memtable;
 int main (void)
 {
 	int errorHandler;
@@ -14,7 +17,8 @@ int main (void)
 		int socket_sv = levantarServidor(PUERTOLFS);
 		int socket_cli = aceptarCliente(socket_sv);
 		type header;
-		t_list* memtable=inicializarMemtable();
+		memtable=inicializarMemtable();
+		logger=iniciar_logger();
 			while (1) {
 				header = leerHeader(socket_cli);
 				tSelect* packSelect=malloc(sizeof(tSelect));
@@ -34,6 +38,10 @@ int main (void)
 					printf("recibi un una consulta INSERT de la tabla %s con le key %d y el value %s \n",
 							packInsert->nombre_tabla, packInsert->key, packInsert->value);
 					errorHandler=insertarEnMemtable(memtable,packInsert);
+					if(errorHandler==todoJoya)
+					{
+						log_debug(logger,"se inserto bien");
+					}
 					break;
 				}
 			}
@@ -67,35 +75,76 @@ t_list* inicializarMemtable(){
 }
 int insertarEnMemtable(t_list* memtable,tInsert *packinsert){
 
-	bool existeEnMemTable(t_memtable* unaTabla)
-	{
-		 if(strcmp(unaTabla->tabla,packinsert->nombre_tabla)==0)
-			return true;
-		 return false;
-	}
+	char* mi_ruta = string_new();
+	char* tables = "/tables/";
+	string_append(&mi_ruta, tables);
+	string_append(&mi_ruta, packinsert->nombre_tabla);
 
 
-	registro* reg=malloc(sizeof(registro));
 	t_memtable* tabla;
-	if(verificadorDeTabla(packinsert->nombre_tabla)==-1){
+	if(!verificadorDeTabla(mi_ruta)){
 		return noExisteTabla;
 	}
-	memcpy((uint16_t*)reg->key,(uint16_t*)packinsert->key,sizeof(packinsert->key));
-	memcpy(reg->value,packinsert->value,sizeof(packinsert->value_long));
-	//falta timestamp
-	if((tabla=list_find(memtable,existeEnMemTable))==NULL){//chequeo si existe la tabla en la memtable
-		tabla=malloc(sizeof(memtable));
-		memcpy(tabla->tabla,packinsert->nombre_tabla,sizeof(packinsert->nombre_tabla_long));//cargo la tabla en memtable
-		list_add(memtable,tabla);
+	registro* registro_insert = malloc(sizeof(registro));
+	registro_insert->key = packinsert->key;
 
+	log_debug(logger, string_itoa(registro_insert->key));
+	//registro_insert->timestamp = packinsert->timestamp;//argregar
+	char* value = malloc(packinsert->value_long);
+	strcpy(value, packinsert->value);
+	registro_insert->value = malloc(strlen(value) + 1);
+	strcpy(registro_insert->value, value);
+
+
+	if (!existe_tabla_en_memtable(packinsert->nombre_tabla )) {//chequeo si existe la tabla en la memtable
+		if (!agregar_tabla_a_memtable(packinsert->nombre_tabla)) {//si no existe la agrego
+			return -12;
+		}
 	}
-	else{//si existe cargo el registro
-		list_add(tabla->registros,reg);
-	}
-	free(reg);
-	free(tabla);
+
+
 	return todoJoya;
 }
+int insertarRegistro(registro* registro, char* nombre_tabla) {
+
+	int es_tabla(t_tabla* tabla) {
+		if (strcmp(tabla->nombreTabla, nombre_tabla) == 0) {
+			return 1;
+		}
+		return 0;
+	}
+	t_tabla* tabla = (t_tabla*) list_find(memtable, (int) &es_tabla);
+	list_add(tabla->registros, registro);
+	return todoJoya;
+
+}
+int agregar_tabla_a_memtable(char* tabla) {
+	t_tabla* tabla_a_agregar = malloc(sizeof(t_tabla));
+	strcpy(tabla_a_agregar->nombreTabla , tabla);
+	tabla_a_agregar->registros = list_create();
+
+	return todoJoya;
+}
+int existe_tabla_en_memtable(char* posible_tabla) {
+	int es_tabla(t_tabla* UnaTabla) {
+		if (strcmp(UnaTabla->nombreTabla, posible_tabla) == 0) {
+			return 1;
+		}
+		return 0;
+	}
+	t_tabla* tabla_encontrada = (t_tabla*) list_find(memtable, (int) &es_tabla);
+
+	if (tabla_encontrada) {
+		log_debug(logger, "Existe  tabla en memtable");
+		return 1;
+	}
+	log_debug(logger, "No existe tabla en memtable");
+	return 0;
+}
+
+
+
+
 int selectEnMemtable(t_list* memtable,uint16_t key,char* tabla){
 
 
@@ -110,12 +159,6 @@ int selectEnMemtable(t_list* memtable,uint16_t key,char* tabla){
 	free(tabla);
 	return todoJoya;//devuelvo valor del select
 }
-
-
-
-
-
-
 
 
 // APIs
@@ -274,17 +317,16 @@ int crearBinarios(char* NOMBRE_TABLA, int NUMERO_PARTICIONES)
 
 int verificadorDeTabla(char* NOMBRE_TABLA)
 {
-	 struct stat stats;
-	 //falta concatenar "tables/"
-	 DIR* dir = opendir(NOMBRE_TABLA);
-	 if (dir) {
-	     /* Directory exists. */return todoJoya;
-	     closedir(dir);
-	 } else if (ENOENT == errno) {
-	     /* Directory does not exist. */
-	 } else {
-	     /* opendir() failed for some other reason. */
-	 }
+	int status = 1;
+	DIR *dirp;
+
+	dirp = opendir(NOMBRE_TABLA);
+
+	if (dirp == NULL) {
+		status = 0;
+	}
+	closedir(dirp);
+	return status;
 }
 
 int borrarDirectorio(const char *dir)
@@ -413,4 +455,14 @@ metadata* listarDirectorios(char *dir){
 	        }
 	    }
 	    fts_close(ftsp);
+}
+
+
+
+
+
+t_log* inicializar_logger(void) {
+
+	return log_create("/home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS", "LFS", 1, LOG_LEVEL_DEBUG);
+
 }

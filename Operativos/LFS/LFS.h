@@ -50,15 +50,17 @@ typedef struct {
 	int consistencia;
 	int tiempo_compactacion;
 } metadata;
-
+typedef struct{
+	char* nombreTabla;
+	t_list *registros;
+}t_tabla;
 typedef struct{
 	uint16_t key;
 	char* value;
 	long timestamp;
 } registro;
 typedef struct{
-	char* tabla;
-	t_list *registros;
+	t_tabla tabla;
 }t_memtable ;
 
 
