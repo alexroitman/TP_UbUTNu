@@ -18,6 +18,7 @@ char package[PACKAGESIZE];
 #include <stdlib.h>
 #include <sys/types.h>
 #include <commons/string.h>
+#include <commons/collections/queue.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <semaphore.h>

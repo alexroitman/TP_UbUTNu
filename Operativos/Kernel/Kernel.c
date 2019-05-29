@@ -11,28 +11,59 @@
 #define PUERTOMEM "7878"
 #define BACKLOG 5			// Define cuantas conexiones vamos a mantener pendientes al mismo tiempo
 #define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
+#define QUANTUM 4
+#define MULT_PROC 3
+
 char package[PACKAGESIZE];
 struct addrinfo hints;
 struct addrinfo *serverInfo;
 sem_t mutexSocket;
+sem_t semReady;
+sem_t mutexReady;
+sem_t mutexNew;
+sem_t semNew;
+pthread_t cpus[MULT_PROC];
+pthread_t planificador_t;
 FILE *archivoLQL;
+t_queue *colaReady;
+t_queue *colaNew;
 
 // Define cual va a ser el size maximo del paquete a enviar
 
 int main() {
+	sem_init(&semReady,0,0);
+	sem_init(&semNew,0,0);
+	sem_init(&mutexNew,0,1);
+	sem_init(&mutexReady,0,1);
+	sem_init(&mutexSocket,0,1);
 	int socket_memoria = levantarCliente(PUERTOMEM, IP);
-	char consulta[256] = "";
-	while (1) {
+	if(levantarCpus(socket_memoria)){
+		colaReady = queue_create();
+		colaNew = queue_create();
+		pthread_create(&planificador_t, NULL, (void*) planificador, NULL);
+		char consulta[256] = "";
+			while (1) {
 
-		fgets(consulta, 256, stdin);
-		int consultaOk = despacharQuery(consulta, socket_memoria);
-		if (!consultaOk) {
-			printf("no entendi tu header \n");
-		}
-		consultaOk = 0;
+				fgets(consulta, 256, stdin);
+				int consultaOk = despacharQuery(consulta, socket_memoria);
+				if (!consultaOk) {
+					printf("no entendi tu header \n");
+				}
+				consultaOk = 0;
+			}
+			for(int i = 0; i < MULT_PROC; i++){
+				pthread_join(cpus[i],NULL);
+			}
+			pthread_join(planificador_t,NULL);
+	}else{
+		printf("No se han podido levantar las cpus... \n");
 	}
-
-	//close(socket_memoria);
+	sem_destroy(&semReady);
+	sem_destroy(&semNew);
+	sem_destroy(&mutexNew);
+	sem_destroy(&mutexReady);
+	sem_destroy(&mutexSocket);
+	close(socket_memoria);
 }
 
 type validarSegunHeader(char* header) {
@@ -96,9 +127,7 @@ int despacharQuery(char* consulta, int socket_memoria) {
 	char* serializado = "";
 	int consultaOk = 0;
 	tempSplit = string_n_split(consulta, 2, " ");
-	pthread_t threadRun;
-	struct arg_RUN args;
-	sem_init(&mutexSocket,0,1);
+	struct script *unScript;
 	if (strcmp(tempSplit[0], "")) {
 		typeHeader = validarSegunHeader(tempSplit[0]);
 		switch (typeHeader) {
@@ -107,6 +136,7 @@ int despacharQuery(char* consulta, int socket_memoria) {
 			serializado = serializarSelect(paqueteSelect);
 			sem_wait(&mutexSocket);
 			enviarPaquete(socket_memoria, serializado, paqueteSelect->length);
+
 			sem_post(&mutexSocket);
 			consultaOk = 1;
 			break;
@@ -121,12 +151,19 @@ int despacharQuery(char* consulta, int socket_memoria) {
 			break;
 		case RUN:
 			printf("%s \n", tempSplit[1]);
-			archivoLQL = fopen(string_substring_until(tempSplit[1],
-					string_length(tempSplit[1])-1), "r");
-			args.archivoLQL = archivoLQL;
+			unScript->path = string_substring_until(tempSplit[1],
+					string_length(tempSplit[1])-1);
+			unScript->pos = 0;
+			unScript->estado = new;
+			sem_wait(&mutexNew);
+			queue_push(colaNew, &unScript);
+			sem_post(&semNew);
+			sem_post(&mutexNew);
+			/*args.archivoLQL = archivoLQL;
 			args.socket_memoria = socket_memoria;
-			pthread_create(&threadRun, NULL, (void*) rutinaRUN, &args);
+			pthread_create(&threadRun, NULL, (void*) rutinaRUN, &args);*/
 			consultaOk = 1;
+			free(unScript);
 			break;
 		default:
 			printf("para macho que no se, estoy aprendiendo\n");
@@ -136,7 +173,7 @@ int despacharQuery(char* consulta, int socket_memoria) {
 	}
 	return consultaOk;
 }
-void rutinaRUN(void* argumentos){
+/*void rutinaRUN(void* argumentos){
 	struct arg_RUN *args = (struct arg_RUN *)argumentos;
 	if(args->archivoLQL != NULL){
 		char* consulta = malloc(256);
@@ -150,4 +187,90 @@ void rutinaRUN(void* argumentos){
 	else{
 		printf("El archivo no existe \n");
 	}
+}*/
+
+void CPU(int socket_memoria){
+	while(1){
+		struct script *unScript;
+		char* consulta = malloc(256);
+		sem_wait(&semReady);
+		sem_wait(&mutexReady);
+		unScript = (struct script *) queue_pop(colaReady);
+		sem_post(&mutexReady);
+		unScript->estado = exec;
+		for(int i = unScript->pos ; i < QUANTUM; i++){
+			int info = leerLinea(unScript->path,unScript->pos,consulta);
+			unScript->pos++;
+			switch(info){
+			case 0:
+				i = QUANTUM;
+				unScript->estado = exit_;
+				break;
+			case 1:
+				despacharQuery(consulta,socket_memoria);
+				break;
+			case 2:
+				unScript->estado = exit_;
+			}
+		}
+		sem_wait(&mutexReady);
+		queue_push(colaReady,&unScript);
+		sem_post(&semReady);
+		sem_post(&mutexReady);
+	}
+}
+
+void planificador(){
+	while(1){
+		struct script *unScript;
+		sem_wait(&semNew);
+		sem_wait(&mutexNew);
+		unScript = (struct script *) queue_pop(colaNew);
+		sem_post(&mutexNew);
+		unScript->estado = ready;
+		sem_wait(&mutexReady);
+		queue_push(colaReady, &unScript);
+		sem_post(&semReady);
+		sem_post(&mutexReady);
+		free(unScript);
+	}
+}
+
+int levantarCpus(int socket_memoria){
+	int devolver = 1;
+	for(int i = 0; i < MULT_PROC; i++){
+		devolver += pthread_create(&cpus[i], NULL, (void*) CPU, (int *) socket_memoria);
+	}
+	return devolver;
+}
+
+int leerLinea(char* path, int linea, char* leido){
+	FILE* archivo = fopen(path,"r");
+	if(archivo != NULL){
+		leido = malloc(256);
+		int cont = 0;
+		while (fgets(leido, sizeof(leido), archivo) != NULL)
+		{
+			if (cont == linea)
+			{
+				fclose(archivo);
+				return 1; //Salio bien
+			}
+			else
+			{
+				cont++;
+			}
+		}
+	}
+	else{
+		printf("El archivo no existe... \n");
+		return 0; //devuelvo 0 si es error
+	}
+	if(feof(archivo)){
+		fclose(archivo);
+		return 2; //devuelvo 2 si llegue al fin del archivo
+	}
+	printf("Algo salio mal \n");
+	return 0; //devuelve 0 si no se encontro la linea
+
 }
