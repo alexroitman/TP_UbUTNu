@@ -52,7 +52,7 @@ typedef struct {
 } metadata;
 typedef struct{
 	char* nombreTabla;
-	t_list *registros;
+	t_list* registros;
 }t_tabla;
 typedef struct{
 	uint16_t key;
@@ -83,7 +83,7 @@ int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo);
 
 t_list* inicializarMemtable();
 int insertarEnMemtable(t_list* memtable,tInsert* packinsert);
-
+int selectEnMemtable(t_list* memtable, uint16_t key, char* tabla);
 
 
 // Funciones de logger
