@@ -34,11 +34,11 @@ typedef enum{
 }estados;
 
 
-struct script {
+typedef struct{
     char* path;
     int pos;
     estados estado;
-};
+}script;
 
 type leerConsola(); //Lee la consulta y devuelve el string
 type validarSegunHeader(char* header);

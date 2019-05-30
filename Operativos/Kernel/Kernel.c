@@ -127,7 +127,7 @@ int despacharQuery(char* consulta, int socket_memoria) {
 	char* serializado = "";
 	int consultaOk = 0;
 	tempSplit = string_n_split(consulta, 2, " ");
-	struct script *unScript;
+	script *unScript = malloc(sizeof(script));
 	if (strcmp(tempSplit[0], "")) {
 		typeHeader = validarSegunHeader(tempSplit[0]);
 		switch (typeHeader) {
@@ -156,14 +156,13 @@ int despacharQuery(char* consulta, int socket_memoria) {
 			unScript->pos = 0;
 			unScript->estado = new;
 			sem_wait(&mutexNew);
-			queue_push(colaNew, &unScript);
+			queue_push(colaNew, unScript);
 			sem_post(&semNew);
 			sem_post(&mutexNew);
 			/*args.archivoLQL = archivoLQL;
 			args.socket_memoria = socket_memoria;
 			pthread_create(&threadRun, NULL, (void*) rutinaRUN, &args);*/
 			consultaOk = 1;
-			free(unScript);
 			break;
 		default:
 			printf("para macho que no se, estoy aprendiendo\n");
@@ -191,15 +190,16 @@ int despacharQuery(char* consulta, int socket_memoria) {
 
 void CPU(int socket_memoria){
 	while(1){
-		struct script *unScript;
+		script *unScript = malloc(sizeof(script));
 		char* consulta = malloc(256);
 		sem_wait(&semReady);
 		sem_wait(&mutexReady);
-		unScript = (struct script *) queue_pop(colaReady);
+		unScript = ( script *) queue_pop(colaReady);
 		sem_post(&mutexReady);
 		unScript->estado = exec;
-		for(int i = unScript->pos ; i < QUANTUM; i++){
-			int info = leerLinea(unScript->path,unScript->pos,consulta);
+		int info;
+		for(int i = 0 ; i < QUANTUM; i++){
+			info = leerLinea(unScript->path,unScript->pos,consulta);
 			unScript->pos++;
 			switch(info){
 			case 0:
@@ -211,28 +211,31 @@ void CPU(int socket_memoria){
 				break;
 			case 2:
 				unScript->estado = exit_;
+				i = QUANTUM;
 			}
 		}
-		sem_wait(&mutexReady);
-		queue_push(colaReady,&unScript);
-		sem_post(&semReady);
-		sem_post(&mutexReady);
+		if(info == 1){
+			sem_wait(&mutexReady);
+			queue_push(colaReady,unScript);
+			sem_post(&semReady);
+			sem_post(&mutexReady);
+		}
+		free(consulta);
 	}
 }
 
 void planificador(){
 	while(1){
-		struct script *unScript;
+		script *unScript = malloc(sizeof(script));
 		sem_wait(&semNew);
 		sem_wait(&mutexNew);
-		unScript = (struct script *) queue_pop(colaNew);
+		unScript = ( script *) queue_pop(colaNew);
 		sem_post(&mutexNew);
 		unScript->estado = ready;
 		sem_wait(&mutexReady);
-		queue_push(colaReady, &unScript);
+		queue_push(colaReady, unScript);
 		sem_post(&semReady);
 		sem_post(&mutexReady);
-		free(unScript);
 	}
 }
 
@@ -247,9 +250,8 @@ int levantarCpus(int socket_memoria){
 int leerLinea(char* path, int linea, char* leido){
 	FILE* archivo = fopen(path,"r");
 	if(archivo != NULL){
-		leido = malloc(256);
 		int cont = 0;
-		while (fgets(leido, sizeof(leido), archivo) != NULL)
+		while (fgets(leido, 256, archivo) != NULL)
 		{
 			if (cont == linea)
 			{
