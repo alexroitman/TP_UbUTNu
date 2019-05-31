@@ -23,7 +23,7 @@
 #define noAbreMetadata -7
 #define noExisteParametro -8
 #define noExisteTabla -9
-
+#define noSeAgregoTabla -9
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
@@ -80,11 +80,12 @@ int borrarDirectorio(const char* directorio);
 int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo);
 
 
-
+void imprimir_registro(registro* unreg);
 t_list* inicializarMemtable();
-int insertarEnMemtable(t_list* memtable,tInsert* packinsert);
-int selectEnMemtable(t_list* memtable, uint16_t key, char* tabla);
-
+int insertarEnMemtable(tInsert* packinsert);
+t_list* selectEnMemtable( uint16_t key, char* tabla);
+int insertarRegistro(registro* registro, char* nombre_tabla);
+int agregar_tabla_a_memtable(char* tabla);
 
 // Funciones de logger
 t_log* iniciar_logger(void);

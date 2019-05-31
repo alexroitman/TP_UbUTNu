@@ -10,7 +10,7 @@
 #define PUERTOLFS "7879"
 t_log* logger;
 t_list* memtable;
-int main(void) {
+	int main(void) {
 	int errorHandler;
 
 	int socket_sv = levantarServidor(PUERTOLFS);
@@ -27,8 +27,9 @@ int main(void) {
 		case SELECT:
 			desSerializarSelect(packSelect, socket_cli);
 			packSelect->type = header;
-			errorHandler = selectEnMemtable(memtable, packSelect->key,
-					packSelect->nombre_tabla);
+			t_list* list_select=list_create();
+			list_select = selectEnMemtable(packSelect->key,packSelect->nombre_tabla);
+			list_iterate(list_select, (void*) &imprimir_registro);
 			/*printf("recibi un una consulta SELECT de la tabla %s con le key %d \n",
 			 packSelect->nombre_tabla, packSelect->key);*/
 			break;
@@ -39,11 +40,9 @@ int main(void) {
 					"recibi un una consulta INSERT de la tabla %s con le key %d y el value %s \n",
 					packInsert->nombre_tabla, packInsert->key,
 					packInsert->value);
-			errorHandler = insertarEnMemtable(memtable, packInsert);
+			errorHandler = insertarEnMemtable(packInsert);
 			if (errorHandler == todoJoya) {
 				log_debug(logger, "se inserto bien");
-
-
 			}
 			break;
 		}
@@ -67,6 +66,9 @@ int main(void) {
 	if (errorHandler) {
 		logeoDeErrores(errorHandler, logger);
 	}
+
+
+	log_destroy(logger);
 	close(socket_cli);
 	close(socket_sv);
 
@@ -77,7 +79,12 @@ int main(void) {
 t_list* inicializarMemtable() {
 	return list_create();
 }
-int insertarEnMemtable(t_list* memtable, tInsert *packinsert) {
+void imprimir_registro(registro* unreg)
+{
+	printf("Encontre un %s",unreg->value);
+	//log_debug(logger,unreg->value);
+}
+int insertarEnMemtable(tInsert *packinsert) {
 
 	char* mi_ruta = string_new();
 	char* tables = "/home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/";
@@ -87,22 +94,28 @@ int insertarEnMemtable(t_list* memtable, tInsert *packinsert) {
 	if (!verificadorDeTabla(mi_ruta)) {
 		return noExisteTabla;
 	}
-	registro* registro_insert = malloc(sizeof(registro));
-	registro_insert->key = packinsert->key;
+	if (!existe_tabla_en_memtable(packinsert->nombre_tabla)) { //chequeo si existe la tabla en la memtable
+		if (!agregar_tabla_a_memtable(packinsert->nombre_tabla)) { //si no existe la agrego
+			return noSeAgregoTabla;
+			log_debug(logger, "NO Existe tabla en memtable");
+		}
+	}
+	log_debug(logger, "Existe tabla en memtable");
 
+	registro* registro_insert = malloc(sizeof(registro));
+
+	registro_insert->key = packinsert->key;
 	log_debug(logger, string_itoa(registro_insert->key));
-	//registro_insert->timestamp = packinsert->timestamp;//argregar
+
+	registro_insert->timestamp = 1;//argregar
+
+	log_debug(logger, (packinsert->value));
 	char* value = malloc(packinsert->value_long);
 	strcpy(value, packinsert->value);
 	registro_insert->value = malloc(strlen(value) + 1);
 	strcpy(registro_insert->value, value);
-	if (!existe_tabla_en_memtable(packinsert->nombre_tabla)) { //chequeo si existe la tabla en la memtable
-		if (!agregar_tabla_a_memtable(packinsert->nombre_tabla)) { //si no existe la agrego
-			return -12;
-		}
-	}
-
-	return insertarRegistro(registro_insert,packinsert->nombre_tabla);
+	free(mi_ruta);
+	return insertarRegistro(registro_insert, packinsert->nombre_tabla);
 }
 int insertarRegistro(registro* registro, char* nombre_tabla) {
 
@@ -120,17 +133,19 @@ int insertarRegistro(registro* registro, char* nombre_tabla) {
 
 }
 int agregar_tabla_a_memtable(char* tabla) {
-	t_tabla* tabla_a_agregar = malloc(sizeof(t_tabla));
-	strcpy(tabla_a_agregar->nombreTabla, tabla);
-	tabla_a_agregar->registros = list_create();
+	t_tabla* tabla_nueva = malloc(sizeof(t_tabla));
+	tabla_nueva->nombreTabla=string_new();
 
-	//log_debug(logger, "Se Agrego la tabla");
+	strcpy(tabla_nueva->nombreTabla, tabla);
 
+	tabla_nueva->registros = list_create();
+
+
+	log_debug(logger, "Se Agrego la tabla");
 	int cantidad_anterior;
 	cantidad_anterior = memtable->elements_count;
-	int indice_agregado = list_add(memtable, tabla_a_agregar);
+	int indice_agregado = list_add(memtable, tabla_nueva);
 	return indice_agregado + 1 > cantidad_anterior;
-
 
 }
 int existe_tabla_en_memtable(char* posible_tabla) {
@@ -149,7 +164,7 @@ int existe_tabla_en_memtable(char* posible_tabla) {
 	log_debug(logger, "No existe tabla en memtable");
 	return 0;
 }
-int selectEnMemtable(t_list* memtable, uint16_t key, char* tabla) {
+t_list* selectEnMemtable( uint16_t key, char* tabla) {
 	int es_tabla(t_tabla* UnaTabla) {
 		if (strcmp(UnaTabla->nombreTabla, tabla) == 0) {
 			return 1;
@@ -157,22 +172,23 @@ int selectEnMemtable(t_list* memtable, uint16_t key, char* tabla) {
 		return 0;
 	}
 	int es_registro(registro* unregistro) {
-		if (strcmp(unregistro->key, tabla) == 0) {
+		if (unregistro->key==key) {
 			return 1;
 		}
 		return 0;
 	}
 	t_tabla* tablaSelect;
-	registro* reg;
+	t_list* list_reg=list_create();
 	tablaSelect = list_find(memtable, (int) &es_tabla);
+
 	if (tablaSelect != NULL) {
 
-		//list iterate y por cada iteracion hacer un list filter
-		reg = list_find(tablaSelect->registros, (int) &es_registro);
+
+		list_add_all(list_reg,list_filter(tablaSelect->registros, (int) &es_registro));
 	}
-	log_debug(logger, reg->value);
-	free(tabla);
-	return todoJoya; //devuelvo valor del select
+//	log_debug(logger, reg->value);
+//	free(tabla);
+	return list_reg; //devuelvo valor del select
 }
 
 // APIs
