@@ -80,7 +80,7 @@ int crearBinarios(char* NOMBRE_TABLA, int NUMERO_PARTICIONES);
 int verificadorDeTabla(char* NOMBRE_TABLA);
 int borrarDirectorio(const char* directorio);
 int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo);
-
+int dumpeoMemoria();
 
 registro* Select(char* NOMBRE_TABLA, int KEY);
 

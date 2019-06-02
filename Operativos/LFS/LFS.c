@@ -15,9 +15,11 @@
 
 int socket_sv;
 int socket_cli;
+int cantidadDeDumpeos = 0;
 t_log* logger;
 t_list* memtable;
 int main(void) {
+
 	int errorHandler;
 	signal(SIGINT, finalizarEjecutcion);
 	//signal(SIGSEGV, finalizarEjecutcion);
@@ -36,7 +38,7 @@ int main(void) {
 		case SELECT:
 			desSerializarSelect(packSelect, socket_cli);
 			packSelect->type = header;
-			registro* reg=Select(packSelect->nombre_tabla,packSelect->key);
+			registro* reg = Select(packSelect->nombre_tabla, packSelect->key);
 
 			free(packSelect);
 			break;
@@ -52,6 +54,7 @@ int main(void) {
 			if (errorHandler == todoJoya) {
 				log_debug(logger, "se inserto bien");
 			}
+			dumpeoMemoria();
 			free(packSelect);
 			break;
 		}
@@ -230,29 +233,29 @@ int Drop(char* NOMBRE_TABLA) {
 	return todoJoya;
 }
 registro* Select(char* NOMBRE_TABLA, int KEY) {
-	int es_mayor(registro* unReg,registro* otroReg) {
-			if (unReg->timestamp>=otroReg->timestamp) {
-				return 1;
-			}
-			return 0;
+	int es_mayor(registro* unReg, registro* otroReg) {
+		if (unReg->timestamp >= otroReg->timestamp) {
+			return 1;
 		}
+		return 0;
+	}
 	char* ruta = string_new();
-		string_append(&ruta, DirTablas);
-		string_append(&ruta, NOMBRE_TABLA);
+	string_append(&ruta, DirTablas);
+	string_append(&ruta, NOMBRE_TABLA);
 	if (!verificadorDeTabla(ruta))
-			return noExisteTabla;
+		return noExisteTabla;
 //1) busca en memtable
 //2)busca en FS
 //3) busca en TMP
 // COMPARA
-	registro* registro_select=malloc(sizeof(registro));
-	t_list* registros=list_create();
-	list_add_all(registros,selectEnMemtable(KEY,NOMBRE_TABLA));
-	list_add(registros,SelectFS(ruta,KEY));
+	registro* registro_select = malloc(sizeof(registro));
+	t_list* registros = list_create();
+	list_add_all(registros, selectEnMemtable(KEY, NOMBRE_TABLA));
+	list_add(registros, SelectFS(ruta, KEY));
 	//en algun momento agreagar tmp
-	list_sort(registros,(int) &es_mayor);
-	registro_select=list_get(registros,0);
-	log_debug(logger,registro_select->value);
+	list_sort(registros, (int) &es_mayor);
+	registro_select = list_get(registros, 0);
+	log_debug(logger, registro_select->value);
 	return registro_select;
 
 }
@@ -288,7 +291,6 @@ registro* SelectFS(char* ruta, int KEY) {
 
 	// ---- Verifico que la tabla exista ----
 
-
 	// ---- Obtengo la metadata ----
 	particiones = buscarEnMetadata(ruta, "PARTITIONS");
 	if (particiones < 0)
@@ -309,6 +311,7 @@ registro* SelectFS(char* ruta, int KEY) {
 		string_append(&bloque, DirBloques);
 		string_append(&bloque, bloquesABuscar[i]);
 		string_append(&bloque, ".bin");
+		string_append_with_format()
 		int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
 		struct stat s;
 		int status = fstat(fd, &s);
@@ -489,6 +492,86 @@ int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo) {
 		fgets(aux, 40, fp);
 	}	// probar return
 	return atoi(strtok(NULL, "="));
+}
+
+void dumpearTabla(t_tabla* UnaTabla) {
+	char* tablaParaDumpeo = string_new();
+	string_append(&tablaParaDumpeo, DirTablas);
+	string_append(&tablaParaDumpeo, UnaTabla->nombreTabla);
+	string_append(&tablaParaDumpeo, "/");
+	string_append(&tablaParaDumpeo, string_itoa(cantidadDeDumpeos));
+	string_append(&tablaParaDumpeo, ".tmp");
+	int fd = open(tablaParaDumpeo, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);
+	void dumpearRegistros(registro* UnRegistro) {
+		char* registroParaEscribir = string_new();
+
+		string_append(&registroParaEscribir,
+				string_itoa(UnRegistro->timestamp));
+		string_append(&registroParaEscribir, ";");
+		string_append(&registroParaEscribir, string_itoa(UnRegistro->key));
+		string_append(&registroParaEscribir, ";");
+		string_append(&registroParaEscribir, UnRegistro->value);
+		string_append(&registroParaEscribir, "\n");
+
+		size_t textsize = strlen(registroParaEscribir) + 1; // + \0 null character
+
+		lseek(fd, textsize - 1, SEEK_SET);
+		/*
+		 Something needs to be written at the end of the file to
+		 * have the file actually have the new size.
+		 * Just writing an empty string at the current file position will do.
+		 *
+		 * Note:
+		 *  - The current position in the file is at the end of the stretched
+		 *    file due to the call to lseek().
+		 *  - An empty string is actually a single '\0' character, so a zero-byte
+		 *    will be written at the last byte of the file.
+		 */
+
+		write(fd, "", 1);
+
+		// Now the file is ready to be mmapped.
+		char *map = mmap(0, textsize, PROT_READ | PROT_WRITE, MAP_SHARED, fd,
+				0);
+
+		size_t i = 0;
+		while (i < textsize) {
+			map[i] = registroParaEscribir[i];
+			i++;
+		}
+
+		//memcpy(map, registroParaEscribir, strlen(registroParaEscribir));
+		// Write it now to disk
+		msync(map, textsize, MS_SYNC);
+		munmap(map, textsize);
+	}
+
+	list_iterate(UnaTabla->registros, (void*) &dumpearRegistros);
+	struct stat s;
+	int status = fstat(fd, &s);
+
+	//-----------------
+
+	// Don't forget to free the mmapped memory
+
+	// Un-mmaping doesn't close the file, so we still need to do that.
+	close(fd);
+	//-----------------
+
+}
+
+int dumpeoMemoria() {
+	if (list_is_empty(memtable))
+		return 1;	// poner define para memtable vacia
+	cantidadDeDumpeos++;
+
+	list_iterate(memtable, &dumpearTabla);
+	/*
+
+
+
+	 */
+	return 0;
 }
 
 // Funciones de logger
