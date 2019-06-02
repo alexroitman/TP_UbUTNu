@@ -24,6 +24,7 @@
 #define noExisteParametro -8
 #define noExisteTabla -9
 #define noSeAgregoTabla -9
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
@@ -44,6 +45,7 @@
 #include <stdbool.h>
 #include <dirent.h>
 #include <errno.h>
+#include <signal.h>
 // Estructuras
 typedef struct {
 	int particiones;
@@ -57,7 +59,7 @@ typedef struct{
 typedef struct{
 	uint16_t key;
 	char* value;
-	long timestamp;
+	int timestamp;
 } registro;
 typedef struct{
 	t_tabla tabla;
@@ -66,7 +68,7 @@ typedef struct{
 
 
 // APIs
-int SelectApi(char* NOMBRE_TABLA, int KEY);
+registro* SelectFS(char* NOMBRE_TABLA, int KEY);
 int Insert (char* NOMBRE_TABLA, int KEY, char* VALUE, int Timestamp);
 int Create(char* NOMBRE_TABLA, int TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME);
 metadata Describe(char* NOMBRE_TABLA);
@@ -80,6 +82,8 @@ int borrarDirectorio(const char* directorio);
 int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo);
 
 
+registro* Select(char* NOMBRE_TABLA, int KEY);
+
 void imprimir_registro(registro* unreg);
 t_list* inicializarMemtable();
 int insertarEnMemtable(tInsert* packinsert);
@@ -90,5 +94,5 @@ int agregar_tabla_a_memtable(char* tabla);
 // Funciones de logger
 t_log* iniciar_logger(void);
 void logeoDeErrores(int errorHandler, t_log* logger);
-
+void finalizarEjecutcion();
 #endif /* LFS_H_ */

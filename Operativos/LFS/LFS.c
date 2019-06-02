@@ -8,13 +8,22 @@
 #include "LFS.h"
 
 #define PUERTOLFS "7879"
+#define DirMontaje "../FS_LISSANDRA/"
+#define DirTablas "../FS_LISSANDRA/Tablas/"
+#define DirBloques "../FS_LISSANDRA/Bloques/"
+#define DirMetadata "../FS_LISSANDRA/Metadata/"
+
+int socket_sv;
+int socket_cli;
 t_log* logger;
 t_list* memtable;
-	int main(void) {
+int main(void) {
 	int errorHandler;
+	signal(SIGINT, finalizarEjecutcion);
+	//signal(SIGSEGV, finalizarEjecutcion);
 
-	int socket_sv = levantarServidor(PUERTOLFS);
-	int socket_cli = aceptarCliente(socket_sv);
+	socket_sv = levantarServidor(PUERTOLFS);
+	socket_cli = aceptarCliente(socket_sv);
 	type header;
 	memtable = inicializarMemtable();
 	logger = iniciar_logger();
@@ -27,11 +36,9 @@ t_list* memtable;
 		case SELECT:
 			desSerializarSelect(packSelect, socket_cli);
 			packSelect->type = header;
-			t_list* list_select=list_create();
-			list_select = selectEnMemtable(packSelect->key,packSelect->nombre_tabla);
-			list_iterate(list_select, (void*) &imprimir_registro);
-			/*printf("recibi un una consulta SELECT de la tabla %s con le key %d \n",
-			 packSelect->nombre_tabla, packSelect->key);*/
+			registro* reg=Select(packSelect->nombre_tabla,packSelect->key);
+
+			free(packSelect);
 			break;
 		case INSERT:
 			desSerializarInsert(packInsert, socket_cli);
@@ -41,9 +48,11 @@ t_list* memtable;
 					packInsert->nombre_tabla, packInsert->key,
 					packInsert->value);
 			errorHandler = insertarEnMemtable(packInsert);
+
 			if (errorHandler == todoJoya) {
 				log_debug(logger, "se inserto bien");
 			}
+			free(packSelect);
 			break;
 		}
 	}
@@ -52,7 +61,8 @@ t_list* memtable;
 //	t_config* metadata = config_create("metadata");
 
 //	PRUEBA COMANDO CREATE
-//	errorHandler = CREATE("tables/TABLA1",1,4,1);
+
+//	errorHandler = Create("TABLA1", 1, 4, 1);
 
 //	PRUEBA COMANDO INSERT
 //	errorHandler = INSERT("tables/TABLA1", 3, "Mi nombre es Lissandra", 1548421507);
@@ -67,7 +77,6 @@ t_list* memtable;
 		logeoDeErrores(errorHandler, logger);
 	}
 
-
 	log_destroy(logger);
 	close(socket_cli);
 	close(socket_sv);
@@ -79,9 +88,8 @@ t_list* memtable;
 t_list* inicializarMemtable() {
 	return list_create();
 }
-void imprimir_registro(registro* unreg)
-{
-	printf("Encontre un %s",unreg->value);
+void imprimir_registro(registro* unreg) {
+	printf("Encontre un %s", unreg->value);
 	//log_debug(logger,unreg->value);
 }
 int insertarEnMemtable(tInsert *packinsert) {
@@ -107,7 +115,7 @@ int insertarEnMemtable(tInsert *packinsert) {
 	registro_insert->key = packinsert->key;
 	log_debug(logger, string_itoa(registro_insert->key));
 
-	registro_insert->timestamp = 1;//argregar
+	registro_insert->timestamp = time(NULL); //argregar
 
 	log_debug(logger, (packinsert->value));
 	char* value = malloc(packinsert->value_long);
@@ -134,12 +142,11 @@ int insertarRegistro(registro* registro, char* nombre_tabla) {
 }
 int agregar_tabla_a_memtable(char* tabla) {
 	t_tabla* tabla_nueva = malloc(sizeof(t_tabla));
-	tabla_nueva->nombreTabla=string_new();
+	tabla_nueva->nombreTabla = string_new();
 
 	strcpy(tabla_nueva->nombreTabla, tabla);
 
 	tabla_nueva->registros = list_create();
-
 
 	log_debug(logger, "Se Agrego la tabla");
 	int cantidad_anterior;
@@ -164,53 +171,30 @@ int existe_tabla_en_memtable(char* posible_tabla) {
 	log_debug(logger, "No existe tabla en memtable");
 	return 0;
 }
-t_list* selectEnMemtable( uint16_t key, char* tabla) {
-	int es_tabla(t_tabla* UnaTabla) {
-		if (strcmp(UnaTabla->nombreTabla, tabla) == 0) {
-			return 1;
-		}
-		return 0;
-	}
-	int es_registro(registro* unregistro) {
-		if (unregistro->key==key) {
-			return 1;
-		}
-		return 0;
-	}
-	t_tabla* tablaSelect;
-	t_list* list_reg=list_create();
-	tablaSelect = list_find(memtable, (int) &es_tabla);
-
-	if (tablaSelect != NULL) {
-
-
-		list_add_all(list_reg,list_filter(tablaSelect->registros, (int) &es_registro));
-	}
-//	log_debug(logger, reg->value);
-//	free(tabla);
-	return list_reg; //devuelvo valor del select
-}
 
 // APIs
 
 int Create(char* NOMBRE_TABLA, int TIPO_CONSISTENCIA, int NUMERO_PARTICIONES,
 		int COMPACTATION_TIME) {
-	char aux[strlen(NOMBRE_TABLA) + 10];
+	char* ruta = string_new();
+	string_append(&ruta, DirTablas);
+	string_append(&ruta, NOMBRE_TABLA);
 	// ---- Verifico que la tabla no exista ----
-	if (verificadorDeTabla(NOMBRE_TABLA) == 0)
+	if (!verificadorDeTabla(ruta) == 0)
 		return tablaExistente;
 
 	// ---- Creo directorio de la tabla ----
-	if (mkdir(NOMBRE_TABLA, 0700) == -1)
+	if (mkdir(ruta, 0700) == -1)
 		return carpetaNoCreada;
 
 	// ---- Creo y grabo Metadata de la tabla ----
-	if (crearMetadata(NOMBRE_TABLA, TIPO_CONSISTENCIA, NUMERO_PARTICIONES,
+	if (crearMetadata(ruta, TIPO_CONSISTENCIA, NUMERO_PARTICIONES,
 			COMPACTATION_TIME))
 		return metadataNoCreada;
 
 	// ---- Creo los archivos binarios ----
-	crearBinarios(NOMBRE_TABLA, NUMERO_PARTICIONES);
+	crearBinarios(ruta, NUMERO_PARTICIONES);
+	free(ruta);
 	return todoJoya;
 }
 
@@ -245,20 +229,128 @@ int Drop(char* NOMBRE_TABLA) {
 		return tablaNoEliminada;
 	return todoJoya;
 }
+registro* Select(char* NOMBRE_TABLA, int KEY) {
+	int es_mayor(registro* unReg,registro* otroReg) {
+			if (unReg->timestamp>=otroReg->timestamp) {
+				return 1;
+			}
+			return 0;
+		}
+	char* ruta = string_new();
+		string_append(&ruta, DirTablas);
+		string_append(&ruta, NOMBRE_TABLA);
+	if (!verificadorDeTabla(ruta))
+			return noExisteTabla;
+//1) busca en memtable
+//2)busca en FS
+//3) busca en TMP
+// COMPARA
+	registro* registro_select=malloc(sizeof(registro));
+	t_list* registros=list_create();
+	list_add_all(registros,selectEnMemtable(KEY,NOMBRE_TABLA));
+	list_add(registros,SelectFS(ruta,KEY));
+	//en algun momento agreagar tmp
+	list_sort(registros,(int) &es_mayor);
+	registro_select=list_get(registros,0);
+	log_debug(logger,registro_select->value);
+	return registro_select;
 
-int SelectApi(char* NOMBRE_TABLA, int KEY) {
+}
+t_list* selectEnMemtable(uint16_t key, char* tabla) {
+	int es_tabla(t_tabla* UnaTabla) {
+		if (strcmp(UnaTabla->nombreTabla, tabla) == 0) {
+			return 1;
+		}
+		return 0;
+	}
+	int es_registro(registro* unregistro) {
+		if (unregistro->key == key) {
+			return 1;
+		}
+		return 0;
+	}
+	t_tabla* tablaSelect;
+	t_list* list_reg = list_create();
+	tablaSelect = list_find(memtable, (int) &es_tabla);
+
+	if (tablaSelect != NULL) {
+
+		list_add_all(list_reg,
+				list_filter(tablaSelect->registros, (int) &es_registro));
+	}
+//	log_debug(logger, reg->value);
+//	free(tabla);
+	return list_reg; //devuelvo valor del select
+}
+
+registro* SelectFS(char* ruta, int KEY) {
 	int particiones;
+
 	// ---- Verifico que la tabla exista ----
-	if (verificadorDeTabla(NOMBRE_TABLA) != 0)
-		return noExisteTabla;
+
 
 	// ---- Obtengo la metadata ----
-	particiones = buscarEnMetadata(NOMBRE_TABLA, "PARTITIONS");
+	particiones = buscarEnMetadata(ruta, "PARTITIONS");
 	if (particiones < 0)
 		return particiones;
 
 	// ---- Calculo particion del KEY ----
-	particiones = KEY % particiones;
+	particiones = (KEY % particiones);
+	string_append(&ruta, ("/"));
+	string_append(&ruta, string_itoa(particiones));
+	string_append(&ruta, ".bin");
+	t_config* particion = config_create(ruta);
+	int size = config_get_int_value(particion, "SIZE_BLOCKS");
+	char** bloquesABuscar = config_get_array_value(particion, "BLOCKS");
+	int i = 0;
+	registro* registro = malloc(sizeof(registro));
+	while (bloquesABuscar[i] != NULL) {
+		char* bloque = string_new();
+		string_append(&bloque, DirBloques);
+		string_append(&bloque, bloquesABuscar[i]);
+		string_append(&bloque, ".bin");
+		int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
+		struct stat s;
+		int status = fstat(fd, &s);
+		size = s.st_size;
+
+		char* f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+
+		int j = 0;
+		char** registros = string_split(f, "\n");
+		while (registros[j] != NULL) {
+
+			char** datos_registro = string_split(registros[j], ";");
+			if (atoi(datos_registro[1]) == KEY) {
+				//if (atol(datos_registro[0]) > registro->timestamp) {
+				free(registro->value);
+				registro->timestamp = atol(datos_registro[0]);
+				registro->key = atoi(datos_registro[1]);
+				registro->value = malloc(strlen(datos_registro[2]) + 1);
+				strcpy(registro->value, datos_registro[2]);
+				//}
+			}
+
+			string_iterate_lines(datos_registro, (void*) free);
+
+			free(datos_registro);
+
+			j++;
+		}
+		string_iterate_lines(registros, (void*) free);
+		free(registros);
+		close(fd);
+
+		free(bloque);
+		i++;
+	}
+
+	free(ruta);
+	free(bloquesABuscar);
+
+	config_destroy(particion);
+
+	log_debug(logger, "Destrui la config particion");
 
 	// ---- Escaneo particion objetivo ----
 	//Escaneo en la memtable
@@ -266,7 +358,7 @@ int SelectApi(char* NOMBRE_TABLA, int KEY) {
 
 	// ---- Retorno la KEY de mayor Timestamp ----
 
-	return todoJoya;
+	return registro;
 }
 /*
  int DESCRIBE (char* NOMBRE_TABLA,metadata *myMetadata){
@@ -349,6 +441,7 @@ int verificadorDeTabla(char* NOMBRE_TABLA) {
 		status = 0;
 	}
 	closedir(dirp);
+
 	return status;
 }
 
@@ -470,3 +563,13 @@ metadata* listarDirectorios(char *dir) {
 	fts_close(ftsp);
 }
 
+void finalizarEjecutcion() {
+	printf("------------------------\n");
+	printf("¿chau chau adios?\n");
+	printf("------------------------\n");
+	log_destroy(logger);
+	close(socket_cli);
+	close(socket_sv);
+	list_iterate(memtable, free);
+	raise(SIGTERM);
+}
