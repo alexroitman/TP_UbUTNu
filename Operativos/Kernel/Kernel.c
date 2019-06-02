@@ -24,19 +24,25 @@ sem_t mutexNew;
 sem_t semNew;
 pthread_t cpus[MULT_PROC];
 pthread_t planificador_t;
-FILE *archivoLQL;
+t_log *logger;
 t_queue *colaReady;
 t_queue *colaNew;
 
 // Define cual va a ser el size maximo del paquete a enviar
 
 int main() {
+	logger = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_DEBUG);
+	log_debug(logger,"Inicializando semaforos");
 	sem_init(&semReady,0,0);
 	sem_init(&semNew,0,0);
 	sem_init(&mutexNew,0,1);
 	sem_init(&mutexReady,0,1);
 	sem_init(&mutexSocket,0,1);
+	log_debug(logger,"Semaforos incializados con exito");
+	log_debug(logger,"Inicializando sockets");
 	int socket_memoria = levantarCliente(PUERTOMEM, IP);
+	log_debug(logger,"Sockets inicializados con exito");
+	log_debug(logger,"Se tendra un nivel de multiprocesamiento de: %d cpus", MULT_PROC);
 	if(levantarCpus(socket_memoria)){
 		colaReady = queue_create();
 		colaNew = queue_create();
@@ -87,8 +93,6 @@ void cargarPaqueteSelect(tSelect *pack, char* cons) {
 		pack->type = SELECT;
 		pack->nombre_tabla = spliteado[1];
 		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
-		printf("nombre tabla: %s \n", pack->nombre_tabla);
-		printf("long tabla: %d \n", pack->nombre_tabla_long);
 		pack->key = atoi(spliteado[2]);
 		pack->length = sizeof(pack->type) + sizeof(pack->nombre_tabla_long)
 				+ pack->nombre_tabla_long + sizeof(pack->key);
@@ -104,13 +108,9 @@ void cargarPaqueteInsert(tInsert *pack, char* cons) {
 		pack->type = INSERT;
 		pack->nombre_tabla = spliteado[1];
 		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
-		printf("nombre tabla: %s \n", pack->nombre_tabla);
-		printf("long tabla: %d \n", pack->nombre_tabla_long);
 		pack->key = atoi(spliteado[2]);
 		pack->value = spliteado[3];
 		pack->value_long = strlen(spliteado[3])+1;
-		printf("value: %s \n", pack->value);
-		printf("value long: %d \n", pack->value_long);
 		pack->length = sizeof(pack->type) + sizeof(pack->nombre_tabla_long)
 				+ pack->nombre_tabla_long + sizeof(pack->key)
 				+ sizeof(pack->value_long) + pack->value_long;
@@ -119,10 +119,31 @@ void cargarPaqueteInsert(tInsert *pack, char* cons) {
 	}
 }
 
+void cargarPaqueteCreate(tCreate *pack, char* cons) {
+	char** spliteado;
+	spliteado = string_n_split(cons, 5, " ");
+	if (strcmp(spliteado[1], "") && strcmp(spliteado[2], "")
+			&& strcmp(spliteado[3], "") && strcmp(spliteado[4], "")) {
+		pack->type = INSERT;
+		pack->nombre_tabla = spliteado[1];
+		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
+		pack->consistencia = atoi(spliteado[2]);
+		pack->particiones = atoi(spliteado[3]);
+		pack->compaction_time = atoi(spliteado[4]);
+		pack->length = sizeof(pack->type) + sizeof(pack->nombre_tabla_long)
+				+ pack->nombre_tabla_long + sizeof(pack->consistencia)
+				+ sizeof(pack->particiones) + sizeof(pack->compaction_time);
+	} else {
+		printf("no entendi tu consulta\n");
+	}
+}
+
+
 int despacharQuery(char* consulta, int socket_memoria) {
 	char** tempSplit;
 	tSelect* paqueteSelect=malloc(sizeof(tSelect));
 	tInsert* paqueteInsert=malloc(sizeof(tInsert));
+	tCreate* paqueteCreate = malloc(sizeof(tCreate));
 	type typeHeader;
 	char* serializado = "";
 	int consultaOk = 0;
@@ -132,21 +153,44 @@ int despacharQuery(char* consulta, int socket_memoria) {
 		typeHeader = validarSegunHeader(tempSplit[0]);
 		switch (typeHeader) {
 		case SELECT:
-			cargarPaqueteSelect(paqueteSelect, consulta);
-			serializado = serializarSelect(paqueteSelect);
-			sem_wait(&mutexSocket);
-			enviarPaquete(socket_memoria, serializado, paqueteSelect->length);
-
-			sem_post(&mutexSocket);
+			if(validarSelect(consulta)){
+				log_debug(logger,"Se recibio un SELECT");
+				cargarPaqueteSelect(paqueteSelect, consulta);
+				serializado = serializarSelect(paqueteSelect);
+				sem_wait(&mutexSocket);
+				enviarPaquete(socket_memoria, serializado, paqueteSelect->length);
+				sem_post(&mutexSocket);
+			}else{
+				printf("Por favor ingrese la consulta en formato correcto");
+			}
 			consultaOk = 1;
 			break;
 		case INSERT:
-			cargarPaqueteInsert(paqueteInsert, consulta);
-			serializado = serializarInsert(paqueteInsert);
-			sem_wait(&mutexSocket);
-			enviarPaquete(socket_memoria, serializado, paqueteInsert->length);
-			sem_post(&mutexSocket);
-			printf("serializo el insert \n");
+			if(valiadarInsert(consulta)){
+				log_debug(logger,"Se recibio un INSERT");
+				cargarPaqueteInsert(paqueteInsert,
+						string_substring_until(consulta,string_length(consulta)-1 ) );
+				serializado = serializarInsert(paqueteInsert);
+				sem_wait(&mutexSocket);
+				enviarPaquete(socket_memoria, serializado, paqueteInsert->length);
+				sem_post(&mutexSocket);
+			}else{
+				printf("Por favor ingrese la consulta en formato correcto");
+			}
+			consultaOk = 1;
+			break;
+		case CREATE:
+			if(validarCreate(consulta)){
+				log_debug(logger,"Se recibio un CREATE");
+				cargarPaqueteCreate(paqueteCreate,
+						string_substring_until(consulta,string_length(consulta)-1 ) );
+				serializado = serializarCreate(paqueteCreate);
+				sem_wait(&mutexSocket);
+				enviarPaquete(socket_memoria, serializado, paqueteCreate->length);
+				sem_post(&mutexSocket);
+			}else{
+				printf("Por favor ingrese la consulta en formato correcto");
+			}
 			consultaOk = 1;
 			break;
 		case RUN:
@@ -170,23 +214,12 @@ int despacharQuery(char* consulta, int socket_memoria) {
 		}
 
 	}
+	free(paqueteCreate);
+	free(paqueteInsert);
+	free(paqueteSelect);
+	free(unScript);
 	return consultaOk;
 }
-/*void rutinaRUN(void* argumentos){
-	struct arg_RUN *args = (struct arg_RUN *)argumentos;
-	if(args->archivoLQL != NULL){
-		char* consulta = malloc(256);
-		while(fgets(consulta, 256, args->archivoLQL) != NULL)
-		{
-			despacharQuery(consulta, args->socket_memoria);
-		}
-		fclose(args->archivoLQL);
-		free(consulta);
-	}
-	else{
-		printf("El archivo no existe \n");
-	}
-}*/
 
 void CPU(int socket_memoria){
 	while(1){
@@ -221,6 +254,7 @@ void CPU(int socket_memoria){
 			sem_post(&mutexReady);
 		}
 		free(consulta);
+		free(unScript);
 	}
 }
 
@@ -275,4 +309,28 @@ int leerLinea(char* path, int linea, char* leido){
 	printf("Algo salio mal \n");
 	return 0; //devuelve 0 si no se encontro la linea
 
+}
+int validarSelect(char* consulta){
+	char** split = string_split(consulta," ");
+	int i = 0;
+	while(split[i] != NULL){
+		i++;
+	}
+	return 3 == i;
+}
+int validarInsert(char* consulta){
+	char** split = string_split(consulta," ");
+	int i = 0;
+	while(split[i] != NULL){
+		i++;
+	}
+	return 4 == i;
+}
+int validarCreate(char* consulta){
+	char** split = string_split(consulta," ");
+	int i = 0;
+	while(split[i] != NULL){
+		i++;
+	}
+	return 5 == i;
 }

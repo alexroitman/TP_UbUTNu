@@ -49,11 +49,14 @@ int despacharQuery(char* consulta, int socket_memoria);
 void add();
 void cargarPaqueteSelect();
 void cargarPaqueteInsert();
-//void rutinaRUN(void* argumentos);
 void CPU(int socket_memoria);
 void planificador();
 int levantarCpus(int socket_memoria);
 int leerLinea(char* path, int linea, char* leido);
+void cargarPaqueteCreate(tCreate *pack, char* cons);
+int validarSelect(char* consulta);
+int validarCreate(char* consulta);
+int validarInsert(char* consulta);
 
 
 #endif /* KERNEL_KERNEL_H_ */

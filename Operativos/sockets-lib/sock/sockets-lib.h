@@ -22,6 +22,7 @@ char package[PACKAGESIZE];
 #include <sys/socket.h>
 #include <netdb.h>
 #include <semaphore.h>
+#include <commons/log.h>
 struct addrinfo hints;
 struct addrinfo *serverInfo;
 

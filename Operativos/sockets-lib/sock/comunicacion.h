@@ -60,10 +60,13 @@ uint32_t length;
 } tSelect;
 
 typedef struct {
+type type;
 char* nombre_tabla;
+uint32_t nombre_tabla_long;
 int consistencia;							//CREATE
 int particiones;
 int compaction_time;
+uint32_t length;
 } tCreate;
 
 typedef struct {
