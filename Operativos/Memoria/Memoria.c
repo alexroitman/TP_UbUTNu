@@ -44,6 +44,12 @@ int main() {
 	pagina3.timestamp = 300;
 	pagina3.value = "olakase\0";
 	agregarPaginaAMemoria(seg2,pagina3,memoria);
+	//creo pagina para segmento 2
+	tPagina pagina4;
+	pagina4.key = 7;
+	pagina4.timestamp = 400;
+	pagina4.value = "jaja\0";
+	agregarPaginaAMemoria(seg2,pagina4,memoria);
 
 	tPagina* a;
 	a = memoria + (seg->tablaPaginas)[0].offsetMemoria;
@@ -61,8 +67,24 @@ int main() {
 	printf("key3:  %d \n", a->key);
 	printf("time3:  %d \n", a->timestamp);
 	printf("value3:  %s \n\n", a->value);
+	a = memoria + (seg2->tablaPaginas)[1].offsetMemoria;
+	printf("SEGUNDO SEGMENTO, SEGUNDA PAG\n", a->key);
+	printf("key3:  %d \n", a->key);
+	printf("time3:  %d \n", a->timestamp);
+	printf("value3:  %s \n\n", a->value);
 
+	tSegmento* segmento = malloc(sizeof(tSegmento));
+	int encontro = buscarSegmentoEnTabla("tabla2", segmento, tablaSegmentos);
 
+	if(encontro==1){
+		printf("Encontre la tabla %s \n", segmento->path);
+	}
+	tPagina* pagBuscada = malloc(sizeof(tPagina));
+	encontro = buscarPaginaEnMemoria(7,segmento,memoria,pagBuscada);
+	if(encontro==1){
+		printf("Encontre la pagina con value %s \n", pagBuscada->value);
+	}
+	free(segmento);
 	/*
 	int socket_sv = levantarServidor(PUERTOKERNEL);
 	int socket_cli = aceptarCliente(socket_sv);
@@ -157,21 +179,42 @@ tSegmento* obtenerSegmentoDeTabla(t_list* tablaSeg,int index){
 	return seg;
 }
 
-/*
-int buscarSegmentoEnTabla(char* nombreTabla, tSegmento* segmento, t_list* listaSegmentos){
+
+
+
+int buscarSegmentoEnTabla(char* nombreTabla, tSegmento* miseg, t_list* listaSegmentos){
 	bool mismoNombre (void* elemento){
-		tSegmento* seg = (tSegmento*) elemento;
+		tSegmento* seg = malloc(sizeof(tSegmento));
+		seg = (tSegmento*) elemento;
 		char* path = seg->path;
 		return !strcmp(nombreTabla,separarNombrePath(path));
 	}
-	segmento = list_find(listaSegmentos, mismoNombre);
-	if(segmento != NULL){
+	*miseg = *(tSegmento*)list_find(listaSegmentos, mismoNombre);
+	if(miseg != NULL){
 		return 1;
 	}
 	return -1;
 }
 
-*/
+int buscarPaginaEnMemoria(int key, tSegmento* miseg, void* memoria, tPagina* pagina){
+	elem_tabla_pag* vecPaginas;
+	vecPaginas = miseg->tablaPaginas;
+	int index=0;
+	while(vecPaginas[index].offsetMemoria != -1){
+		//RECORRO LA TABLA DE PAGINAS YENDO A BUSCAR A MEMORIA SEGUN CADA OFFSET
+		*pagina = *(tPagina*)(memoria + vecPaginas[index].offsetMemoria);
+		if(pagina->key == key){
+			//ENCONTRE MI PAGINA EN MEMORIA
+			return 1;
+		}
+		index++;
+	}
+	pagina = NULL;
+	return -1;
+}
+
+
+
 char* separarNombrePath(char* path){
 	char** separado = string_split(path,"/");
 	int i =0;
@@ -180,57 +223,10 @@ char* separarNombrePath(char* path){
 		i++;
 	}
 	nombre = separado[i];
-	int j = 0;
+	/*int j = 0;
 	while(separado[j] != NULL && j != i){
 		free(separado[j]);
 	}
-	free(separado);
+	free(separado);*/
 	return nombre;
 }
-
-/*
- void parsearMensaje(t_Package *paquete){
-
- char** vector = NULL;
- split(paquete -> message, vector);
-
- switch(vector[0] ){
- case "SELECT":
- t_select miSelect;
- miSelect -> key = atoi(vector[2]);
- miSelect -> table = vector[1];
- hacerSelect(miSelect);
- break;
- case "INSERT":
- t_Insert miInsert;
- miInsert -> table = vector[1];
- miInsert -> value = vector[2];
- miInsert -> timestap = atoi(vector[3]);
- hacerInsert(miInsert);
- break;
- case "CREATE":
- t_Create miCreate;
- miCreate -> table = vector[1];
- miCreate -> tipoConsistencia = vector[2];
- miCreate -> particiones = atoi(vector[3]);
- miCreate -> tiempoCompactacion = atoi(vector[4]);
- hacerCreate(miCreate);
- break;
- case "DROP":
- t_Drop miDrop;
- miDrop -> table = vector[1];
- hacerDrop(miDrop);
- break;
- case "DESCRIBE":
- t_Describe miDescribe;
- miDescribe -> table = vector[1];
- hacerDescribe(miDescribe);
- break;
- default:
- //DEVOLVER ERROR
- // ALGUN DIA
- break;
- }
- }
-
- */
