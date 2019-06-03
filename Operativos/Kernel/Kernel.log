@@ -1,0 +1,13 @@
+[DEBUG] 19:15:21:131 Kernel.c/(9177:9177): Inicializando semaforos
+[DEBUG] 19:15:21:133 Kernel.c/(9177:9177): Semaforos incializados con exito
+[DEBUG] 19:15:21:133 Kernel.c/(9177:9177): Inicializando sockets
+[DEBUG] 19:15:21:134 Kernel.c/(9177:9177): Sockets inicializados con exito
+[DEBUG] 19:15:21:134 Kernel.c/(9177:9177): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 19:15:41:262 Kernel.c/(9177:9177): Se recibio un CREATE
+[DEBUG] 19:19:13:205 Kernel.c/(9177:9177): Se recibio un CREATE
+[DEBUG] 19:21:13:275 Kernel.c/(9467:9467): Inicializando semaforos
+[DEBUG] 19:21:13:275 Kernel.c/(9467:9467): Semaforos incializados con exito
+[DEBUG] 19:21:13:275 Kernel.c/(9467:9467): Inicializando sockets
+[DEBUG] 19:21:13:275 Kernel.c/(9467:9467): Sockets inicializados con exito
+[DEBUG] 19:21:13:275 Kernel.c/(9467:9467): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 19:21:27:767 Kernel.c/(9467:9467): Se recibio un CREATE

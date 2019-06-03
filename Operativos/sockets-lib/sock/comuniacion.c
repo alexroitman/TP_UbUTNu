@@ -33,8 +33,8 @@ type leerHeader(int socket) {
 
 char* serializarSelect(tSelect* packageSelect) {
 	packageSelect->length = sizeof(packageSelect->type)
-				+ sizeof(packageSelect->nombre_tabla_long)
-				+ packageSelect->nombre_tabla_long + sizeof(packageSelect->key);
+			+ sizeof(packageSelect->nombre_tabla_long)
+			+ packageSelect->nombre_tabla_long + sizeof(packageSelect->key);
 
 	char *serializedPackage = malloc(packageSelect->length);
 	int offset = 0;
@@ -55,10 +55,8 @@ char* serializarSelect(tSelect* packageSelect) {
 			size_to_send);
 	offset += size_to_send;
 
-	size_to_send = sizeof(int);
+	size_to_send = sizeof(uint16_t);
 	memcpy(serializedPackage + offset, &packageSelect->key, size_to_send);
-
-
 
 	return serializedPackage;
 }
@@ -83,19 +81,17 @@ int desSerializarSelect(tSelect* packageSelect, int socket) {
 
 	if (!status)
 		return 0;
-	packageSelect->key = malloc(sizeof(int));
+	packageSelect->key = malloc(sizeof(uint16_t));
 	status = recv(socket, &packageSelect->key, sizeof(packageSelect->key), 0); //recibo el nombre de la key
 	if (!status)
 		return 0;
 
 	free(buffer);
 
-
 	return status;
 
 }
 char* serializarInsert(tInsert* packageInsert) {
-
 
 	char* serializedPackage = malloc(packageInsert->length);
 	int offset = 0;
@@ -116,7 +112,7 @@ char* serializarInsert(tInsert* packageInsert) {
 			size_to_send);
 	offset += size_to_send;
 
-	size_to_send = sizeof(int);
+	size_to_send = sizeof(uint16_t);
 	memcpy(serializedPackage + offset, &packageInsert->key, size_to_send);
 
 	offset += size_to_send;
@@ -128,7 +124,6 @@ char* serializarInsert(tInsert* packageInsert) {
 	size_to_send = packageInsert->value_long;
 	memcpy(serializedPackage + offset, (packageInsert->value), size_to_send);
 	offset += size_to_send;
-
 
 	return serializedPackage;
 }
@@ -147,11 +142,12 @@ int desSerializarInsert(tInsert* packageInsert, int socket) {
 		return 0;
 	packageInsert->nombre_tabla = malloc(packageInsert->nombre_tabla_long);
 
-	status = recv(socket, packageInsert->nombre_tabla, packageInsert->nombre_tabla_long, 0); //recibo el nombre de la tabla
+	status = recv(socket, packageInsert->nombre_tabla,
+			packageInsert->nombre_tabla_long, 0); //recibo el nombre de la tabla
 
 	if (!status)
 		return 0;
-	packageInsert->key = malloc(sizeof(int));
+	packageInsert->key = malloc(sizeof(uint16_t));
 	status = recv(socket, &packageInsert->key, sizeof(packageInsert->key), 0); //recibo el key
 	if (!status)
 		return 0;
@@ -167,12 +163,107 @@ int desSerializarInsert(tInsert* packageInsert, int socket) {
 	if (!status)
 		return 0;
 
-
 	free(buffer);
 	packageInsert->length = sizeof(packageInsert->type)
-					+ sizeof(packageInsert->nombre_tabla_long)
-					+ packageInsert->nombre_tabla_long + sizeof(packageInsert->key)
-					+ sizeof(packageInsert->value_long) + packageInsert->value_long;
+			+ sizeof(packageInsert->nombre_tabla_long)
+			+ packageInsert->nombre_tabla_long + sizeof(packageInsert->key)
+			+ sizeof(packageInsert->value_long) + packageInsert->value_long;
+
+	return status;
+
+}
+char* serializarCreate(tCreate* packageCreate) {
+
+	char* serializedPackage = malloc(packageCreate->length);
+	int offset = 0;
+	int size_to_send = 0;
+
+	size_to_send = sizeof(packageCreate->type);
+	memcpy(serializedPackage + offset, &(packageCreate->type), size_to_send); //sizeof(int8_t)
+	offset += size_to_send;
+
+	size_to_send = sizeof(packageCreate->nombre_tabla_long);
+	memcpy(serializedPackage + offset, &(packageCreate->nombre_tabla_long),
+			size_to_send);
+	offset += size_to_send;
+
+	size_to_send = packageCreate->nombre_tabla_long;
+
+	memcpy(serializedPackage + offset, (packageCreate->nombre_tabla),
+			size_to_send);
+	offset += size_to_send;
+
+	size_to_send = sizeof(packageCreate->consistencia_long);
+	memcpy(serializedPackage + offset, &(packageCreate->consistencia_long),
+			size_to_send);
+	offset += size_to_send;
+
+	size_to_send = packageCreate->consistencia_long;
+
+	memcpy(serializedPackage + offset, (packageCreate->consistencia),
+			size_to_send);
+	offset += size_to_send;
+
+	size_to_send = sizeof(int);
+	memcpy(serializedPackage + offset, &packageCreate->particiones,
+			size_to_send);
+
+	offset += size_to_send;
+	size_to_send = sizeof(int);
+	memcpy(serializedPackage + offset, &packageCreate->compaction_time,
+			size_to_send);
+	offset += size_to_send;
+
+	return serializedPackage;
+}
+
+int desSerializarCreate(tCreate* packageCreate, int socket) {
+
+	int status;
+		int buffer_size;
+		char *buffer = malloc(buffer_size = sizeof(uint32_t));
+
+		uint32_t nombrelong;
+		status = recv(socket, buffer, sizeof((packageCreate->nombre_tabla_long)),
+				0); //recibo la longitud
+		memcpy(&(packageCreate->nombre_tabla_long), buffer, buffer_size);
+		if (!status)
+			return 0;
+		packageCreate->nombre_tabla = malloc(packageCreate->nombre_tabla_long);
+
+		status = recv(socket, packageCreate->nombre_tabla,
+				packageCreate->nombre_tabla_long, 0); //recibo el nombre de la tabla
+
+		status = recv(socket, buffer, sizeof((packageCreate->consistencia_long)),
+					0); //recibo la longitud
+			memcpy(&(packageCreate->consistencia_long), buffer, buffer_size);
+			if (!status)
+				return 0;
+			packageCreate->consistencia = malloc(packageCreate->consistencia_long);
+
+			status = recv(socket, packageCreate->consistencia,
+					packageCreate->consistencia_long, 0); //recibo el nombre de la tabla
+
+	if (!status)
+			return 0;
+	packageCreate->particiones = malloc(sizeof(int));
+		status = recv(socket, &packageCreate->particiones, sizeof(packageCreate->particiones), 0); //recibo particiones
+		if (!status)
+			return 0;
+
+		packageCreate->compaction_time = malloc(sizeof(int));
+				status = recv(socket, &packageCreate->compaction_time, sizeof(packageCreate->compaction_time), 0); //recibo particiones
+				if (!status)
+					return 0;
+
+	free(buffer);
+	packageCreate->length = sizeof(packageCreate->type)
+			+ sizeof(packageCreate->nombre_tabla_long)
+			+ packageCreate->nombre_tabla_long
+			+ sizeof(packageCreate->consistencia_long)
+			+ packageCreate->consistencia_long
+			+ sizeof(packageCreate->particiones)
+			+ sizeof(packageCreate->compaction_time);
 
 	return status;
 
