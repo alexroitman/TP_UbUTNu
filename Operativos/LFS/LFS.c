@@ -33,6 +33,7 @@ int main(void) {
 		header = leerHeader(socket_cli);
 		tSelect* packSelect = malloc(sizeof(tSelect));
 		tInsert* packInsert = malloc(sizeof(tInsert));
+		tCreate* packCreate = malloc(sizeof(tCreate));
 
 		switch (header) {
 		case SELECT:
@@ -55,6 +56,21 @@ int main(void) {
 				log_debug(logger, "se inserto bien");
 			}
 			dumpeoMemoria();
+			free(packSelect);
+			break;
+		case CREATE:
+			log_debug(logger, "LLEGO EL CREATE");
+			desSerializarCreate(packCreate, socket_cli);
+			packCreate->type = header;
+
+			errorHandler = Create(packCreate->nombre_tabla,
+					packCreate->consistencia, packCreate->particiones,
+					packCreate->compaction_time);
+
+			if (errorHandler == todoJoya) {
+				log_debug(logger, "se creo bien");
+			}
+
 			free(packSelect);
 			break;
 		}
@@ -177,7 +193,7 @@ int existe_tabla_en_memtable(char* posible_tabla) {
 
 // APIs
 
-int Create(char* NOMBRE_TABLA, int TIPO_CONSISTENCIA, int NUMERO_PARTICIONES,
+int Create(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES,
 		int COMPACTATION_TIME) {
 	char* ruta = string_new();
 	string_append(&ruta, DirTablas);
@@ -311,7 +327,6 @@ registro* SelectFS(char* ruta, int KEY) {
 		string_append(&bloque, DirBloques);
 		string_append(&bloque, bloquesABuscar[i]);
 		string_append(&bloque, ".bin");
-		string_append_with_format()
 		int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
 		struct stat s;
 		int status = fstat(fd, &s);
@@ -402,7 +417,7 @@ registro* SelectFS(char* ruta, int KEY) {
  */
 
 // Funciones de tabla
-int crearMetadata(char* NOMBRE_TABLA, int TIPO_CONSISTENCIA,
+int crearMetadata(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA,
 		int NUMERO_PARTICIONES, int COMPACTATION_TIME) {
 	char aux[strlen(NOMBRE_TABLA) + 10];
 	//Opitimizacion1A: Se puede hace que fp se pase por parámetro para no abrirlo en crearMetadata y crearBIN
@@ -411,7 +426,7 @@ int crearMetadata(char* NOMBRE_TABLA, int TIPO_CONSISTENCIA,
 	fp = fopen(aux, "w+");
 	if (fp == NULL)
 		return -1;
-	fprintf(fp, "CONSISTENCY=%i\n", TIPO_CONSISTENCIA);
+	fprintf(fp, "CONSISTENCY=%s\n", TIPO_CONSISTENCIA);
 	fprintf(fp, "PARTITIONS=%i\n", NUMERO_PARTICIONES);
 	fprintf(fp, "COMPACTION_TIME=%i", COMPACTATION_TIME);
 	fclose(fp);

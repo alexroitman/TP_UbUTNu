@@ -70,12 +70,12 @@ typedef struct{
 // APIs
 registro* SelectFS(char* NOMBRE_TABLA, int KEY);
 int Insert (char* NOMBRE_TABLA, int KEY, char* VALUE, int Timestamp);
-int Create(char* NOMBRE_TABLA, int TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME);
+int Create(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME);
 metadata Describe(char* NOMBRE_TABLA);
 int Drop(char* NOMBRE_TABLA);
 
 // Funciones de tabla
-int crearMetadata(char* NOMBRE_TABLA, int TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME);
+int crearMetadata(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME);
 int crearBinarios(char* NOMBRE_TABLA, int NUMERO_PARTICIONES);
 int verificadorDeTabla(char* NOMBRE_TABLA);
 int borrarDirectorio(const char* directorio);
