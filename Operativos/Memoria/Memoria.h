@@ -17,6 +17,7 @@
 #include <pthread.h>
 #include <sock/sockets-lib.h>
 #include <sock/comunicacion.h>
+#include <commons/config.h>
 
 #ifndef MEMORIA_MEMORIA_H_
 #define MEMORIA_MEMORIA_H_
@@ -88,6 +89,12 @@ typedef struct {
 	char* value;
 }tNuevoSegmento;
 
+typedef struct {
+	int puerto_kernel;
+	int puerto_fs;
+	char* ip_fs;
+	int tam_mem ;
+} t_miConfig;
 
 
 char package[PACKAGESIZE];
@@ -105,6 +112,7 @@ void recibirMensajeDeKernel();
 char* separarNombrePath(char* path);
 type leerHeader(int socket);
 void enviarMensajeAKernel();
+t_miConfig* cargarConfig();
 
 int levantarCliente();
 
