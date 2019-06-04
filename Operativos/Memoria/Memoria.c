@@ -23,7 +23,7 @@ int main() {
 
 	int socket_sv = levantarServidor(PUERTOKERNEL);
 	int socket_cli = aceptarCliente(socket_sv);
-	//int socket_lfs = levantarCliente(PUERTOLFS, IP);
+	int socket_lfs = levantarCliente(PUERTOLFS, IP);
 	void* memoria = malloc(TAMANIOMAXMEMORIA);
 	t_list* tablaSegmentos = list_create();
 	type header;
@@ -34,6 +34,7 @@ int main() {
 
 		tSelect* packSelect = malloc(sizeof(tSelect));
 		tInsert* packInsert = malloc(sizeof(tInsert));
+		tCreate* packCreate = malloc(sizeof(tCreate));
 		tPagina* pagina = malloc(sizeof(int)*2 + packInsert->value_long);
 		tSegmento* miSegmento = malloc(sizeof(tSegmento));
 		encontroSeg = -1;
@@ -65,7 +66,6 @@ int main() {
 			desSerializarInsert(packInsert, socket_cli);
 			packInsert->type = header;
 
-
 			tPagina pagAux;
 			pagAux.key = packInsert->key;
 			pagAux.timestamp = 123456; //HAY QUE OBTENER EL TIMESTAMP REAL
@@ -81,7 +81,6 @@ int main() {
 				if (indexPag >= 0) {
 					actualizarPaginaEnMemoria(packInsert,miSegmento,memoria,indexPag);
 					printf("\nPagina encontrada y actualizada. \n");
-					//FALTA HACER LA FUNCION MODIFICAR VALUE DE PAGINA
 				} else {
 					//Encontro el segmento en tabla pero no tiene la pagina en memoria
 					agregarPaginaAMemoria(miSegmento, pagAux, memoria);
@@ -101,9 +100,18 @@ int main() {
 				 printf("Pagina cargada en memoria.\n");
 			}
 			break;
+		case CREATE:
+			desSerializarCreate(packCreate,socket_cli);
+			packCreate->type = header;
+
+			char* createAEnviar = serializarCreate(packCreate);
+			enviarPaquete(socket_lfs, createAEnviar, packCreate->length);
+			break;
+
 		}
 		free(miSegmento);
 		free(pagina);
+		free(packCreate);
 		free(packSelect);
 		free(packInsert);
 	}
