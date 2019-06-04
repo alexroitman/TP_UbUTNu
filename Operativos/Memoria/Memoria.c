@@ -21,10 +21,17 @@ struct addrinfo *serverInfo;
 
 int main() {
 
-	int socket_sv = levantarServidor(PUERTOKERNEL);
+
+	t_miConfig* miConfig = malloc(sizeof(t_miConfig));
+	miConfig = cargarConfig();
+
+	printf("/n %d", miConfig->tam_mem);
+
+
+	int socket_sv = levantarServidor(miConfig->puerto_kernel);
 	int socket_cli = aceptarCliente(socket_sv);
-	//int socket_lfs = levantarCliente(PUERTOLFS, IP);
-	void* memoria = malloc(TAMANIOMAXMEMORIA);
+	//int socket_lfs = levantarCliente(miConfig->puerto_lfs, miConfig->ip);
+	void* memoria = malloc(miConfig->tam_mem);
 	t_list* tablaSegmentos = list_create();
 	type header;
 	int encontroSeg = -1;
@@ -224,3 +231,13 @@ int buscarPaginaEnMemoria(int key, tSegmento* miseg, void* memoria,
 	return -1;
 }
 
+t_miConfig* cargarConfig(){
+	t_miConfig* miConfig = malloc(sizeof(t_miConfig));
+	t_config* config;
+	config = config_create("/home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/Memoria/Memoria.config");
+	miConfig->puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
+	miConfig->puerto_fs =  config_get_string_value(config, "PUERTO_FS");
+	miConfig->ip_fs = config_get_string_value(config, "IP");
+	miConfig->tam_mem = config_get_int_value(config, "TAM_MEM");
+	return miConfig;
+}
