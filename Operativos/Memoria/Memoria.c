@@ -17,20 +17,23 @@ char package[PACKAGESIZE];
 struct addrinfo hints;
 struct addrinfo *serverInfo;
 #define PUERTOLFS "7879"
+t_log *logger;
 // Define cual va a ser el size maximo del paquete a enviar
 
 int main() {
 
-
+	logger = log_create("Memoria.log","Memoria.c",1,LOG_LEVEL_DEBUG);
 	t_miConfig* miConfig = malloc(sizeof(t_miConfig));
 	miConfig = cargarConfig();
-
-	printf("/n %d", miConfig->tam_mem);
+	log_debug(logger,"Levanta archivo de config");
 
 
 	int socket_sv = levantarServidor(miConfig->puerto_kernel);
 	int socket_cli = aceptarCliente(socket_sv);
 	int socket_lfs = levantarCliente(miConfig->puerto_fs, miConfig->ip_fs);
+	log_debug(logger,"Levanta conexion con kernel");
+	log_debug(logger,"Levanta conexion con LFS");
+
 	void* memoria = malloc(miConfig->tam_mem);
 	t_list* tablaSegmentos = list_create();
 	type header;
@@ -53,15 +56,20 @@ int main() {
 
 			encontroSeg = buscarSegmentoEnTabla(packSelect->nombre_tabla,
 								miSegmento, tablaSegmentos);
+
 			if(encontroSeg == 1){
+				log_debug(logger,"Encontre segmento %s: ", packSelect->nombre_tabla);
 				indexPag = buscarPaginaEnMemoria(packSelect->key,
 										miSegmento, memoria, pagina);
 				if(indexPag >= 0){
+					log_debug(logger,"Encontre pagina buscada");
 					printf("Value: %s \n", pagina->value);
 				}else{
+					log_debug(logger,"NO encontre la pagina buscada");
 					printf("\nLe pido a LFS la pagina del segmento %s \n", miSegmento->path);
 				}
 			}else{
+				log_debug(logger,"NO encontre el segmento buscado");
 				printf("\nLe pido a LFS el segmento y la pagina correspondiente.");
 			}
 
@@ -82,29 +90,33 @@ int main() {
 			encontroSeg = buscarSegmentoEnTabla(packInsert->nombre_tabla,
 					miSegmento, tablaSegmentos);
 			if (encontroSeg == 1) {
+				log_debug(logger,"Encontre segmento %s: ", packSelect->nombre_tabla);
 
 				indexPag = buscarPaginaEnMemoria(packInsert->key,
 						miSegmento, memoria, pagina);
 				if (indexPag >= 0) {
+					log_debug(logger,"Encontre la pagina buscada en el segmento %s: ", packSelect->nombre_tabla);
 					actualizarPaginaEnMemoria(packInsert,miSegmento,memoria,indexPag);
 					printf("\nPagina encontrada y actualizada. \n");
 				} else {
 					//Encontro el segmento en tabla pero no tiene la pagina en memoria
-					agregarPaginaAMemoria(miSegmento, pagAux, memoria);
+					log_debug(logger,"Encontro el segmento en tabla pero no tiene la pagina en memoria");
+					agregarPaginaAMemoria(miSegmento, pagAux, memoria, miConfig->tam_mem);
 					printf("\nPagina cargada en memoria.\n");
 				}
 
 			} else {
 				//No encontro el segmento en tabla de segmentos
+				log_debug(logger,"No encontro el segmento en tabla de segmentos");
 				cargarSegmentoEnTabla(packInsert->nombre_tabla, tablaSegmentos);
 				printf("\nSegmento cargado en tabla.\n");
 				int cantSegmentos = list_size(tablaSegmentos);
 				tSegmento* newSeg = obtenerSegmentoDeTabla(tablaSegmentos,
 						cantSegmentos - 1);
-				agregarPaginaAMemoria(newSeg, pagAux, memoria);
+				agregarPaginaAMemoria(newSeg, pagAux, memoria, miConfig->tam_mem);
 				 tPagina* a;
 				 a = memoria + (newSeg->tablaPaginas)[0].offsetMemoria;
-				 printf("Pagina cargada en memoria.\n");
+				 log_debug(logger,"Pagina cargada en memoria");
 			}
 			break;
 		case CREATE:
@@ -113,6 +125,7 @@ int main() {
 
 			char* createAEnviar = serializarCreate(packCreate);
 			enviarPaquete(socket_lfs, createAEnviar, packCreate->length);
+			log_debug(logger,"Mando la consulta a LFS");
 			break;
 
 		}
@@ -135,9 +148,9 @@ void actualizarPaginaEnMemoria(tInsert* packInsert,tSegmento* segmento, void* me
 }
 
 
-int agregarPaginaAMemoria(tSegmento* seg, tPagina pag, void* memoria) {
+int agregarPaginaAMemoria(tSegmento* seg, tPagina pag, void* memoria, int tam_max) {
 	int cantPags = 0;
-	int cantPagsMax = TAMANIOMAXMEMORIA / sizeof(tPagina);
+	int cantPagsMax = tam_max / sizeof(tPagina);
 	tPagina temp = *(tPagina*) memoria;
 	while (temp.timestamp != 0) {
 		cantPags++;

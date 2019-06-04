@@ -18,6 +18,7 @@
 #include <sock/sockets-lib.h>
 #include <sock/comunicacion.h>
 #include <commons/config.h>
+#include <commons/log.h>
 
 #ifndef MEMORIA_MEMORIA_H_
 #define MEMORIA_MEMORIA_H_
@@ -101,7 +102,7 @@ char package[PACKAGESIZE];
 struct addrinfo hints;
 struct addrinfo *serverInfo;
 
-int agregarPaginaAMemoria(tSegmento* seg, tPagina pag, void* memoria);
+int agregarPaginaAMemoria(tSegmento* seg, tPagina pag, void* memoria, int tam_max);
 int buscarPaginaEnMemoria(int key, tSegmento* miseg, void* memoria, tPagina* pagina);
 void cargarSegmentoEnTabla(char* path,t_list* listaSeg);
 tSegmento* obtenerSegmentoDeTabla(t_list* tablaSeg,int index);
