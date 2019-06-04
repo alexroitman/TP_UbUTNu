@@ -7,12 +7,8 @@
 
 #include "Kernel.h"
 
-#define IP "127.0.0.1"
-#define PUERTOMEM "7878"
 #define BACKLOG 5			// Define cuantas conexiones vamos a mantener pendientes al mismo tiempo
 #define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
-#define QUANTUM 4
-#define MULT_PROC 3
 
 char package[PACKAGESIZE];
 struct addrinfo hints;
@@ -22,16 +18,23 @@ sem_t semReady;
 sem_t mutexReady;
 sem_t mutexNew;
 sem_t semNew;
-pthread_t cpus[MULT_PROC];
 pthread_t planificador_t;
 t_log *logger;
+t_log *loggerError;
 t_queue *colaReady;
 t_queue *colaNew;
+configKernel *miConfig;
+int contScript = 1;
 
 // Define cual va a ser el size maximo del paquete a enviar
 
 int main() {
 	logger = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_DEBUG);
+	loggerError = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_ERROR);
+	log_debug(logger,"Cargando configuracion");
+	t_config* config = config_create("/home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/Kernel/Kernel.config");
+	cargarConfig(config);
+	log_debug(logger,"Configuracion cargada con exito");
 	log_debug(logger,"Inicializando semaforos");
 	sem_init(&semReady,0,0);
 	sem_init(&semNew,0,0);
@@ -40,10 +43,11 @@ int main() {
 	sem_init(&mutexSocket,0,1);
 	log_debug(logger,"Semaforos incializados con exito");
 	log_debug(logger,"Inicializando sockets");
-	int socket_memoria = levantarCliente(PUERTOMEM, IP);
+	int socket_memoria = levantarCliente(miConfig->puerto_mem, miConfig->ip_mem);
 	log_debug(logger,"Sockets inicializados con exito");
-	log_debug(logger,"Se tendra un nivel de multiprocesamiento de: %d cpus", MULT_PROC);
-	if(levantarCpus(socket_memoria)){
+	log_debug(logger,"Se tendra un nivel de multiprocesamiento de: %d cpus", miConfig->MULT_PROC);
+	pthread_t cpus[miConfig->MULT_PROC];
+	if(levantarCpus(socket_memoria,cpus)){
 		colaReady = queue_create();
 		colaNew = queue_create();
 		pthread_create(&planificador_t, NULL, (void*) planificador, NULL);
@@ -54,15 +58,16 @@ int main() {
 				int consultaOk = despacharQuery(consulta, socket_memoria);
 				if (!consultaOk) {
 					printf("no entendi tu header \n");
+					log_error(loggerError,"Se ingreso un header no valido");
 				}
 				consultaOk = 0;
 			}
-			for(int i = 0; i < MULT_PROC; i++){
+			for(int i = 0; i < miConfig->MULT_PROC; i++){
 				pthread_join(cpus[i],NULL);
 			}
 			pthread_join(planificador_t,NULL);
 	}else{
-		printf("No se han podido levantar las cpus... \n");
+		log_error(loggerError,"No se han podido levantar las cpus...");
 	}
 	sem_destroy(&semReady);
 	sem_destroy(&semNew);
@@ -73,6 +78,7 @@ int main() {
 }
 
 type validarSegunHeader(char* header) {
+	string_to_upper(header);
 	if (!strcmp(header, "SELECT")) {
 		return SELECT;
 	}
@@ -101,7 +107,9 @@ void cargarPaqueteSelect(tSelect *pack, char* cons) {
 				+ pack->nombre_tabla_long + sizeof(pack->key);
 	} else {
 		printf("no entendi tu consulta\n");
+		log_error(loggerError,"Se ingreso una consulta no valida");
 	}
+	free(spliteado);
 }
 void cargarPaqueteInsert(tInsert *pack, char* cons) {
 	char** spliteado;
@@ -119,7 +127,9 @@ void cargarPaqueteInsert(tInsert *pack, char* cons) {
 				+ sizeof(pack->value_long) + pack->value_long;
 	} else {
 		printf("no entendi tu consulta\n");
+		log_error(loggerError,"Se ingreso una consulta no valida");
 	}
+	free(spliteado);
 }
 
 void cargarPaqueteCreate(tCreate *pack, char* cons) {
@@ -143,7 +153,9 @@ void cargarPaqueteCreate(tCreate *pack, char* cons) {
 				+ sizeof(pack->compaction_time);
 	} else {
 		printf("no entendi tu consulta\n");
+		log_error(loggerError,"Se ingreso una consulta no valida");
 	}
+	free(spliteado);
 }
 
 
@@ -156,7 +168,7 @@ int despacharQuery(char* consulta, int socket_memoria) {
 	char* serializado = "";
 	int consultaOk = 0;
 	tempSplit = string_n_split(consulta, 2, " ");
-	script *unScript = malloc(sizeof(script));
+	script *unScript;
 	if (strcmp(tempSplit[0], "")) {
 		typeHeader = validarSegunHeader(tempSplit[0]);
 		switch (typeHeader) {
@@ -169,7 +181,8 @@ int despacharQuery(char* consulta, int socket_memoria) {
 				enviarPaquete(socket_memoria, serializado, paqueteSelect->length);
 				sem_post(&mutexSocket);
 			}else{
-				printf("Por favor ingrese la consulta en formato correcto");
+				printf("Por favor ingrese la consulta en formato correcto \n");
+				log_error(loggerError,"Se ingreso una consulta no valida");
 			}
 			consultaOk = 1;
 			break;
@@ -183,7 +196,8 @@ int despacharQuery(char* consulta, int socket_memoria) {
 				enviarPaquete(socket_memoria, serializado, paqueteInsert->length);
 				sem_post(&mutexSocket);
 			}else{
-				printf("Por favor ingrese la consulta en formato correcto");
+				printf("Por favor ingrese la consulta en formato correcto \n");
+				log_error(loggerError,"Se ingreso una consulta no valida");
 			}
 			consultaOk = 1;
 			break;
@@ -197,27 +211,29 @@ int despacharQuery(char* consulta, int socket_memoria) {
 				enviarPaquete(socket_memoria, serializado, paqueteCreate->length);
 				sem_post(&mutexSocket);
 			}else{
-				printf("Por favor ingrese la consulta en formato correcto");
+				printf("Por favor ingrese la consulta en formato correcto \n");
+				log_error(loggerError,"Se ingreso una consulta no valida");
 			}
 			consultaOk = 1;
 			break;
 		case RUN:
-			printf("%s \n", tempSplit[1]);
+			log_debug(logger,"Se recibio un RUN con la siguiente path: %s", tempSplit[1]);
+			unScript = malloc(sizeof(script));
 			unScript->path = string_substring_until(tempSplit[1],
 					string_length(tempSplit[1])-1);
 			unScript->pos = 0;
 			unScript->estado = new;
+			unScript->id = contScript;
+			contScript++;
 			sem_wait(&mutexNew);
 			queue_push(colaNew, unScript);
+			log_debug(logger,"Se cargo a la cola de new el script id: %d", unScript->id);
 			sem_post(&semNew);
 			sem_post(&mutexNew);
-			/*args.archivoLQL = archivoLQL;
-			args.socket_memoria = socket_memoria;
-			pthread_create(&threadRun, NULL, (void*) rutinaRUN, &args);*/
 			consultaOk = 1;
 			break;
 		default:
-			printf("para macho que no se, estoy aprendiendo\n");
+			printf("Operacion no valida por el momento \n");
 			break;
 		}
 
@@ -225,13 +241,12 @@ int despacharQuery(char* consulta, int socket_memoria) {
 	free(paqueteCreate);
 	free(paqueteInsert);
 	free(paqueteSelect);
-	free(unScript);
 	return consultaOk;
 }
 
 void CPU(int socket_memoria){
 	while(1){
-		script *unScript = malloc(sizeof(script));
+		script *unScript;
 		char* consulta = malloc(256);
 		sem_wait(&semReady);
 		sem_wait(&mutexReady);
@@ -239,36 +254,47 @@ void CPU(int socket_memoria){
 		sem_post(&mutexReady);
 		unScript->estado = exec;
 		int info;
-		for(int i = 0 ; i < QUANTUM; i++){
+		log_debug(logger,"Se esta corriendo el script: %d", unScript->id);
+		for(int i = 0 ; i < miConfig->quantum; i++){
 			info = leerLinea(unScript->path,unScript->pos,consulta);
-			unScript->pos++;
 			switch(info){
 			case 0:
-				i = QUANTUM;
+				i = miConfig->quantum;
 				unScript->estado = exit_;
+				log_error(loggerError,"El script rompio en la linea: %d",
+						unScript->pos);
+				free(unScript);
 				break;
 			case 1:
+				log_debug(logger,"Enviando linea %d", unScript->pos);
 				despacharQuery(consulta,socket_memoria);
+				unScript->pos++;
 				break;
 			case 2:
 				unScript->estado = exit_;
-				i = QUANTUM;
+				log_debug(logger,
+						"El script id: %d finalizo con exito en la linea: %d",
+						unScript->id,
+						unScript->pos);
+				i = miConfig->quantum;
+				free(unScript);
 			}
 		}
 		if(info == 1){
 			sem_wait(&mutexReady);
 			queue_push(colaReady,unScript);
+			log_debug(logger,"el script con id: %d ha vuelto a ready",
+					unScript->id);
 			sem_post(&semReady);
 			sem_post(&mutexReady);
 		}
 		free(consulta);
-		free(unScript);
 	}
 }
 
 void planificador(){
 	while(1){
-		script *unScript = malloc(sizeof(script));
+		script *unScript;
 		sem_wait(&semNew);
 		sem_wait(&mutexNew);
 		unScript = ( script *) queue_pop(colaNew);
@@ -276,20 +302,23 @@ void planificador(){
 		unScript->estado = ready;
 		sem_wait(&mutexReady);
 		queue_push(colaReady, unScript);
+		log_debug(logger,"Se cargo a la cola de ready el run con id: %d",
+				unScript->id);
 		sem_post(&semReady);
 		sem_post(&mutexReady);
 	}
 }
 
-int levantarCpus(int socket_memoria){
+int levantarCpus(int socket_memoria, pthread_t cpus[]){
 	int devolver = 1;
-	for(int i = 0; i < MULT_PROC; i++){
+	for(int i = 0; i < miConfig->MULT_PROC; i++){
 		devolver += pthread_create(&cpus[i], NULL, (void*) CPU, (int *) socket_memoria);
 	}
 	return devolver;
 }
 
 int leerLinea(char* path, int linea, char* leido){
+	log_debug(logger,"%s", path);
 	FILE* archivo = fopen(path,"r");
 	if(archivo != NULL){
 		int cont = 0;
@@ -324,6 +353,7 @@ int validarSelect(char* consulta){
 	while(split[i] != NULL){
 		i++;
 	}
+	free(split);
 	return 3 == i;
 }
 int validarInsert(char* consulta){
@@ -332,6 +362,7 @@ int validarInsert(char* consulta){
 	while(split[i] != NULL){
 		i++;
 	}
+	free(split);
 	return 4 == i;
 }
 int validarCreate(char* consulta){
@@ -340,5 +371,15 @@ int validarCreate(char* consulta){
 	while(split[i] != NULL){
 		i++;
 	}
+	free(split);
 	return 5 == i;
+}
+void cargarConfig(t_config* config){
+	miConfig = malloc(sizeof(configKernel));
+	miConfig->ip_mem = config_get_string_value(config,"IP");
+	miConfig->metadata_refresh = config_get_int_value(config, "METADATA_REFRESH");
+	miConfig->MULT_PROC = config_get_int_value(config, "MULTIPROCESAMIENTO");
+	miConfig->puerto_mem = config_get_string_value(config,"PUERTO_MEMORIA");
+	miConfig->sleep = config_get_int_value(config,"SLEEP_EJECUCION");
+	miConfig->quantum = config_get_int_value(config,"QUANTUM");
 }
