@@ -100,6 +100,7 @@ int main() {
 					printf("\nPagina encontrada y actualizada. \n");
 				} else {
 					//Encontro el segmento en tabla pero no tiene la pagina en memoria
+
 					log_debug(logger,"Encontro el segmento en tabla pero no tiene la pagina en memoria");
 					agregarPaginaAMemoria(miSegmento, pagAux, memoria, miConfig->tam_mem);
 					printf("\nPagina cargada en memoria.\n");
@@ -146,6 +147,7 @@ void actualizarPaginaEnMemoria(tInsert* packInsert,tSegmento* segmento, void* me
 	pag = (tPagina*)(memoria + (segmento->tablaPaginas[index]).offsetMemoria);
 	pag->value = packInsert->value;
 }
+
 
 
 int agregarPaginaAMemoria(tSegmento* seg, tPagina pag, void* memoria, int tam_max) {
@@ -255,7 +257,7 @@ int buscarPaginaEnMemoria(int key, tSegmento* miseg, void* memoria,
 t_miConfig* cargarConfig(){
 	t_miConfig* miConfig = malloc(sizeof(t_miConfig));
 	t_config* config;
-	config = config_create("/home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/Memoria/Memoria.config");
+	config = config_create("/home/utnso/tp-2019-1c-UbUTNu/Operativos/Memoria/Memoria.config");
 	miConfig->puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
 	miConfig->puerto_fs =  config_get_string_value(config, "PUERTO_FS");
 	miConfig->ip_fs = config_get_string_value(config, "IP");
