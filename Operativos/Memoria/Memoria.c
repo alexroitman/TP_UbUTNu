@@ -90,7 +90,7 @@ int main() {
 					printf("\nPagina encontrada y actualizada. \n");
 				} else {
 					//Encontro el segmento en tabla pero no tiene la pagina en memoria
-					agregarPaginaAMemoria(miSegmento, pagAux, memoria);
+					agregarPaginaAMemoria(miSegmento, pagAux, memoria, miConfig->tam_mem);
 					printf("\nPagina cargada en memoria.\n");
 				}
 
@@ -101,7 +101,7 @@ int main() {
 				int cantSegmentos = list_size(tablaSegmentos);
 				tSegmento* newSeg = obtenerSegmentoDeTabla(tablaSegmentos,
 						cantSegmentos - 1);
-				agregarPaginaAMemoria(newSeg, pagAux, memoria);
+				agregarPaginaAMemoria(newSeg, pagAux, memoria, miConfig->tam_mem);
 				 tPagina* a;
 				 a = memoria + (newSeg->tablaPaginas)[0].offsetMemoria;
 				 printf("Pagina cargada en memoria.\n");
@@ -135,9 +135,9 @@ void actualizarPaginaEnMemoria(tInsert* packInsert,tSegmento* segmento, void* me
 }
 
 
-int agregarPaginaAMemoria(tSegmento* seg, tPagina pag, void* memoria) {
+int agregarPaginaAMemoria(tSegmento* seg, tPagina pag, void* memoria,int tam_max) {
 	int cantPags = 0;
-	int cantPagsMax = TAMANIOMAXMEMORIA / sizeof(tPagina);
+	int cantPagsMax = tam_max / sizeof(tPagina);
 	tPagina temp = *(tPagina*) memoria;
 	while (temp.timestamp != 0) {
 		cantPags++;

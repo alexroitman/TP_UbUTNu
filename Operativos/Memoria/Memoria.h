@@ -101,7 +101,7 @@ char package[PACKAGESIZE];
 struct addrinfo hints;
 struct addrinfo *serverInfo;
 
-int agregarPaginaAMemoria(tSegmento* seg, tPagina pag, void* memoria);
+int agregarPaginaAMemoria(tSegmento* seg, tPagina pag, void* memoria,int tam_max);
 int buscarPaginaEnMemoria(int key, tSegmento* miseg, void* memoria, tPagina* pagina);
 void cargarSegmentoEnTabla(char* path,t_list* listaSeg);
 tSegmento* obtenerSegmentoDeTabla(t_list* tablaSeg,int index);
