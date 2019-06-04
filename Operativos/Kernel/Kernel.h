@@ -17,7 +17,8 @@
 #include <pthread.h>
 #include <sock/sockets-lib.h>
 #include <sock/comunicacion.h>
-
+#include <commons/log.h>
+#include <commons/collections/queue.h>
 #ifndef KERNEL_KERNEL_H_
 #define KERNEL_KERNEL_H_
 #define MAX_MESSAGE_SIZE 300
@@ -25,6 +26,19 @@ struct arg_RUN {
     FILE* archivoLQL;
     int socket_memoria;
 };
+typedef enum{
+	new,
+	ready,
+	exec,
+	exit_
+}estados;
+
+
+typedef struct{
+    char* path;
+    int pos;
+    estados estado;
+}script;
 
 type leerConsola(); //Lee la consulta y devuelve el string
 type validarSegunHeader(char* header);
@@ -35,8 +49,14 @@ int despacharQuery(char* consulta, int socket_memoria);
 void add();
 void cargarPaqueteSelect();
 void cargarPaqueteInsert();
-void rutinaRUN(void* argumentos);
-
+void CPU(int socket_memoria);
+void planificador();
+int levantarCpus(int socket_memoria);
+int leerLinea(char* path, int linea, char* leido);
+void cargarPaqueteCreate(tCreate *pack, char* cons);
+int validarSelect(char* consulta);
+int validarCreate(char* consulta);
+int validarInsert(char* consulta);
 
 
 #endif /* KERNEL_KERNEL_H_ */
