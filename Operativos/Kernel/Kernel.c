@@ -82,6 +82,9 @@ type validarSegunHeader(char* header) {
 	if (!strcmp(header, "RUN")) {
 			return RUN;
 	}
+	if (!strcmp(header, "CREATE")) {
+				return CREATE;
+		}
 
 	return NIL;
 }
@@ -124,15 +127,20 @@ void cargarPaqueteCreate(tCreate *pack, char* cons) {
 	spliteado = string_n_split(cons, 5, " ");
 	if (strcmp(spliteado[1], "") && strcmp(spliteado[2], "")
 			&& strcmp(spliteado[3], "") && strcmp(spliteado[4], "")) {
-		pack->type = INSERT;
+		pack->type = CREATE;
 		pack->nombre_tabla = spliteado[1];
 		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
-		pack->consistencia = atoi(spliteado[2]);
+		pack->consistencia = spliteado[2];
+		pack->consistencia_long = strlen(spliteado[2]) + 1;
 		pack->particiones = atoi(spliteado[3]);
 		pack->compaction_time = atoi(spliteado[4]);
-		pack->length = sizeof(pack->type) + sizeof(pack->nombre_tabla_long)
-				+ pack->nombre_tabla_long + sizeof(pack->consistencia)
-				+ sizeof(pack->particiones) + sizeof(pack->compaction_time);
+		pack->length = sizeof(pack->type)
+				+ sizeof(pack->nombre_tabla_long)
+				+ pack->nombre_tabla_long
+				+ sizeof(pack->consistencia_long)
+				+ pack->consistencia_long
+				+ sizeof(pack->particiones)
+				+ sizeof(pack->compaction_time);
 	} else {
 		printf("no entendi tu consulta\n");
 	}
@@ -166,7 +174,7 @@ int despacharQuery(char* consulta, int socket_memoria) {
 			consultaOk = 1;
 			break;
 		case INSERT:
-			if(valiadarInsert(consulta)){
+			if(validarInsert(consulta)){
 				log_debug(logger,"Se recibio un INSERT");
 				cargarPaqueteInsert(paqueteInsert,
 						string_substring_until(consulta,string_length(consulta)-1 ) );

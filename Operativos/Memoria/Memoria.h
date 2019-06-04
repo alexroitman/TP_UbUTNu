@@ -13,9 +13,12 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <commons/collections/list.h>
 #include <pthread.h>
 #include <sock/sockets-lib.h>
 #include <sock/comunicacion.h>
+#include <commons/config.h>
+#include <commons/log.h>
 
 #ifndef MEMORIA_MEMORIA_H_
 #define MEMORIA_MEMORIA_H_
@@ -64,14 +67,54 @@ typedef struct {
 	char* table;
 }t_Describe;
 
+typedef struct{
+	int timestamp;
+	int key;
+	char* value;
+}tPagina;
+
+typedef struct {
+	int offsetMemoria;
+	bool modificado;
+}elem_tabla_pag;
+
+typedef struct {
+	char* path;
+	elem_tabla_pag* tablaPaginas;
+}tSegmento;
+
+typedef struct {
+	char* path;
+	int timestamp;
+	int key;
+	char* value;
+}tNuevoSegmento;
+
+typedef struct {
+	int puerto_kernel;
+	int puerto_fs;
+	char* ip_fs;
+	int tam_mem ;
+} t_miConfig;
+
 
 char package[PACKAGESIZE];
 struct addrinfo hints;
 struct addrinfo *serverInfo;
 
-void recibirMensajeDeKernel();
 
+int agregarPaginaAMemoria(tSegmento* seg, tPagina pag, void* memoria, int tam_max);
+int buscarPaginaEnMemoria(int key, tSegmento* miseg, void* memoria, tPagina* pagina);
+void cargarSegmentoEnTabla(char* path,t_list* listaSeg);
+tSegmento* obtenerSegmentoDeTabla(t_list* tablaSeg,int index);
+int buscarSegmentoEnTabla(char* nombreTabla, tSegmento* segmento, t_list* listaSegmentos);
+int buscarPaginaEnTabla(tSegmento* segmento, tPagina* pagina, int key);
+void actualizarPaginaEnMemoria(tInsert* packInsert,tSegmento* segmento, void* memoria,int index);
+void recibirMensajeDeKernel();
+char* separarNombrePath(char* path);
+type leerHeader(int socket);
 void enviarMensajeAKernel();
+t_miConfig* cargarConfig();
 
 int levantarCliente();
 

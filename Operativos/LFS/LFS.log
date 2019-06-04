@@ -1,0 +1,159 @@
+[DEBUG] 15:47:00:807 LFS/(14793:14793): /home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/TABLA1
+[DEBUG] 15:47:00:807 LFS/(14793:14793): No existe tabla en memtable
+[DEBUG] 15:48:09:981 LFS/(14920:14920): /home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/TABLA1
+[DEBUG] 15:48:09:981 LFS/(14920:14920): No existe tabla en memtable
+[DEBUG] 15:51:26:50 LFS/(15065:15065): /home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/TABLA1
+[DEBUG] 15:51:26:50 LFS/(15065:15065): No existe tabla en memtable
+[DEBUG] 14:22:01:45 LFS/(6187:6187): /home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/TABLA1
+[DEBUG] 14:22:16:711 LFS/(6187:6187): No existe tabla en memtable
+[DEBUG] 14:44:02:804 LFS/(6975:6975): /home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/TABLA1
+[DEBUG] 14:44:03:233 LFS/(6975:6975): No existe tabla en memtable
+[DEBUG] 14:47:17:950 LFS/(7158:7158): /home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/TABLA1
+[DEBUG] 14:47:18:853 LFS/(7158:7158): No existe tabla en memtable
+[DEBUG] 15:08:11:373 LFS/(8084:8084): /home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/TABLA1
+[DEBUG] 15:08:12:642 LFS/(8084:8084): No existe tabla en memtable
+[DEBUG] 15:08:26:858 LFS/(8084:8084): Se Agrego la tabla
+[DEBUG] 15:08:44:225 LFS/(8084:8084): Existe tabla en memtable
+[DEBUG] 15:08:48:123 LFS/(8084:8084): 3
+[DEBUG] 15:08:55:115 LFS/(8084:8084): A
+
+[DEBUG] 15:09:20:809 LFS/(8084:8084): se inserto bien
+[DEBUG] 15:11:50:633 LFS/(8328:8328): /home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/TABLA1
+[DEBUG] 15:11:50:633 LFS/(8328:8328): No existe tabla en memtable
+[DEBUG] 15:11:51:265 LFS/(8328:8328): Se Agrego la tabla
+[DEBUG] 15:11:51:265 LFS/(8328:8328): Existe tabla en memtable
+[DEBUG] 15:11:51:265 LFS/(8328:8328): 3
+[DEBUG] 15:11:51:265 LFS/(8328:8328): HOLA
+
+[DEBUG] 15:11:52:754 LFS/(8328:8328): se inserto bien
+[DEBUG] 15:19:36:120 LFS/(8824:8824): /home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/TABLA1
+[DEBUG] 15:19:36:120 LFS/(8824:8824): No existe tabla en memtable
+[DEBUG] 15:19:36:670 LFS/(8824:8824): Se Agrego la tabla
+[DEBUG] 15:19:36:670 LFS/(8824:8824): Existe tabla en memtable
+[DEBUG] 15:19:36:670 LFS/(8824:8824): 3
+[DEBUG] 15:19:36:670 LFS/(8824:8824): A
+
+[DEBUG] 15:19:37:477 LFS/(8824:8824): se inserto bien
+[DEBUG] 15:32:58:569 LFS/(9597:9597): /home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/TABLA1
+[DEBUG] 15:32:58:569 LFS/(9597:9597): No existe tabla en memtable
+[DEBUG] 15:32:59:316 LFS/(9597:9597): Se Agrego la tabla
+[DEBUG] 15:32:59:316 LFS/(9597:9597): Existe tabla en memtable
+[DEBUG] 15:32:59:316 LFS/(9597:9597): 3
+[DEBUG] 15:32:59:316 LFS/(9597:9597): A
+
+[DEBUG] 15:33:00:332 LFS/(9597:9597): se inserto bien
+[INFO] 12:30:30:552 LFS/(9345:9345): Se trato de crear una tabla ya existente
+[INFO] 12:31:02:916 LFS/(9378:9378): Se trato de crear una tabla ya existente
+[INFO] 12:31:51:571 LFS/(9450:9450): Se trato de crear una tabla ya existente
+[INFO] 12:32:07:231 LFS/(9469:9469): No se pudo crear la carpeta de la tabla
+[INFO] 12:32:38:339 LFS/(9507:9507): No se pudo crear la carpeta de la tabla
+[INFO] 12:35:00:222 LFS/(9685:9685): No se pudo crear la carpeta de la tabla
+[INFO] 12:42:51:170 LFS/(10089:10089): Se trato de crear una tabla ya existente
+[INFO] 12:43:14:51 LFS/(10133:10133): Se trato de crear una tabla ya existente
+[INFO] 12:44:39:830 LFS/(10252:10252): Se trato de crear una tabla ya existente
+[INFO] 12:49:57:574 LFS/(10517:10517): Se trato de crear una tabla ya existente
+[DEBUG] 15:32:32:178 LFS/(14989:14989): Destrui la config particion
+[DEBUG] 15:33:20:245 LFS/(14989:14989): Hola
+[DEBUG] 15:34:11:430 LFS/(14989:14989): /home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/TABLA1
+[DEBUG] 15:34:17:163 LFS/(14989:14989): No existe tabla en memtable
+[DEBUG] 15:34:18:52 LFS/(14989:14989): Se Agrego la tabla
+[DEBUG] 15:34:18:53 LFS/(14989:14989): Existe tabla en memtable
+[DEBUG] 15:34:18:53 LFS/(14989:14989): 1
+[DEBUG] 15:34:18:53 LFS/(14989:14989): JUAN
+
+[DEBUG] 15:34:21:300 LFS/(14989:14989): se inserto bien
+[DEBUG] 15:35:05:212 LFS/(14989:14989): Destrui la config particion
+[DEBUG] 15:35:54:465 LFS/(14989:14989): Hola
+[DEBUG] 15:37:01:708 LFS/(14989:14989): Destrui la config particion
+[DEBUG] 15:37:28:381 LFS/(14989:14989): JUAN
+
+[DEBUG] 15:56:00:495 LFS/(15944:15944): Destrui la config particion
+[DEBUG] 15:56:18:12 LFS/(15944:15944): Hola
+[DEBUG] 15:57:24:582 LFS/(15944:15944): /home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/TABLA1
+[DEBUG] 15:57:25:623 LFS/(15944:15944): No existe tabla en memtable
+[DEBUG] 15:57:33:914 LFS/(15944:15944): Se Agrego la tabla
+[DEBUG] 15:57:42:947 LFS/(15944:15944): Existe tabla en memtable
+[DEBUG] 15:57:48:316 LFS/(15944:15944): 1
+[DEBUG] 15:57:50:865 LFS/(15944:15944): PEPE
+
+[DEBUG] 15:58:03:719 LFS/(15944:15944): se inserto bien
+[DEBUG] 15:58:47:470 LFS/(15944:15944): Destrui la config particion
+[DEBUG] 15:59:19:882 LFS/(15944:15944): PEPE
+
+[DEBUG] 17:45:45:291 LFS/(3816:3816): /home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/TABLA1
+[DEBUG] 17:45:45:312 LFS/(3816:3816): No existe tabla en memtable
+[DEBUG] 17:45:46:467 LFS/(3816:3816): Se Agrego la tabla
+[DEBUG] 17:45:46:467 LFS/(3816:3816): Existe tabla en memtable
+[DEBUG] 17:45:46:467 LFS/(3816:3816): 1
+[DEBUG] 17:45:46:467 LFS/(3816:3816): SUI
+
+[DEBUG] 17:45:48:684 LFS/(3816:3816): se inserto bien
+[DEBUG] 17:47:46:374 LFS/(3998:3998): /home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/TABLA1
+[DEBUG] 17:47:46:374 LFS/(3998:3998): No existe tabla en memtable
+[DEBUG] 17:47:46:813 LFS/(3998:3998): Se Agrego la tabla
+[DEBUG] 17:47:46:814 LFS/(3998:3998): Existe tabla en memtable
+[DEBUG] 17:47:46:814 LFS/(3998:3998): 1
+[DEBUG] 17:47:46:814 LFS/(3998:3998): SI
+
+[DEBUG] 17:47:48:307 LFS/(3998:3998): se inserto bien
+[DEBUG] 17:49:58:597 LFS/(4175:4175): /home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/TABLA1
+[DEBUG] 17:49:58:597 LFS/(4175:4175): No existe tabla en memtable
+[DEBUG] 17:50:02:174 LFS/(4175:4175): Se Agrego la tabla
+[DEBUG] 17:50:02:174 LFS/(4175:4175): Existe tabla en memtable
+[DEBUG] 17:50:02:174 LFS/(4175:4175): 1
+[DEBUG] 17:50:02:174 LFS/(4175:4175): SI
+
+[DEBUG] 17:50:06:906 LFS/(4175:4175): se inserto bien
+[DEBUG] 17:51:26:930 LFS/(4395:4395): /home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/TABLA1
+[DEBUG] 17:51:26:930 LFS/(4395:4395): No existe tabla en memtable
+[DEBUG] 17:51:26:930 LFS/(4395:4395): Se Agrego la tabla
+[DEBUG] 17:51:26:930 LFS/(4395:4395): Existe tabla en memtable
+[DEBUG] 17:51:26:930 LFS/(4395:4395): 1
+[DEBUG] 17:51:26:930 LFS/(4395:4395): SUI
+
+[DEBUG] 17:51:27:836 LFS/(4395:4395): se inserto bien
+[DEBUG] 17:54:58:558 LFS/(5107:5107): /home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/TABLA1
+[DEBUG] 17:54:58:558 LFS/(5107:5107): No existe tabla en memtable
+[DEBUG] 17:54:58:558 LFS/(5107:5107): Se Agrego la tabla
+[DEBUG] 17:54:58:558 LFS/(5107:5107): Existe tabla en memtable
+[DEBUG] 17:54:58:558 LFS/(5107:5107): 1
+[DEBUG] 17:54:58:558 LFS/(5107:5107): ASD
+
+[DEBUG] 17:55:00:585 LFS/(5107:5107): se inserto bien
+[DEBUG] 17:56:25:201 LFS/(5297:5297): /home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/TABLA1
+[DEBUG] 17:56:25:201 LFS/(5297:5297): No existe tabla en memtable
+[DEBUG] 17:56:25:201 LFS/(5297:5297): Se Agrego la tabla
+[DEBUG] 17:56:25:202 LFS/(5297:5297): Existe tabla en memtable
+[DEBUG] 17:56:25:202 LFS/(5297:5297): 1
+[DEBUG] 17:56:25:202 LFS/(5297:5297): SI
+
+[DEBUG] 17:56:26:505 LFS/(5297:5297): se inserto bien
+[DEBUG] 18:01:26:126 LFS/(5680:5680): /home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/TABLA1
+[DEBUG] 18:01:26:126 LFS/(5680:5680): No existe tabla en memtable
+[DEBUG] 18:01:26:126 LFS/(5680:5680): Se Agrego la tabla
+[DEBUG] 18:01:26:126 LFS/(5680:5680): Existe tabla en memtable
+[DEBUG] 18:01:26:126 LFS/(5680:5680): 1
+[DEBUG] 18:01:26:126 LFS/(5680:5680): SI
+
+[DEBUG] 18:01:26:899 LFS/(5680:5680): se inserto bien
+[DEBUG] 18:05:15:917 LFS/(5977:5977): /home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/TABLA1
+[DEBUG] 18:05:15:917 LFS/(5977:5977): No existe tabla en memtable
+[DEBUG] 18:05:15:917 LFS/(5977:5977): Se Agrego la tabla
+[DEBUG] 18:05:15:918 LFS/(5977:5977): Existe tabla en memtable
+[DEBUG] 18:05:15:918 LFS/(5977:5977): 1
+[DEBUG] 18:05:15:918 LFS/(5977:5977): SI
+
+[DEBUG] 18:05:16:633 LFS/(5977:5977): se inserto bien
+[DEBUG] 18:14:38:9 LFS/(6381:6381): /home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/TABLA1
+[DEBUG] 18:14:38:9 LFS/(6381:6381): No existe tabla en memtable
+[DEBUG] 18:14:38:9 LFS/(6381:6381): Se Agrego la tabla
+[DEBUG] 18:14:38:9 LFS/(6381:6381): Existe tabla en memtable
+[DEBUG] 18:14:38:9 LFS/(6381:6381): 1
+[DEBUG] 18:14:38:9 LFS/(6381:6381): VAMOOO
+
+[DEBUG] 18:14:41:827 LFS/(6381:6381): se inserto bien
+[DEBUG] 20:47:40:162 LFS/(4479:4479): LLEGO EL CREATE
+[DEBUG] 20:53:35:290 LFS/(5139:5139): LLEGO EL CREATE
+[DEBUG] 20:55:01:276 LFS/(5139:5139): se creo bien
+[DEBUG] 20:58:50:119 LFS/(5530:5530): LLEGO EL CREATE
+[DEBUG] 20:58:55:883 LFS/(5530:5530): se creo bien

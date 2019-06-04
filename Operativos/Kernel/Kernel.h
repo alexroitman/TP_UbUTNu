@@ -17,8 +17,8 @@
 #include <pthread.h>
 #include <sock/sockets-lib.h>
 #include <sock/comunicacion.h>
-
-
+#include <commons/log.h>
+#include <commons/collections/queue.h>
 #ifndef KERNEL_KERNEL_H_
 #define KERNEL_KERNEL_H_
 #define MAX_MESSAGE_SIZE 300

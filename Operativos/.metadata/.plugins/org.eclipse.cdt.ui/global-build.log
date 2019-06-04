@@ -1,51 +1,27 @@
-16:02:22 **** Incremental Build of configuration Debug for project sockets-lib ****
+18:42:38 **** Incremental Build of configuration Debug for project sockets-lib ****
 make all 
-Building file: ../sock/comuniacion.c
-Invoking: GCC C Compiler
-gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/comuniacion.d" -MT"sock/comuniacion.o" -o "sock/comuniacion.o" "../sock/comuniacion.c"
-../sock/comuniacion.c: In function ‘serializarRequest’:
-../sock/comuniacion.c:20:9: warning: return makes integer from pointer without a cast [-Wint-conversion]
-  return paqueteSerializado;
-         ^
-../sock/comuniacion.c: In function ‘leerHeader’:
-../sock/comuniacion.c:32:6: warning: unused variable ‘algo’ [-Wunused-variable]
-  int algo = recv(socket, &header, sizeof(type), MSG_WAITALL);
-      ^
-../sock/comuniacion.c: In function ‘desSerializarSelect’:
-../sock/comuniacion.c:88:21: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
-  packageSelect->key = malloc(sizeof(int));
-                     ^
-../sock/comuniacion.c:75:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
-  uint32_t nombrelong;
-           ^
-../sock/comuniacion.c: In function ‘desSerializarInsert’:
-../sock/comuniacion.c:153:21: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
-  packageInsert->key = malloc(sizeof(int));
-                     ^
-Finished building: ../sock/comuniacion.c
- 
-Building target: libsockets-lib.so
-Invoking: GCC C Linker
-gcc -shared -o "libsockets-lib.so"  ./sock/comuniacion.o ./sock/sockets-lib.o   -lcommons
-Finished building target: libsockets-lib.so
- 
-16:02:24 **** Incremental Build of configuration Debug for project Memoria ****
+make: Nothing to be done for 'all'.
+18:42:38 **** Incremental Build of configuration Debug for project Memoria ****
 make all 
 Building file: ../Memoria.c
 Invoking: GCC C Compiler
 gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"Memoria.d" -MT"Memoria.o" -o "Memoria.o" "../Memoria.c"
 ../Memoria.c: In function ‘main’:
-../Memoria.c:27:12: warning: implicit declaration of function ‘leerHeader’ [-Wimplicit-function-declaration]
-   header = leerHeader(socket_cli);
+../Memoria.c:34:12: warning: implicit declaration of function ‘agregarPaginaAMemoria’ [-Wimplicit-function-declaration]
+  int cod = agregarPaginaAMemoria(seg,pagina,memoria);
             ^
-../Memoria.c:31:3: warning: enumeration value ‘CREATE’ not handled in switch [-Wswitch]
-   switch (header) {
-   ^
-../Memoria.c:31:3: warning: enumeration value ‘DESCRIBE’ not handled in switch [-Wswitch]
-../Memoria.c:31:3: warning: enumeration value ‘DROP’ not handled in switch [-Wswitch]
-../Memoria.c:31:3: warning: enumeration value ‘JOURNAL’ not handled in switch [-Wswitch]
-../Memoria.c:31:3: warning: enumeration value ‘ADD’ not handled in switch [-Wswitch]
-../Memoria.c:31:3: warning: enumeration value ‘NIL’ not handled in switch [-Wswitch]
+../Memoria.c:50:9: warning: too many arguments for format [-Wformat-extra-args]
+  printf("PRIMER SEGMENTO, PRIMERA PAG\n", a->key);
+         ^
+../Memoria.c:55:9: warning: too many arguments for format [-Wformat-extra-args]
+  printf("PRIMER SEGMENTO, SEGUNDA PAG\n", a->key);
+         ^
+../Memoria.c:60:9: warning: too many arguments for format [-Wformat-extra-args]
+  printf("SEGUNDO SEGMENTO, PRIMERA PAG\n", a->key);
+         ^
+../Memoria.c:34:6: warning: variable ‘cod’ set but not used [-Wunused-but-set-variable]
+  int cod = agregarPaginaAMemoria(seg,pagina,memoria);
+      ^
 Finished building: ../Memoria.c
  
 Building target: Memoria

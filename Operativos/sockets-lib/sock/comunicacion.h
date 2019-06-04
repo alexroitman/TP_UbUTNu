@@ -21,6 +21,8 @@ JOURNAL,
 ADD,
 RUN,
 NIL}type;
+
+
 typedef struct {
 
 char* header;
@@ -45,7 +47,7 @@ typedef struct {
 type type;
 uint32_t nombre_tabla_long;
 char* nombre_tabla;
-int key;//INSERT
+uint16_t key;//INSERT
 uint32_t value_long;
 char* value;
 uint32_t length;
@@ -55,15 +57,16 @@ typedef struct {
 type type;
 uint32_t nombre_tabla_long;
 char* nombre_tabla;							//SELECT
-int key;
+uint16_t key;
 uint32_t length;
 } tSelect;
 
 typedef struct {
 type type;
-char* nombre_tabla;
 uint32_t nombre_tabla_long;
-int consistencia;							//CREATE
+char* nombre_tabla;
+uint32_t consistencia_long;
+char* consistencia;							//CREATE
 int particiones;
 int compaction_time;
 uint32_t length;
@@ -101,8 +104,8 @@ int desSerializarDrop(tPaquete* paqueteSerializado, tDrop* packageDrop);
 char* serializarSelect(tSelect* packageSelect);
 int desSerializarSelect(tSelect* packageSelect,int socket);
 
-int serializarCreate(tCreate packageCreate, tPaquete* paqueteSerializado);
-int desSerializarCreate(tPaquete* paqueteSerializado, tCreate* packageCreate);
+char* serializarCreate(tCreate* packageCreate);
+int desSerializarCreate(tCreate* packageCreate, int socket) ;
 
 int serializarDescribe(tDescribe packageDescribe, tPaquete* paqueteSerializado);
 int desSerializarDescribe(tPaquete* paqueteSerializado,
