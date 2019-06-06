@@ -257,7 +257,7 @@ int buscarPaginaEnMemoria(int key, tSegmento* miseg, void* memoria,
 t_miConfig* cargarConfig(){
 	t_miConfig* miConfig = malloc(sizeof(t_miConfig));
 	t_config* config;
-	config = config_create("/home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/Memoria/Memoria.config");
+	config = config_create("/home/utnso/tp-2019-1c-UbUTNu/Operativos/Memoria/Memoria.config");
 	miConfig->puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
 	miConfig->puerto_fs =  config_get_string_value(config, "PUERTO_FS");
 	miConfig->ip_fs = config_get_string_value(config, "IP");
