@@ -37,10 +37,20 @@ int main(void) {
 
 		switch (header) {
 		case SELECT:
+			log_debug(logger,"llego el select");
 			desSerializarSelect(packSelect, socket_cli);
 			packSelect->type = header;
 			registro* reg = Select(packSelect->nombre_tabla, packSelect->key);
-
+			log_debug(logger,"%s",reg->value);
+			tRegistroRespuesta* registro = malloc(sizeof(tRegistroRespuesta));
+			registro->tipo = REGISTRO;
+			registro->timestamp = reg->timestamp;
+			registro->value = reg->value;
+			registro->key = reg->key;
+			registro->value_long = strlen(reg->value) + 1;
+			char* registroSerializado = serializarRegistro(registro);
+			enviarPaquete(socket_cli, registroSerializado, registro->length);
+			free(registro);
 			free(packSelect);
 			break;
 		case INSERT:
@@ -248,6 +258,7 @@ int Drop(char* NOMBRE_TABLA) {
 		return tablaNoEliminada;
 	return todoJoya;
 }
+
 registro* Select(char* NOMBRE_TABLA, int KEY) {
 	int es_mayor(registro* unReg, registro* otroReg) {
 		if (unReg->timestamp >= otroReg->timestamp) {
@@ -255,18 +266,26 @@ registro* Select(char* NOMBRE_TABLA, int KEY) {
 		}
 		return 0;
 	}
+	log_debug(logger,"Entro al select");
 	char* ruta = string_new();
 	string_append(&ruta, DirTablas);
 	string_append(&ruta, NOMBRE_TABLA);
-	if (!verificadorDeTabla(ruta))
+	log_debug(logger,ruta);
+	/*if (!verificadorDeTabla(ruta)){
+		log_debug(logger,"no existe la tabla");
 		return noExisteTabla;
+
+	}*/
+	log_debug(logger," existe la tabla");
 //1) busca en memtable
 //2)busca en FS
 //3) busca en TMP
 // COMPARA
 	registro* registro_select = malloc(sizeof(registro));
 	t_list* registros = list_create();
+	log_debug(logger,"me voy a fijar a memtable");
 	list_add_all(registros, selectEnMemtable(KEY, NOMBRE_TABLA));
+	log_debug(logger,"me voy a fijar a FS");
 	list_add(registros, SelectFS(ruta, KEY));
 	//en algun momento agreagar tmp
 	list_sort(registros, (int) &es_mayor);
@@ -308,7 +327,9 @@ registro* SelectFS(char* ruta, int KEY) {
 	// ---- Verifico que la tabla exista ----
 
 	// ---- Obtengo la metadata ----
+	log_debug(logger,"%s",ruta);
 	particiones = buscarEnMetadata(ruta, "PARTITIONS");
+	log_debug(logger,"%d",particiones);
 	if (particiones < 0)
 		return particiones;
 
@@ -317,6 +338,7 @@ registro* SelectFS(char* ruta, int KEY) {
 	string_append(&ruta, ("/"));
 	string_append(&ruta, string_itoa(particiones));
 	string_append(&ruta, ".bin");
+	log_debug(logger,"%s",ruta);
 	t_config* particion = config_create(ruta);
 	int size = config_get_int_value(particion, "SIZE_BLOCKS");
 	char** bloquesABuscar = config_get_array_value(particion, "BLOCKS");
@@ -452,14 +474,15 @@ int crearBinarios(char* NOMBRE_TABLA, int NUMERO_PARTICIONES) {
 int verificadorDeTabla(char* NOMBRE_TABLA) {
 	int status = 1;
 	DIR *dirp;
-
+	log_debug(logger,NOMBRE_TABLA);
 	dirp = opendir(NOMBRE_TABLA);
+	log_debug(logger,"abrio el directorio");
 
 	if (dirp == NULL) {
 		status = 0;
 	}
 	closedir(dirp);
-
+	log_debug(logger,"cerro el directorio %d",status);
 	return status;
 }
 
@@ -494,19 +517,21 @@ int borrarDirectorio(const char *dir) {
 }
 
 int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo) {
-	char aux[40];
-	FILE *fp;
-	snprintf(aux, sizeof(aux), "%s/metadata", NOMBRE_TABLA);
-	fp = fopen(aux, "r+");
-	if (!fp)
-		return noAbreMetadata;
-	fgets(aux, 40, fp);
-	while (strcmp(strtok(aux, "="), objetivo) != 0) {
-		if (aux[strlen(aux) - 1] == '\0')
-			return noExisteParametro;
-		fgets(aux, 40, fp);
-	}	// probar return
-	return atoi(strtok(NULL, "="));
+
+	char* ruta=string_new();
+	string_append(&ruta,NOMBRE_TABLA);
+	string_append(&ruta,"/metadata");
+	log_debug(logger,ruta);
+	t_config* metadata=config_create(ruta);
+	log_debug(logger,"%s",objetivo);
+	log_debug(logger,"crea metadata");
+	int obj=config_get_int_value(metadata,objetivo);
+	log_debug(logger,"obtiene obj",obj);
+	config_destroy(metadata);
+	log_debug(logger,"mata metadata",obj);
+	free(ruta);
+	log_debug(logger,"%d",obj);
+	return obj;
 }
 
 void dumpearTabla(t_tabla* UnaTabla) {

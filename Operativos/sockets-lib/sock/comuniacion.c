@@ -269,3 +269,72 @@ int desSerializarCreate(tCreate* packageCreate, int socket) {
 
 }
 
+char* serializarRegistro(tRegistroRespuesta* reg){
+		reg->length = sizeof(reg->tipo) + sizeof(reg->value_long) + reg->value_long + sizeof(int) + sizeof(uint16_t);
+
+		char *serializedPackage = malloc(reg->length);
+		int offset = 0;
+		int size_to_send;
+
+		size_to_send = sizeof(reg->tipo);
+		memcpy(serializedPackage + offset, &(reg->tipo), size_to_send); //sizeof(int8_t)
+		offset += size_to_send;
+
+		size_to_send = sizeof(reg->key);
+		memcpy(serializedPackage + offset, &(reg->key), size_to_send); //sizeof(int8_t)
+		offset += size_to_send;
+
+		size_to_send = sizeof(reg->value_long);
+		memcpy(serializedPackage + offset, &(reg->value_long),
+				size_to_send);
+		offset += size_to_send;
+
+		size_to_send = reg->value_long;
+
+		memcpy(serializedPackage + offset, (reg->value),
+				size_to_send);
+		offset += size_to_send;
+
+		size_to_send = sizeof(int);
+		memcpy(serializedPackage + offset, &reg->timestamp, size_to_send);
+
+		return serializedPackage;
+}
+
+
+int desSerializarRegistro(tRegistroRespuesta* reg, int socket) {
+
+	int status;
+	int buffer_size;
+	char *buffer = malloc(buffer_size = sizeof(uint32_t));
+
+	reg->key = malloc(sizeof(uint16_t));
+		status = recv(socket, &reg->key, sizeof(reg->key), 0); //recibo el nombre de la key
+		if (!status)
+			return 0;
+
+	uint32_t nombrelong;
+	status = recv(socket, buffer, sizeof((reg->value_long)),
+			0); //recibo la longitud
+	memcpy(&(reg->value_long), buffer, buffer_size);
+
+	if (!status)
+		return 0;
+	reg->value = malloc(reg->value_long);
+
+	status = recv(socket, reg->value,reg->value_long, 0); //recibo el nombre de la tabla
+
+	if (!status)
+		return 0;
+
+	reg->timestamp = malloc(sizeof(int));
+			status = recv(socket, &reg->timestamp, sizeof(reg->timestamp), 0); //recibo el nombre de la key
+			if (!status)
+				return 0;
+
+	free(buffer);
+
+	return status;
+
+}
+

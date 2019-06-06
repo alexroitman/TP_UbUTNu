@@ -1,0 +1,24 @@
+[DEBUG] 15:33:26:752 Memoria.c/(3649:3649): Levanta archivo de config
+[DEBUG] 15:33:34:497 Memoria.c/(3649:3649): Levanta conexion con kernel
+[DEBUG] 15:33:34:497 Memoria.c/(3649:3649): Levanta conexion con LFS
+[DEBUG] 15:36:59:206 Memoria.c/(3649:3649): No encontro el segmento en tabla de segmentos
+[DEBUG] 15:37:00:568 Memoria.c/(3649:3649): Segmento cargado en tabla
+[DEBUG] 15:37:02:695 Memoria.c/(3649:3649): Pagina cargada en memoria
+[DEBUG] 16:50:23:358 Memoria.c/(5852:5852): Levanta archivo de config
+[DEBUG] 16:51:01:621 Memoria.c/(5852:5852): Levanta conexion con kernel
+[DEBUG] 16:51:01:621 Memoria.c/(5852:5852): Levanta conexion con LFS
+[DEBUG] 16:51:16:728 Memoria.c/(5852:5852): No encontro el segmento en tabla de segmentos
+[DEBUG] 16:51:16:728 Memoria.c/(5852:5852): Segmento cargado en tabla
+[DEBUG] 16:51:16:728 Memoria.c/(5852:5852): Pagina cargada en memoria
+[DEBUG] 16:51:34:81 Memoria.c/(5852:5852): Encontre segmento TABLA1: 
+[DEBUG] 16:52:01:51 Memoria.c/(5852:5852): Encontre pagina buscada
+[DEBUG] 17:14:48:807 Memoria.c/(3888:3888): Levanta archivo de config
+[DEBUG] 17:15:29:156 Memoria.c/(3954:3954): Levanta archivo de config
+[DEBUG] 17:19:50:365 Memoria.c/(4205:4205): Levanta archivo de config
+[DEBUG] 17:19:54:977 Memoria.c/(4205:4205): Levanta conexion con kernel
+[DEBUG] 17:19:54:977 Memoria.c/(4205:4205): Levanta conexion con LFS
+[DEBUG] 17:20:16:785 Memoria.c/(4205:4205): No encontro el segmento en tabla de segmentos
+[DEBUG] 17:20:16:785 Memoria.c/(4205:4205): Segmento cargado en tabla
+[DEBUG] 17:20:16:785 Memoria.c/(4205:4205): Pagina cargada en memoria
+[DEBUG] 17:20:29:502 Memoria.c/(4205:4205): Encontre segmento TABLA1: 
+[DEBUG] 17:20:34:166 Memoria.c/(4205:4205): Encontre pagina buscada

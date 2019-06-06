@@ -20,6 +20,7 @@ DROP,
 JOURNAL,
 ADD,
 RUN,
+REGISTRO,
 NIL}type;
 
 
@@ -42,6 +43,23 @@ int8_t type;
 int16_t length;
 char payload[MAX_BUFFER];
 } tPaquete;
+
+typedef struct{
+	uint16_t key;
+	char* value;
+	int timestamp;
+
+} registro;
+
+typedef struct{
+	type tipo;
+	uint16_t key;
+	int value_long;
+	char* value;
+	int timestamp;
+	int length;
+
+} tRegistroRespuesta;
 
 typedef struct {
 type type;

@@ -114,3 +114,21 @@
 [DEBUG] 19:39:25:341 Kernel.c/(11714:11722): /home/utnso/prueba.LQL
 [DEBUG] 19:39:34:148 Kernel.c/(11714:11722): Se recibio un SELECT
 [DEBUG] 19:40:02:822 Kernel.c/(11714:11723): 
+[DEBUG] 17:09:11:584 Kernel.c/(3725:3725): Cargando configuracion
+[DEBUG] 17:09:11:598 Kernel.c/(3725:3725): Configuracion cargada con exito
+[DEBUG] 17:09:11:598 Kernel.c/(3725:3725): Inicializando semaforos
+[DEBUG] 17:09:11:598 Kernel.c/(3725:3725): Semaforos incializados con exito
+[DEBUG] 17:09:11:598 Kernel.c/(3725:3725): Inicializando sockets
+[DEBUG] 17:09:11:598 Kernel.c/(3725:3725): Sockets inicializados con exito
+[DEBUG] 17:09:11:598 Kernel.c/(3725:3725): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 17:09:37:261 Kernel.c/(3725:3725): Se recibio un INSERT
+[DEBUG] 17:09:49:891 Kernel.c/(3725:3725): Se recibio un SELECT
+[DEBUG] 17:16:57:658 Kernel.c/(4082:4082): Cargando configuracion
+[DEBUG] 17:16:57:658 Kernel.c/(4082:4082): Configuracion cargada con exito
+[DEBUG] 17:16:57:658 Kernel.c/(4082:4082): Inicializando semaforos
+[DEBUG] 17:16:57:658 Kernel.c/(4082:4082): Semaforos incializados con exito
+[DEBUG] 17:16:57:658 Kernel.c/(4082:4082): Inicializando sockets
+[DEBUG] 17:16:57:659 Kernel.c/(4082:4082): Sockets inicializados con exito
+[DEBUG] 17:16:57:659 Kernel.c/(4082:4082): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 17:17:12:616 Kernel.c/(4082:4082): Se recibio un INSERT
+[DEBUG] 17:17:34:573 Kernel.c/(4082:4082): Se recibio un SELECT

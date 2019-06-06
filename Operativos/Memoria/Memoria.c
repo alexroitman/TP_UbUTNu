@@ -27,9 +27,10 @@ int main() {
 	miConfig = cargarConfig();
 	log_debug(logger, "Levanta archivo de config");
 
-	int socket_sv = levantarServidor((char*)miConfig->puerto_kernel);
+	int socket_sv = levantarServidor((char*) miConfig->puerto_kernel);
 	int socket_kernel = aceptarCliente(socket_sv);
-	int socket_lfs = levantarCliente((char*)miConfig->puerto_fs, miConfig->ip_fs);
+	int socket_lfs = levantarCliente((char*) miConfig->puerto_fs,
+			miConfig->ip_fs);
 	log_debug(logger, "Levanta conexion con kernel");
 	log_debug(logger, "Levanta conexion con LFS");
 
@@ -63,6 +64,17 @@ int main() {
 						memoria, pagina);
 				if (indexPag >= 0) {
 					log_debug(logger, "Encontre pagina buscada");
+					tRegistroRespuesta* registro = malloc(
+							sizeof(tRegistroRespuesta));
+					registro->tipo = REGISTRO;
+					registro->timestamp = pagina->timestamp;
+					registro->value = pagina->value;
+					registro->key = pagina->key;
+					registro->value_long = strlen(pagina->value) + 1;
+					char* registroSerializado = serializarRegistro(registro);
+					enviarPaquete(socket_kernel, registroSerializado,
+							registro->length);
+					free(registro);
 					printf("Value: %s \n", pagina->value);
 				} else {
 					log_debug(logger,
@@ -70,12 +82,40 @@ int main() {
 					char* selectAEnviar = serializarSelect(packSelect);
 					enviarPaquete(socket_lfs, selectAEnviar,
 							packSelect->length);
+					type header = leerHeader(socket_lfs);
+					tRegistroRespuesta* reg = malloc(
+							sizeof(tRegistroRespuesta));
+					desSerializarRegistro(reg, socket_lfs);
+					tPagina pagAux;
+					pagAux.key = reg->key;
+					pagAux.timestamp = reg->timestamp;
+					pagAux.value = reg->value;
+					agregarPaginaAMemoria(miSegmento, pagAux, memoria,
+							miConfig->tam_mem);
+					log_debug(logger, "Pagina cargada en memoria.");
+					log_debug(logger, "El value es: %s", pagAux.value);
 				}
 			} else {
 				log_debug(logger,
 						"No encontre el segmento buscado, le pido a LFS el segmento y la pagina si existen.");
 				char* selectAEnviar = serializarSelect(packSelect);
 				enviarPaquete(socket_lfs, selectAEnviar, packSelect->length);
+				type header = leerHeader(socket_lfs);
+				tRegistroRespuesta* reg = malloc(sizeof(tRegistroRespuesta));
+				desSerializarRegistro(reg, socket_lfs);
+				tPagina pagAux;
+				pagAux.key = reg->key;
+				pagAux.timestamp = reg->timestamp;
+				pagAux.value = reg->value;
+				cargarSegmentoEnTabla(packSelect->nombre_tabla, tablaSegmentos);
+				log_debug(logger, "Segmento cargado en tabla");
+				int cantSegmentos = list_size(tablaSegmentos);
+				tSegmento* newSeg = obtenerSegmentoDeTabla(tablaSegmentos,
+						cantSegmentos - 1);
+				agregarPaginaAMemoria(newSeg, pagAux, memoria,
+						miConfig->tam_mem);
+				log_debug(logger, "Pagina cargada en memoria");
+				log_debug(logger, "El value es: %s", pagAux.value);
 			}
 
 			break;
@@ -92,14 +132,14 @@ int main() {
 					miSegmento, tablaSegmentos);
 			if (encontroSeg == 1) {
 				log_debug(logger, "Encontre segmento %s ",
-						packSelect->nombre_tabla);
+						packInsert->nombre_tabla);
 
 				indexPag = buscarPaginaEnMemoria(packInsert->key, miSegmento,
 						memoria, pagina);
 				if (indexPag >= 0) {
 					log_debug(logger,
 							"Encontre la pagina buscada en el segmento %s ",
-							packSelect->nombre_tabla);
+							packInsert->nombre_tabla);
 					actualizarPaginaEnMemoria(packInsert, miSegmento, memoria,
 							indexPag);
 					log_debug(logger, "Pagina encontrada y actualizada.");

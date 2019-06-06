@@ -56,11 +56,7 @@ typedef struct{
 	char* nombreTabla;
 	t_list* registros;
 }t_tabla;
-typedef struct{
-	uint16_t key;
-	char* value;
-	int timestamp;
-} registro;
+
 typedef struct{
 	t_tabla tabla;
 }t_memtable ;
