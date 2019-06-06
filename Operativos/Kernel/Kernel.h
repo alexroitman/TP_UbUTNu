@@ -19,13 +19,11 @@
 #include <sock/comunicacion.h>
 #include <commons/log.h>
 #include <commons/collections/queue.h>
+#include <commons/config.h>
+
 #ifndef KERNEL_KERNEL_H_
 #define KERNEL_KERNEL_H_
 #define MAX_MESSAGE_SIZE 300
-struct arg_RUN {
-    FILE* archivoLQL;
-    int socket_memoria;
-};
 typedef enum{
 	new,
 	ready,
@@ -38,7 +36,17 @@ typedef struct{
     char* path;
     int pos;
     estados estado;
+    int id;
 }script;
+
+typedef struct{
+	char* ip_mem;
+	char* puerto_mem;
+	int quantum;
+	int MULT_PROC;
+	int metadata_refresh;
+	int sleep;
+}configKernel;
 
 type leerConsola(); //Lee la consulta y devuelve el string
 type validarSegunHeader(char* header);
@@ -51,12 +59,13 @@ void cargarPaqueteSelect();
 void cargarPaqueteInsert();
 void CPU(int socket_memoria);
 void planificador();
-int levantarCpus(int socket_memoria);
 int leerLinea(char* path, int linea, char* leido);
 void cargarPaqueteCreate(tCreate *pack, char* cons);
 int validarSelect(char* consulta);
 int validarCreate(char* consulta);
 int validarInsert(char* consulta);
+int levantarCpus(int socket_memoria, pthread_t* cpus);
+void cargarConfig(t_config* config);
 
 
 #endif /* KERNEL_KERNEL_H_ */

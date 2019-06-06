@@ -11,3 +11,106 @@
 [DEBUG] 19:21:13:275 Kernel.c/(9467:9467): Sockets inicializados con exito
 [DEBUG] 19:21:13:275 Kernel.c/(9467:9467): Se tendra un nivel de multiprocesamiento de: 3 cpus
 [DEBUG] 19:21:27:767 Kernel.c/(9467:9467): Se recibio un CREATE
+[DEBUG] 18:46:26:669 Kernel.c/(10003:10003): Cargando configuracion
+[DEBUG] 18:49:28:593 Kernel.c/(10128:10128): Cargando configuracion
+[DEBUG] 18:50:49:220 Kernel.c/(10235:10235): Cargando configuracion
+[DEBUG] 18:51:28:252 Kernel.c/(10282:10282): Cargando configuracion
+[DEBUG] 19:23:37:959 Kernel.c/(11072:11072): Cargando configuracion
+[DEBUG] 19:23:48:352 Kernel.c/(11072:11072): Configuracion cargada con exito
+[DEBUG] 19:23:48:352 Kernel.c/(11072:11072): Inicializando semaforos
+[DEBUG] 19:23:48:352 Kernel.c/(11072:11072): Semaforos incializados con exito
+[DEBUG] 19:23:48:352 Kernel.c/(11072:11072): Inicializando sockets
+[DEBUG] 19:23:48:352 Kernel.c/(11072:11072): Sockets inicializados con exito
+[DEBUG] 19:23:48:352 Kernel.c/(11072:11072): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 19:24:06:407 Kernel.c/(11072:11072): Se recibio un RUN
+[DEBUG] 19:25:03:809 Kernel.c/(11072:11072): Se cargo a la cola el run: /home/utnso/Prueba.LQL
+
+[DEBUG] 19:25:06:425 Kernel.c/(11072:11088): Se cargo a la cola de ready el run: /home/utnso/Prueba.LQL
+[DEBUG] 19:25:56:345 Kernel.c/(11156:11156): Cargando configuracion
+[DEBUG] 19:25:58:129 Kernel.c/(11156:11156): Configuracion cargada con exito
+[DEBUG] 19:25:58:129 Kernel.c/(11156:11156): Inicializando semaforos
+[DEBUG] 19:25:58:129 Kernel.c/(11156:11156): Semaforos incializados con exito
+[DEBUG] 19:25:58:129 Kernel.c/(11156:11156): Inicializando sockets
+[DEBUG] 19:25:58:130 Kernel.c/(11156:11156): Sockets inicializados con exito
+[DEBUG] 19:25:58:130 Kernel.c/(11156:11156): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 19:26:10:662 Kernel.c/(11156:11156): Se recibio un RUN
+[DEBUG] 19:26:10:662 Kernel.c/(11156:11156): Se cargo a la cola el run: /home/utnso/Prueba.LQL
+
+[DEBUG] 19:26:10:662 Kernel.c/(11156:11172): Se cargo a la cola de ready el run: h“
+[DEBUG] 19:29:38:524 Kernel.c/(11279:11279): Cargando configuracion
+[DEBUG] 19:29:41:68 Kernel.c/(11279:11279): Configuracion cargada con exito
+[DEBUG] 19:29:41:68 Kernel.c/(11279:11279): Inicializando semaforos
+[DEBUG] 19:29:41:68 Kernel.c/(11279:11279): Semaforos incializados con exito
+[DEBUG] 19:29:41:68 Kernel.c/(11279:11279): Inicializando sockets
+[DEBUG] 19:29:41:69 Kernel.c/(11279:11279): Sockets inicializados con exito
+[DEBUG] 19:29:41:69 Kernel.c/(11279:11279): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 19:29:46:451 Kernel.c/(11279:11279): Se recibio un RUN
+[DEBUG] 19:29:46:452 Kernel.c/(11279:11279): Se cargo a la cola el run: /home/utnso/Prueba.LQL
+
+[DEBUG] 19:29:46:452 Kernel.c/(11279:11294): Se cargo a la cola de ready el run: /home/utnso/Prueba.LQL
+[DEBUG] 19:31:06:389 Kernel.c/(11366:11366): Cargando configuracion
+[DEBUG] 19:31:08:701 Kernel.c/(11366:11366): Configuracion cargada con exito
+[DEBUG] 19:31:08:701 Kernel.c/(11366:11366): Inicializando semaforos
+[DEBUG] 19:31:08:701 Kernel.c/(11366:11366): Semaforos incializados con exito
+[DEBUG] 19:31:08:701 Kernel.c/(11366:11366): Inicializando sockets
+[DEBUG] 19:31:08:701 Kernel.c/(11366:11366): Sockets inicializados con exito
+[DEBUG] 19:31:08:701 Kernel.c/(11366:11366): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 19:31:14:12 Kernel.c/(11366:11366): Se recibio un RUN
+[DEBUG] 19:31:14:12 Kernel.c/(11366:11366): Se cargo a la cola el run: /home/utnso/Prueba.LQL
+
+[DEBUG] 19:31:14:12 Kernel.c/(11366:11383): Se cargo a la cola de ready el run: /home/utnso/Prueba.LQL
+[DEBUG] 19:33:19:342 Kernel.c/(11483:11483): Cargando configuracion
+[DEBUG] 19:33:21:190 Kernel.c/(11483:11483): Configuracion cargada con exito
+[DEBUG] 19:33:21:190 Kernel.c/(11483:11483): Inicializando semaforos
+[DEBUG] 19:33:21:190 Kernel.c/(11483:11483): Semaforos incializados con exito
+[DEBUG] 19:33:21:190 Kernel.c/(11483:11483): Inicializando sockets
+[DEBUG] 19:33:21:190 Kernel.c/(11483:11483): Sockets inicializados con exito
+[DEBUG] 19:33:21:191 Kernel.c/(11483:11483): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 19:33:25:623 Kernel.c/(11483:11483): Se recibio un RUN
+[DEBUG] 19:33:25:623 Kernel.c/(11483:11483): Se cargo a la cola el run: /home/utnso/Prueba.LQL
+
+[DEBUG] 19:33:25:623 Kernel.c/(11483:11497): Se cargo a la cola de ready el run: /home/utnso/Prueba.LQL
+[DEBUG] 19:34:50:719 Kernel.c/(11570:11570): Cargando configuracion
+[DEBUG] 19:35:17:82 Kernel.c/(11570:11570): Configuracion cargada con exito
+[DEBUG] 19:35:17:82 Kernel.c/(11570:11570): Inicializando semaforos
+[DEBUG] 19:35:17:82 Kernel.c/(11570:11570): Semaforos incializados con exito
+[DEBUG] 19:35:17:82 Kernel.c/(11570:11570): Inicializando sockets
+[DEBUG] 19:35:17:82 Kernel.c/(11570:11570): Sockets inicializados con exito
+[DEBUG] 19:35:17:82 Kernel.c/(11570:11570): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 19:35:22:767 Kernel.c/(11570:11570): Se recibio un RUN
+[DEBUG] 19:35:22:767 Kernel.c/(11570:11570): Se cargo a la cola el run: /home/utnso/Prueba.LQL
+
+[DEBUG] 19:35:22:767 Kernel.c/(11570:11592): Se cargo a la cola de ready el run: /home/utnso/Prueba.LQL
+[DEBUG] 19:35:22:767 Kernel.c/(11570:11588): /home/utnso/Prueba.LQL
+[DEBUG] 19:37:43:905 Kernel.c/(11656:11656): Cargando configuracion
+[DEBUG] 19:37:43:905 Kernel.c/(11656:11656): Configuracion cargada con exito
+[DEBUG] 19:37:43:905 Kernel.c/(11656:11656): Inicializando semaforos
+[DEBUG] 19:37:43:905 Kernel.c/(11656:11656): Semaforos incializados con exito
+[DEBUG] 19:37:43:905 Kernel.c/(11656:11656): Inicializando sockets
+[DEBUG] 19:37:43:905 Kernel.c/(11656:11656): Sockets inicializados con exito
+[DEBUG] 19:37:43:905 Kernel.c/(11656:11656): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 19:37:48:728 Kernel.c/(11656:11656): Se recibio un RUN
+[DEBUG] 19:37:48:728 Kernel.c/(11656:11656): Se cargo a la cola el run: /home/utnso/Prueba.LQL
+
+[DEBUG] 19:37:48:728 Kernel.c/(11656:11671): Se cargo a la cola de ready el run: /home/utnso/Prueba.LQL
+[DEBUG] 19:37:55:633 Kernel.c/(11656:11668): /home/utnso/Prueba.LQL
+[DEBUG] 19:38:15:681 Kernel.c/(11714:11714): Cargando configuracion
+[DEBUG] 19:38:15:681 Kernel.c/(11714:11714): Configuracion cargada con exito
+[DEBUG] 19:38:15:681 Kernel.c/(11714:11714): Inicializando semaforos
+[DEBUG] 19:38:15:681 Kernel.c/(11714:11714): Semaforos incializados con exito
+[DEBUG] 19:38:15:681 Kernel.c/(11714:11714): Inicializando sockets
+[DEBUG] 19:38:15:682 Kernel.c/(11714:11714): Sockets inicializados con exito
+[DEBUG] 19:38:15:682 Kernel.c/(11714:11714): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 19:38:25:146 Kernel.c/(11714:11714): Se recibio un RUN
+[DEBUG] 19:38:25:146 Kernel.c/(11714:11714): Se cargo a la cola el run: /home/utnso/prueba.LQL
+
+[DEBUG] 19:38:25:146 Kernel.c/(11714:11725): Se cargo a la cola de ready el run: /home/utnso/prueba.LQL
+[DEBUG] 19:38:32:652 Kernel.c/(11714:11722): /home/utnso/prueba.LQL
+[DEBUG] 19:38:51:59 Kernel.c/(11714:11722): Se recibio un SELECT
+[DEBUG] 19:38:56:787 Kernel.c/(11714:11722): /home/utnso/prueba.LQL
+[DEBUG] 19:39:10:982 Kernel.c/(11714:11722): Se recibio un SELECT
+[DEBUG] 19:39:12:654 Kernel.c/(11714:11722): /home/utnso/prueba.LQL
+[DEBUG] 19:39:19:19 Kernel.c/(11714:11722): Se recibio un SELECT
+[DEBUG] 19:39:25:341 Kernel.c/(11714:11722): /home/utnso/prueba.LQL
+[DEBUG] 19:39:34:148 Kernel.c/(11714:11722): Se recibio un SELECT
+[DEBUG] 19:40:02:822 Kernel.c/(11714:11723): 
