@@ -110,6 +110,7 @@ tSegmento* obtenerSegmentoDeTabla(t_list* tablaSeg,int index);
 int buscarSegmentoEnTabla(char* nombreTabla, tSegmento* segmento, t_list* listaSegmentos);
 int buscarPaginaEnTabla(tSegmento* segmento, tPagina* pagina, int key);
 void actualizarPaginaEnMemoria(tInsert* packInsert,tSegmento* segmento, void* memoria,int index);
+tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg);
 void recibirMensajeDeKernel();
 char* separarNombrePath(char* path);
 type leerHeader(int socket);
