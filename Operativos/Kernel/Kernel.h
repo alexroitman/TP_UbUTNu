@@ -19,6 +19,7 @@
 #include <sock/comunicacion.h>
 #include <commons/log.h>
 #include <commons/collections/queue.h>
+#include <commons/collections/list.h>
 #include <commons/config.h>
 
 #ifndef KERNEL_KERNEL_H_
@@ -31,6 +32,12 @@ typedef enum{
 	exit_
 }estados;
 
+typedef enum{
+	sc,
+	shc,
+	ec
+}consistencias;
+
 
 typedef struct{
     char* path;
@@ -38,6 +45,11 @@ typedef struct{
     estados estado;
     int id;
 }script;
+
+typedef struct{
+	int id;
+	consistencias* cons;
+}t_infoMem;
 
 typedef struct{
 	char* ip_mem;
@@ -64,8 +76,11 @@ void cargarPaqueteCreate(tCreate *pack, char* cons);
 int validarSelect(char* consulta);
 int validarCreate(char* consulta);
 int validarInsert(char* consulta);
+int validarAdd(char* consulta);
+t_infoMem* generarMem(char* consulta);
 int levantarCpus(int socket_memoria, pthread_t* cpus);
 void cargarConfig(t_config* config);
+void* obtCons( char* criterio);
 
 
 #endif /* KERNEL_KERNEL_H_ */
