@@ -14,8 +14,7 @@ void enviarPagina(int socket,tPagina* pagina) {
 	registro->value = pagina->value;
 	registro->key = pagina->key;
 	registro->value_long = strlen(pagina->value) + 1;
-	char* registroSerializado = serializarRegistro(registro);
-	enviarPaquete(socket, registroSerializado, registro->length);
+	enviarRegistroAKernel(registro,socket);
 	free(registro);
 }
 
