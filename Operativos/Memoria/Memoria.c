@@ -77,8 +77,7 @@ int main() {
 					free(registro);
 					printf("Value: %s \n", pagina->value);
 				} else {
-					log_debug(logger,
-							"No encontre la pagina buscada, se la pido a LFS y lo cargo en memoria.");
+					log_debug(logger,"No encontre la pagina buscada, se la pido a LFS y lo cargo en memoria.");
 					char* selectAEnviar = serializarSelect(packSelect);
 					enviarPaquete(socket_lfs, selectAEnviar,
 							packSelect->length);
@@ -86,6 +85,7 @@ int main() {
 					tRegistroRespuesta* reg = malloc(
 							sizeof(tRegistroRespuesta));
 					desSerializarRegistro(reg, socket_lfs);
+					reg->tipo = REGISTRO;
 					tPagina pagAux;
 					pagAux.key = reg->key;
 					pagAux.timestamp = reg->timestamp;
@@ -94,6 +94,8 @@ int main() {
 							miConfig->tam_mem);
 					log_debug(logger, "Pagina cargada en memoria.");
 					log_debug(logger, "El value es: %s", pagAux.value);
+					char* registroSerializado = serializarRegistro(reg);
+					enviarPaquete(socket_kernel, registroSerializado,reg->length);
 				}
 			} else {
 				log_debug(logger,
@@ -103,6 +105,7 @@ int main() {
 				type header = leerHeader(socket_lfs);
 				tRegistroRespuesta* reg = malloc(sizeof(tRegistroRespuesta));
 				desSerializarRegistro(reg, socket_lfs);
+				reg->tipo = REGISTRO;
 				tPagina pagAux;
 				pagAux.key = reg->key;
 				pagAux.timestamp = reg->timestamp;
@@ -116,6 +119,9 @@ int main() {
 						miConfig->tam_mem);
 				log_debug(logger, "Pagina cargada en memoria");
 				log_debug(logger, "El value es: %s", pagAux.value);
+				char* registroSerializado = serializarRegistro(reg);
+				enviarPaquete(socket_kernel, registroSerializado,reg->length);
+
 			}
 
 			break;

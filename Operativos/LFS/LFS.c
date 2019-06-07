@@ -9,9 +9,9 @@
 
 #define PUERTOLFS "7879"
 #define DirMontaje "../FS_LISSANDRA/"
-#define DirTablas "../FS_LISSANDRA/Tablas/"
-#define DirBloques "../FS_LISSANDRA/Bloques/"
-#define DirMetadata "../FS_LISSANDRA/Metadata/"
+#define DirTablas "../../FS_LISSANDRA/Tablas/"
+#define DirBloques "../../FS_LISSANDRA/Bloques/"
+#define DirMetadata "../../FS_LISSANDRA/Metadata/"
 
 int socket_sv;
 int socket_cli;
@@ -522,7 +522,7 @@ int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo) {
 	string_append(&ruta,NOMBRE_TABLA);
 	string_append(&ruta,"/metadata");
 	log_debug(logger,ruta);
-	t_config* metadata=config_create(ruta);
+	t_config* metadata=config_create("../../FS_LISSANDRA/Tablas/TABLA1/metadata");
 	log_debug(logger,"%s",objetivo);
 	log_debug(logger,"crea metadata");
 	int obj=config_get_int_value(metadata,objetivo);
