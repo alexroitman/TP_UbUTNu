@@ -34,7 +34,7 @@ int main(){
 	logger = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_DEBUG);
 	loggerError = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_ERROR);
 	log_debug(logger,"Cargando configuracion");
-	t_config* config = config_create("/home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/Kernel/Kernel.config");
+	t_config* config = config_create("Kernel.config");
 	cargarConfig(config);
 	log_debug(logger,"Configuracion cargada con exito");
 	log_debug(logger,"Inicializando semaforos");
