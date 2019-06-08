@@ -23,16 +23,18 @@ t_log *logger;
 t_log *loggerError;
 t_queue *colaReady;
 t_queue *colaNew;
+t_list *listaMems;
 configKernel *miConfig;
-int contScript = 1;
+int contScript;
 
 // Define cual va a ser el size maximo del paquete a enviar
 
-int main() {
+int main(){
+	contScript = 1;
 	logger = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_DEBUG);
 	loggerError = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_ERROR);
 	log_debug(logger,"Cargando configuracion");
-	t_config* config = config_create("/home/utnso/tp-2019-1c-UbUTNu/Operativos/Kernel/Kernel.config");
+	t_config* config = config_create("/home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/Kernel/Kernel.config");
 	cargarConfig(config);
 	log_debug(logger,"Configuracion cargada con exito");
 	log_debug(logger,"Inicializando semaforos");
@@ -44,6 +46,7 @@ int main() {
 	log_debug(logger,"Semaforos incializados con exito");
 	log_debug(logger,"Inicializando sockets");
 	int socket_memoria = levantarCliente(miConfig->puerto_mem, miConfig->ip_mem);
+	listaMems = list_create();
 	log_debug(logger,"Sockets inicializados con exito");
 	log_debug(logger,"Se tendra un nivel de multiprocesamiento de: %d cpus", miConfig->MULT_PROC);
 	pthread_t cpus[miConfig->MULT_PROC];
@@ -91,6 +94,9 @@ type validarSegunHeader(char* header) {
 	if (!strcmp(header, "CREATE")) {
 				return CREATE;
 		}
+	if (!strcmp(header, "ADD")) {
+					return ADD;
+			}
 
 	return NIL;
 }
@@ -236,6 +242,14 @@ int despacharQuery(char* consulta, int socket_memoria) {
 			sem_post(&mutexNew);
 			consultaOk = 1;
 			break;
+		case ADD:
+			if(validarAdd(consulta)){
+				log_debug(logger,"Se recibio un ADD");
+				int id = ejecutarAdd(consulta);
+				log_debug(logger,"Se agrego el criterio a: %d ", ((t_infoMem*) list_get(listaMems, 0))->id);
+			}
+			consultaOk = 1;
+			break;
 		default:
 			printf("Operacion no valida por el momento \n");
 			break;
@@ -377,6 +391,67 @@ int validarCreate(char* consulta){
 	}
 	free(split);
 	return 5 == i;
+}
+
+int validarAdd(char* consulta){
+	char** split = string_split(consulta," ");
+	bool sintaxis = true;
+	int i = 0;
+	while(split[i] != NULL && sintaxis){
+		switch (i){
+		case 1:
+			if(strcmp(split[i],"MEMORY")){
+				sintaxis = false;
+			}
+			break;
+		case 3:
+			if(strcmp(split[i],"TO")){
+				sintaxis = false;
+			}
+			break;
+		}
+		i++;
+	}
+	free(split);
+	return ((5 == i) && sintaxis);
+}
+
+int ejecutarAdd(char* consulta){
+	char** split = string_split(consulta," ");
+	t_infoMem* memAdd = generarMem(consulta);
+	/*bool mismoId(void* elemento) {
+			t_infoMem* mem = malloc(sizeof(t_infoMem));
+			mem = (t_infoMem*) elemento;
+			int id = mem->id;
+			return (atoi(split[2]) == id);
+		}
+	if(list_is_empty(list_filter(listaMems, mismoId))){
+		list_add(listaMems, memAdd);
+	}*/
+	list_add(listaMems, memAdd);
+	free(split);
+	return 0;
+}
+
+t_infoMem* generarMem(char* consulta){
+	char** split = string_split(consulta," ");
+	t_infoMem* mem = malloc(sizeof(t_infoMem));
+	mem->id = atoi(split[2]);
+	mem->cons = (consistencias *)obtCons(split[4]);
+	return mem;
+}
+
+void* obtCons(char* criterio){
+	string_to_upper(criterio);
+	if(!strcmp(criterio,"SC")){
+		return sc;
+	}
+	if(!strcmp(criterio,"SHC")){
+			return shc;
+		}
+	if(!strcmp(criterio,"EC")){
+			return ec;
+		}
 }
 void cargarConfig(t_config* config){
 	miConfig = malloc(sizeof(configKernel));
