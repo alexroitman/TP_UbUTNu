@@ -52,6 +52,7 @@ int main() {
 		indexPag = -1;
 		switch (header) {
 		case SELECT:
+			log_debug(logger, "Llego un SELECT");
 			packSelect = malloc(sizeof(tSelect));
 			desSerializarSelect(packSelect, socket_kernel);
 			packSelect->type = header;
@@ -65,7 +66,7 @@ int main() {
 			}
 			if (indexPag >= 0) {
 				log_debug(logger, "Encontre pagina buscada");
-				enviarPagina(socket_kernel, pagina);
+			//	enviarPagina(socket_kernel, pagina);
 				printf("Value: %s \n", pagina->value);
 			} else {
 				tRegistroRespuesta* reg = malloc(sizeof(tRegistroRespuesta));
@@ -88,7 +89,7 @@ int main() {
 					log_debug(logger, "El value es: %s", pagAux.value);
 				}
 				//SI NO LO ENCONTRO IGUALMENTE SE LO MANDO A KERNEL PARA QUE TAMBIEN MANEJE EL ERROR
-				enviarRegistroAKernel(reg, socket_kernel);
+			//	enviarRegistroAKernel(reg, socket_kernel);
 				log_debug(logger, "Value enviado a Kernel");
 				free(reg);
 			}
@@ -166,13 +167,15 @@ int main() {
 
 }
 
-void actualizarPaginaEnMemoria(tInsert* packInsert, tSegmento* segmento,
-		void* memoria, int index) {
+void actualizarPaginaEnMemoria(tInsert* packInsert, tSegmento* segmento, void* memoria, int index) {
 	tPagina* pag;
-	pag = (tPagina*) (memoria + (segmento->tablaPaginas[index]).offsetMemoria);
+	elem_tabla_pag* elemTablaPag =  malloc(sizeof(elem_tabla_pag));
+	elemTablaPag = list_get(segmento->tablaPaginas, index);
+	int offsetMemoria = elemTablaPag->offsetMemoria;
+	pag = (tPagina*) (memoria + offsetMemoria);
 	pag->value = packInsert->value;
 	pag->timestamp = (int) time(NULL);
-	segmento->tablaPaginas[index].modificado = true;
+	elemTablaPag->modificado = true;
 }
 
 tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg) {
@@ -182,8 +185,7 @@ tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg) {
 	return seg;
 }
 
-int agregarPaginaAMemoria(tSegmento* seg, tPagina pag, void* memoria,
-		int tam_max) {
+int agregarPaginaAMemoria(tSegmento* seg, tPagina pag, void* memoria, int tam_max) {
 	int cantPags = 0;
 	int cantPagsMax = tam_max / sizeof(tPagina);
 	tPagina temp = *(tPagina*) memoria;
@@ -199,35 +201,38 @@ int agregarPaginaAMemoria(tSegmento* seg, tPagina pag, void* memoria,
 	int offset = (cantPags * sizeof(tPagina));
 	*(tPagina*) (memoria + offset) = pag;
 
-	int cantPagSegmento = 0;
-	while ((seg->tablaPaginas)[cantPagSegmento].offsetMemoria != -1) {
-		cantPagSegmento++;
-		if (cantPagSegmento > CANTIDADMAXPAGINAS) {
-			return -2;
+//	int cantPagSegmento = 0;
+//	while ((seg->tablaPaginas)[cantPagSegmento].offsetMemoria != -1) {
+//		cantPagSegmento++;
+//		if (cantPagSegmento > CANTIDADMAXPAGINAS) {
+//			return -2;
 			//no hay mas lugar en la tabla de paginas
-		}
-	}
+//		}
+//	}
 
-	elem_tabla_pag pagina;
-	pagina.modificado = false;
-	pagina.offsetMemoria = offset;
+	elem_tabla_pag* pagina = malloc(sizeof(elem_tabla_pag));
+	pagina->modificado = false;
+	pagina->offsetMemoria = offset;
+	pagina->index = list_size(seg->tablaPaginas) + 1;
 
-	(seg->tablaPaginas)[cantPagSegmento] = pagina;
+	//(seg->tablaPaginas)[cantPagSegmento] = pagina;
+
+	list_add(seg->tablaPaginas, (elem_tabla_pag*)pagina);
 	return 1;
 
 }
 
 void cargarSegmentoEnTabla(char* path, t_list* listaSeg) {
-	elem_tabla_pag* vecPaginas = calloc(CANTIDADMAXPAGINAS,
-			sizeof(elem_tabla_pag));
+//	elem_tabla_pag* vecPaginas = calloc(CANTIDADMAXPAGINAS,
+//			sizeof(elem_tabla_pag));
 	tSegmento* seg = malloc(sizeof(tSegmento));
 	seg->path = path;
-	seg->tablaPaginas = vecPaginas;
+	seg->tablaPaginas = list_create();
 
-	int i;
-	for (i = 0; i < CANTIDADMAXPAGINAS; i++) {
-		seg->tablaPaginas[i].offsetMemoria = -1;
-	}
+//	int i;
+//	for (i = 0; i < CANTIDADMAXPAGINAS; i++) {
+//		seg->tablaPaginas[i].offsetMemoria = -1;
+//	}
 	list_add(listaSeg, (tSegmento*) seg);
 }
 
@@ -237,8 +242,7 @@ tSegmento* obtenerSegmentoDeTabla(t_list* tablaSeg, int index) {
 	return seg;
 }
 
-int buscarSegmentoEnTabla(char* nombreTabla, tSegmento* miseg,
-		t_list* listaSegmentos) {
+int buscarSegmentoEnTabla(char* nombreTabla, tSegmento* miseg, t_list* listaSegmentos) {
 	bool mismoNombre(void* elemento) {
 		tSegmento* seg = malloc(sizeof(tSegmento));
 		seg = (tSegmento*) elemento;
@@ -253,6 +257,7 @@ int buscarSegmentoEnTabla(char* nombreTabla, tSegmento* miseg,
 	}
 	return -1;
 }
+
 char* separarNombrePath(char* path) {
 	char** separado = string_split(path, "/");
 	int i = 0;
@@ -268,23 +273,31 @@ char* separarNombrePath(char* path) {
 	 free(separado);*/
 	return nombre;
 }
-int buscarPaginaEnMemoria(int key, tSegmento* miseg, void* memoria,
-		tPagina* pagina) {
-	elem_tabla_pag* vecPaginas;
-	vecPaginas = miseg->tablaPaginas;
-	int index = 0;
-	while (vecPaginas[index].offsetMemoria != -1) {
-		//RECORRO LA TABLA DE PAGINAS YENDO A BUSCAR A MEMORIA SEGUN CADA OFFSET
-		*pagina = *(tPagina*) (memoria + vecPaginas[index].offsetMemoria);
-		if (pagina->key == key) {
-			//ENCONTRE MI PAGINA EN MEMORIA
-			return index;
-			//RETORNA LA POSICION DE LA PAGINA EN LA TABLA DE PAGINAS
-		}
-		index++;
+
+int buscarPaginaEnMemoria(int key, tSegmento* miseg, void* memoria, tPagina* pagina) {
+
+	t_list* tablaDePaginas;
+	tablaDePaginas = miseg->tablaPaginas;
+
+	bool mismaKey(void* elemento){
+		elem_tabla_pag* elemPag = (elem_tabla_pag*)elemento;
+		pagina = (tPagina*) (memoria + elemPag->offsetMemoria);
+		return pagina->key == key;
 	}
-	pagina = NULL;
-	return -1;
+
+	if(!list_is_empty(tablaDePaginas)){
+		elem_tabla_pag* elemPagina = malloc(sizeof(elem_tabla_pag));
+		elemPagina = (elem_tabla_pag*)list_find(tablaDePaginas, mismaKey);
+		if(elemPagina != NULL){
+			pagina = (tPagina*) (memoria + elemPagina->offsetMemoria);
+			log_debug(logger, "%s", pagina->value);
+			return elemPagina->index;
+		} else {
+			return -1;
+		}
+	} else {
+		return -1;
+	}
 }
 
 t_miConfig* cargarConfig() {

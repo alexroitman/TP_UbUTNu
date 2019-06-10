@@ -76,11 +76,12 @@ typedef struct{
 typedef struct {
 	int offsetMemoria;
 	bool modificado;
+	int index;
 }elem_tabla_pag;
 
 typedef struct {
 	char* path;
-	elem_tabla_pag* tablaPaginas;
+	t_list* tablaPaginas;
 }tSegmento;
 
 typedef struct {
@@ -96,7 +97,6 @@ typedef struct {
 	char* ip_fs;
 	int tam_mem ;
 } t_miConfig;
-
 
 char package[PACKAGESIZE];
 struct addrinfo hints;
