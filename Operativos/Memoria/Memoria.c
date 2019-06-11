@@ -21,7 +21,6 @@ t_log *logger;
 // Define cual va a ser el size maximo del paquete a enviar
 
 int main() {
-
 	logger = log_create("Memoria.log", "Memoria.c", 1, LOG_LEVEL_DEBUG);
 	t_miConfig* miConfig = malloc(sizeof(t_miConfig));
 	miConfig = cargarConfig();
@@ -304,9 +303,14 @@ int buscarPaginaEnMemoria(int key, tSegmento* miseg, void* memoria, tPagina* pag
 }
 
 t_miConfig* cargarConfig() {
+	char* buffer = malloc(256);
+	char* pathConfig = malloc(256);
+	printf("Se levanto un proceso Memoria. \nPor favor ingrese el path de su archivo de configuracion (Memoria.config): ");
+	fgets(buffer, 256, stdin);
+	strncpy(pathConfig, buffer, strlen(buffer)-1);
 	t_miConfig* miConfig = malloc(sizeof(t_miConfig));
 	t_config* config;
-	config = config_create("Memoria.config");
+	config = config_create(pathConfig);
 	miConfig->puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
 	miConfig->puerto_fs = config_get_string_value(config, "PUERTO_FS");
 	miConfig->ip_fs = config_get_string_value(config, "IP");
