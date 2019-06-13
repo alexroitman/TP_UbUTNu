@@ -26,46 +26,17 @@
 #define PUERTO "6666"
 #define BACKLOG 5			// Define cuantas conexiones vamos a mantener pendientes al mismo tiempo
 #define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
+t_log *logger;
 
-typedef struct _t_Package {
+sem_t semConsulta;
+bool leyoConsola;
+bool recibioSocket;
 
-	char* username;
-	uint32_t username_long;
-	char* message;
-	uint32_t message_long;
-	char* funcionalidad;
-	uint32_t funcionalidad_long;
-	char* restoString;
-	uint32_t restoString_long;
-	uint32_t total_size;			// NOTA: Es calculable. Aca lo tenemos por fines didacticos!
-} t_Package;
 
-typedef struct {
-	char* table;
-	uint32_t key;
-} t_select;
-
-typedef struct {
-	char* table;
-	char* value;
-	uint32_t timestap;
-}t_Insert;
-
-typedef struct {
-	char* table;
-	char* tipoConsistencia;
-	uint32_t particiones;
-	uint32_t tiempoCompactacion;
-
-}t_Create;
-
-typedef struct {
-	char* table;
-}t_Drop;
-
-typedef struct {
-	char* table;
-}t_Describe;
+typedef struct{
+	type* header;
+	char consulta[256];
+}tHiloConsola;
 
 typedef struct{
 	int timestamp;
@@ -85,13 +56,6 @@ typedef struct {
 }tSegmento;
 
 typedef struct {
-	char* path;
-	int timestamp;
-	int key;
-	char* value;
-}tNuevoSegmento;
-
-typedef struct {
 	int puerto_kernel;
 	int puerto_fs;
 	char* ip_fs;
@@ -101,6 +65,13 @@ typedef struct {
 char package[PACKAGESIZE];
 struct addrinfo hints;
 struct addrinfo *serverInfo;
+
+void crearHilosRecepcion(type* header, pthread_t hiloSocket,
+		pthread_t hiloConsola,tHiloConsola* paramsConsola);
+
+void cargarPackCreate(tCreate* packCreate,bool leyoConsola,char consulta[]);
+void cargarPackSelect(tSelect* packSelect,bool leyoConsola,char* consulta);
+void cargarPackInsert(tInsert* packInsert, bool leyoConsola, char consulta[]);
 
 
 int agregarPaginaAMemoria(tSegmento* seg, tPagina pag, void* memoria, int tam_max);
@@ -113,7 +84,8 @@ void actualizarPaginaEnMemoria(tInsert* packInsert,tSegmento* segmento, void* me
 tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg);
 void recibirMensajeDeKernel();
 char* separarNombrePath(char* path);
-type leerHeader(int socket);
+void* recibirHeader(void* arg);
+
 void enviarMensajeAKernel();
 t_miConfig* cargarConfig();
 
@@ -122,7 +94,6 @@ int levantarCliente();
 int levantarServidor();
 void cerrarConexiones();
 
-int recieve_and_deserialize(t_Package *package, int socketCliente);
 
 
 #endif /* MEMORIA_MEMORIA_H_ */

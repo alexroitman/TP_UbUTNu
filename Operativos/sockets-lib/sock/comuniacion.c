@@ -1,24 +1,5 @@
 #include "comunicacion.h"
 
-int serializarRequest(t_Package_Request packageRequest,
-		tPaquete* paqueteSerializado) {
-	paqueteSerializado = malloc(sizeof(package));
-
-	int offset = 0;
-	int size_to_send;
-
-	size_to_send = strlen(packageRequest.header) + 1;
-	memcpy(paqueteSerializado->payload + offset, packageRequest.header,
-			size_to_send);
-	offset += size_to_send;
-
-	size_to_send = strlen(packageRequest.query) + 1;
-	memcpy(paqueteSerializado->payload + offset, packageRequest.query,
-			size_to_send);
-	paqueteSerializado->length = offset + size_to_send;
-
-	return paqueteSerializado;
-}
 
 int enviarPaquete(int clienteSocket, char* payload, uint32_t size) {
 
@@ -30,6 +11,70 @@ type leerHeader(int socket) {
 	recv(socket, &header, sizeof(type), MSG_WAITALL);
 	return header;
 }
+
+void cargarPaqueteSelect(tSelect *pack, char* cons) {
+	char** spliteado;
+	spliteado = string_n_split(cons, 3, " ");
+	if (strcmp(spliteado[1], "") && strcmp(spliteado[2], "")) {
+		pack->type = SELECT;
+		pack->nombre_tabla = spliteado[1];
+		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
+		pack->key = atoi(spliteado[2]);
+		pack->length = sizeof(pack->type) + sizeof(pack->nombre_tabla_long)
+				+ pack->nombre_tabla_long + sizeof(pack->key);
+	} else {
+		printf("no entendi tu consulta\n");
+	}
+	free(spliteado);
+}
+
+void cargarPaqueteInsert(tInsert *pack, char* cons) {
+	char** spliteado;
+	spliteado = string_n_split(cons, 4, " ");
+	if (strcmp(spliteado[1], "") && strcmp(spliteado[2], "")
+			&& strcmp(spliteado[3], "")) {
+		pack->type = INSERT;
+		pack->nombre_tabla = spliteado[1];
+		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
+		pack->key = atoi(spliteado[2]);
+		pack->value = spliteado[3];
+		pack->value_long = strlen(spliteado[3])+1;
+		pack->length = sizeof(pack->type) + sizeof(pack->nombre_tabla_long)
+				+ pack->nombre_tabla_long + sizeof(pack->key)
+				+ sizeof(pack->value_long) + pack->value_long;
+	} else {
+		printf("no entendi tu consulta\n");
+	}
+	free(spliteado);
+}
+
+void cargarPaqueteCreate(tCreate *pack, char* cons) {
+	char** spliteado;
+	spliteado = string_n_split(cons, 5, " ");
+	if (strcmp(spliteado[1], "") && strcmp(spliteado[2], "")
+			&& strcmp(spliteado[3], "") && strcmp(spliteado[4], "")) {
+		pack->type = CREATE;
+		pack->nombre_tabla = spliteado[1];
+		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
+		pack->consistencia = spliteado[2];
+		pack->consistencia_long = strlen(spliteado[2]) + 1;
+		pack->particiones = atoi(spliteado[3]);
+		pack->compaction_time = atoi(spliteado[4]);
+		pack->length = sizeof(pack->type)
+				+ sizeof(pack->nombre_tabla_long)
+				+ pack->nombre_tabla_long
+				+ sizeof(pack->consistencia_long)
+				+ pack->consistencia_long
+				+ sizeof(pack->particiones)
+				+ sizeof(pack->compaction_time);
+	} else {
+		printf("no entendi tu consulta\n");
+	}
+	free(spliteado);
+}
+
+
+
 
 char* serializarSelect(tSelect* packageSelect) {
 	packageSelect->length = sizeof(packageSelect->type)
@@ -85,7 +130,7 @@ int desSerializarSelect(tSelect* packageSelect, int socket) {
 	status = recv(socket, &packageSelect->key, sizeof(packageSelect->key), 0); //recibo el nombre de la key
 	if (!status)
 		return 0;
-
+	packageSelect->type = SELECT;
 	free(buffer);
 
 	return status;
@@ -168,7 +213,7 @@ int desSerializarInsert(tInsert* packageInsert, int socket) {
 			+ sizeof(packageInsert->nombre_tabla_long)
 			+ packageInsert->nombre_tabla_long + sizeof(packageInsert->key)
 			+ sizeof(packageInsert->value_long) + packageInsert->value_long;
-
+	packageInsert->type = INSERT;
 	return status;
 
 }
@@ -264,7 +309,7 @@ int desSerializarCreate(tCreate* packageCreate, int socket) {
 			+ packageCreate->consistencia_long
 			+ sizeof(packageCreate->particiones)
 			+ sizeof(packageCreate->compaction_time);
-
+	packageCreate->type = CREATE;
 	return status;
 
 }

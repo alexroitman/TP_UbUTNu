@@ -108,10 +108,12 @@ int numero;									//ADD
 int criterio;
 } tAdd;
 
-int serializarRequest(t_Package_Request packageRequest,
-	tPaquete* paqueteSerializado);
-int desSerializarRequest(tPaquete* paqueteSerializado,
-	t_Package_Request* packageRequest);
+void cargarPaqueteSelect(tSelect *pack, char* cons);
+void cargarPaqueteInsert(tInsert *pack, char* cons);
+void cargarPaqueteCreate(tCreate *pack, char* cons);
+
+int desSerializarRegistro(tRegistroRespuesta* reg, int socket);
+char* serializarRegistro(tRegistroRespuesta* reg);
 
 int desSerializarInsert(tInsert* packageInsert, int socket);
 char* serializarInsert(tInsert* packageInsert);

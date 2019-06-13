@@ -12,99 +12,100 @@
 #define BACKLOG 5			// Define cuantas conexiones vamos a mantener pendientes al mismo tiempo
 #define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
 char package[PACKAGESIZE];
-#define CANTIDADMAXPAGINAS 10
-#define TAMANIOMAXMEMORIA 2048
 struct addrinfo hints;
 struct addrinfo *serverInfo;
+#define TAMANIOMAXVALUE 10
 #define PUERTOLFS "7879"
-t_log *logger;
+int socket_kernel;
+pthread_t hiloConsola;
+pthread_t hiloSocket;
 // Define cual va a ser el size maximo del paquete a enviar
 
 int main() {
 
 	logger = log_create("Memoria.log", "Memoria.c", 1, LOG_LEVEL_DEBUG);
-	t_miConfig* miConfig = malloc(sizeof(t_miConfig));
+	t_miConfig* miConfig;
 	miConfig = cargarConfig();
 	log_debug(logger, "Levanta archivo de config");
-
 	int socket_sv = levantarServidor((char*) miConfig->puerto_kernel);
-	int socket_kernel = aceptarCliente(socket_sv);
-	int socket_lfs = levantarCliente((char*) miConfig->puerto_fs,miConfig->ip_fs);
+	socket_kernel = aceptarCliente(socket_sv);
 	log_debug(logger, "Levanta conexion con kernel");
+	int socket_lfs = levantarCliente((char*) miConfig->puerto_fs,miConfig->ip_fs);
 	log_debug(logger, "Levanta conexion con LFS");
-
+	sem_init(&semConsulta,0,0);
 	void* memoria = malloc(miConfig->tam_mem);
 	t_list* tablaSegmentos = list_create();
-	type header;
+
 	int encontroSeg = -1;
 	int indexPag = -1;
+	type* header = malloc(sizeof(type));
+	tHiloConsola* paramsConsola;
+	paramsConsola->header = header;
 	tSelect* packSelect;
 	tInsert* packInsert;
 	tCreate* packCreate;
+	leyoConsola = true;
+	recibioSocket = true;
 	while (1) {
-		header = leerHeader(socket_kernel);
-
-
-
+		*header = NIL;
+		crearHilosRecepcion(header,hiloSocket,hiloConsola,paramsConsola);
 		tPagina* pagina = malloc(sizeof(tPagina));
 		tSegmento* miSegmento = malloc(sizeof(tSegmento));
 		encontroSeg = -1;
 		indexPag = -1;
-		switch (header) {
+		sem_wait(&semConsulta);
+		switch (*header) {
 		case SELECT:
-			log_debug(logger, "Llego un SELECT");
-			packSelect = malloc(sizeof(tSelect));
-			desSerializarSelect(packSelect, socket_kernel);
-			packSelect->type = header;
-			encontroSeg = buscarSegmentoEnTabla(packSelect->nombre_tabla,
-					miSegmento, tablaSegmentos);
-			if (encontroSeg == 1) {
-				log_debug(logger, "Encontre segmento: %s ",
-						packSelect->nombre_tabla);
-				indexPag = buscarPaginaEnMemoria(packSelect->key, miSegmento,
-						memoria, pagina);
-			}
-			if (indexPag >= 0) {
-				log_debug(logger, "Encontre pagina buscada");
-				enviarPagina(socket_kernel, pagina);
-				printf("Value: %s \n", pagina->value);
-			} else {
-				tRegistroRespuesta* reg = malloc(sizeof(tRegistroRespuesta));
-				pedirRegistroALFS(socket_lfs, packSelect, reg);
-				if (reg->key != -1) {
-					tPagina pagAux;
-					pagAux.key = reg->key;
-					pagAux.timestamp = reg->timestamp;
-					pagAux.value = reg->value;
-					if (encontroSeg != 1) {
-						cargarSegmentoEnTabla(packSelect->nombre_tabla,
-								tablaSegmentos);
-						log_debug(logger, "Segmento cargado en tabla");
-						miSegmento = obtenerUltimoSegmentoDeTabla(
-								tablaSegmentos);
-					}
-					agregarPaginaAMemoria(miSegmento, pagAux, memoria,
-							miConfig->tam_mem);
-					log_debug(logger, "Pagina cargada en memoria.");
-					log_debug(logger, "El value es: %s", pagAux.value);
+				packSelect = malloc(sizeof(tSelect));
+				cargarPackSelect(packSelect,leyoConsola,paramsConsola->consulta);
+				encontroSeg = buscarSegmentoEnTabla(packSelect->nombre_tabla,
+						miSegmento, tablaSegmentos);
+				if (encontroSeg == 1) {
+					log_debug(logger, "Encontre segmento: %s ",
+							packSelect->nombre_tabla);
+					indexPag = buscarPaginaEnMemoria(packSelect->key,
+							miSegmento, memoria, pagina);
 				}
-				//SI NO LO ENCONTRO IGUALMENTE SE LO MANDO A KERNEL PARA QUE TAMBIEN MANEJE EL ERROR
-				enviarRegistroAKernel(reg, socket_kernel);
-				log_debug(logger, "Value enviado a Kernel");
-				free(reg);
-			}
-			free(packSelect);
+				if (indexPag >= 0) {
+					log_debug(logger, "Encontre pagina buscada");
+					enviarPagina(socket_kernel, pagina,leyoConsola);
+					log_debug(logger, "El value es: %s", pagina->value);
+				} else {
+					tRegistroRespuesta* reg = malloc(
+							sizeof(tRegistroRespuesta));
+					pedirRegistroALFS(socket_lfs, packSelect, reg);
+					if (reg->key != -1) {
+						tPagina pagAux;
+						pagAux.key = reg->key;
+						pagAux.timestamp = reg->timestamp;
+						pagAux.value = reg->value;
+						if (encontroSeg != 1) {
+							cargarSegmentoEnTabla(packSelect->nombre_tabla,
+									tablaSegmentos);
+							miSegmento = obtenerUltimoSegmentoDeTabla(
+									tablaSegmentos);
+						}
+						agregarPaginaAMemoria(miSegmento, pagAux, memoria,
+								miConfig->tam_mem);
+
+					}
+					//SI NO LO ENCONTRO IGUALMENTE SE LO MANDO A KERNEL PARA QUE TAMBIEN MANEJE EL ERROR
+					enviarRegistroAKernel(reg, socket_kernel,leyoConsola);
+
+					free(reg);
+
+				}
+				free(packSelect);
+
+
+
 			break;
 		case INSERT:
-			log_debug(logger,"entro al insert");
 			packInsert = malloc(sizeof(tInsert));
-			desSerializarInsert(packInsert, socket_kernel);
-			packInsert->type = header;
-
-
+			cargarPackInsert(packInsert,leyoConsola,paramsConsola->consulta);
 			tPagina pagAux;
 			pagAux.key = packInsert->key;
-			pagAux.timestamp = (int) time(NULL); //HAY QUE OBTENER EL TIMESTAMP REAL
+			pagAux.timestamp = (int) time(NULL);
 			pagAux.value = packInsert->value;
 
 			encontroSeg = buscarSegmentoEnTabla(packInsert->nombre_tabla,
@@ -115,14 +116,13 @@ int main() {
 
 				indexPag = buscarPaginaEnMemoria(packInsert->key, miSegmento,
 						memoria, pagina);
-				log_debug(logger, "%d", indexPag);
 				if (indexPag >= 0) {
 					log_debug(logger,
 							"Encontre la pagina buscada en el segmento %s ",
 							packInsert->nombre_tabla);
 					actualizarPaginaEnMemoria(packInsert, miSegmento, memoria,
 							indexPag);
-					log_debug(logger, "Pagina encontrada y actualizada.");
+
 				} else {
 					//Encontro el segmento en tabla pero no tiene la pagina en memoria
 
@@ -130,7 +130,6 @@ int main() {
 							"Encontro el segmento en tabla pero no tiene la pagina en memoria");
 					agregarPaginaAMemoria(miSegmento, pagAux, memoria,
 							miConfig->tam_mem);
-					log_debug(logger, "Pagina cargada en memoria.");
 				}
 
 			} else {
@@ -138,28 +137,29 @@ int main() {
 				log_debug(logger,
 						"No encontro el segmento en tabla de segmentos");
 				cargarSegmentoEnTabla(packInsert->nombre_tabla, tablaSegmentos);
-				log_debug(logger, "Segmento cargado en tabla");
 				tSegmento* newSeg = obtenerUltimoSegmentoDeTabla(tablaSegmentos);
 				agregarPaginaAMemoria(newSeg, pagAux, memoria,
 						miConfig->tam_mem);
-				log_debug(logger, "Pagina cargada en memoria");
 			}
 			free(packInsert);
 			break;
 		case CREATE:
 			packCreate = malloc(sizeof(tCreate));
-			desSerializarCreate(packCreate, socket_kernel);
-			packCreate->type = header;
+			cargarPackCreate(packCreate,leyoConsola,paramsConsola->consulta);
 			char* createAEnviar = serializarCreate(packCreate);
 			enviarPaquete(socket_lfs, createAEnviar, packCreate->length);
 			log_debug(logger, "Mando la consulta a LFS");
 			free(packCreate);
 			break;
-
+		case NIL:
+			log_error(logger, "No entendi la consulta");
+			break;
 		}
+
 		free(miSegmento);
 		free(pagina);
-
+		pthread_detach(hiloSocket);
+		pthread_detach(hiloConsola);
 
 	}
 	close(socket_lfs);
@@ -167,6 +167,61 @@ int main() {
 	close(socket_sv);
 
 }
+
+void crearHilosRecepcion(type* header, pthread_t hiloSocket,
+		pthread_t hiloConsola,tHiloConsola* paramsConsola) {
+
+	//PREGUNTO PARA SABER SI EL HILO SIGUE BLOQUEADO ESPERANDO ALGO O YA TERMINO SU EJECUCION
+	//SI TERNINO SU EJECUCION CREO UNO NUEVO
+	//SI SIGUE BLOQUEADO ESPERANDO QUE LE LLEGUE ALGO, NO HAGO NADA
+	if (recibioSocket) {
+		pthread_create(&hiloSocket, NULL, (void*) recibirHeader,
+				(void*) header);
+	}
+	if (leyoConsola) {
+		pthread_create(&hiloConsola, NULL, (void*) leerQuery, (void*) paramsConsola);
+	}
+}
+
+void* recibirHeader(void* arg) {
+	recibioSocket = false;
+	type* header = (type*) arg;
+	recv(socket_kernel, &(*header), sizeof(type), MSG_WAITALL);
+	recibioSocket = true;
+	if(*header != NIL){
+		//EN REALIDAD LO QUE ESTOY PREGUNTANDO ES SI RECIBIO ALGO DE KERNEL
+		//PORQUE SI SE CORTO LA CONEXION CON KERNEL NO QUIERO QUE HAGA EL SIGNAL DEL SEMAFORO
+		sem_post(&semConsulta);
+	}
+}
+
+void cargarPackSelect(tSelect* packSelect,bool leyoConsola,char consulta[]){
+	if(leyoConsola){
+		cargarPaqueteSelect(packSelect, consulta);
+	}else{
+		desSerializarSelect(packSelect, socket_kernel);
+	}
+
+}
+
+void cargarPackInsert(tInsert* packInsert, bool leyoConsola, char consulta[]) {
+	if (leyoConsola) {
+		cargarPaqueteInsert(packInsert, consulta);
+	} else {
+		desSerializarInsert(packInsert, socket_kernel);
+	}
+
+}
+
+void cargarPackCreate(tCreate* packCreate,bool leyoConsola,char consulta[]){
+	if(leyoConsola){
+		cargarPaqueteCreate(packCreate, consulta);
+	}else{
+		desSerializarCreate(packCreate, socket_kernel);
+	}
+
+}
+
 
 void actualizarPaginaEnMemoria(tInsert* packInsert, tSegmento* segmento, void* memoria, int index) {
 	tPagina* pag;
@@ -177,6 +232,7 @@ void actualizarPaginaEnMemoria(tInsert* packInsert, tSegmento* segmento, void* m
 	pag->value = packInsert->value;
 	pag->timestamp = (int) time(NULL);
 	elemTablaPag->modificado = true;
+	log_debug(logger, "Pagina encontrada y actualizada.");
 }
 
 tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg) {
@@ -202,39 +258,25 @@ int agregarPaginaAMemoria(tSegmento* seg, tPagina pag, void* memoria, int tam_ma
 	int offset = (cantPags * sizeof(tPagina));
 	*(tPagina*) (memoria + offset) = pag;
 
-//	int cantPagSegmento = 0;
-//	while ((seg->tablaPaginas)[cantPagSegmento].offsetMemoria != -1) {
-//		cantPagSegmento++;
-//		if (cantPagSegmento > CANTIDADMAXPAGINAS) {
-//			return -2;
-			//no hay mas lugar en la tabla de paginas
-//		}
-//	}
 
 	elem_tabla_pag* pagina = malloc(sizeof(elem_tabla_pag));
-	pagina->modificado = false;
+	pagina->modificado = true;
 	pagina->offsetMemoria = offset;
 	pagina->index = list_size(seg->tablaPaginas);
 
-	//(seg->tablaPaginas)[cantPagSegmento] = pagina;
-
 	list_add(seg->tablaPaginas, (elem_tabla_pag*)pagina);
+	log_debug(logger, "Pagina cargada en memoria.");
+	log_debug(logger, "El value es: %s", pag.value);
 	return 1;
 
 }
 
 void cargarSegmentoEnTabla(char* path, t_list* listaSeg) {
-//	elem_tabla_pag* vecPaginas = calloc(CANTIDADMAXPAGINAS,
-//			sizeof(elem_tabla_pag));
 	tSegmento* seg = malloc(sizeof(tSegmento));
 	seg->path = path;
 	seg->tablaPaginas = list_create();
-
-//	int i;
-//	for (i = 0; i < CANTIDADMAXPAGINAS; i++) {
-//		seg->tablaPaginas[i].offsetMemoria = -1;
-//	}
 	list_add(listaSeg, (tSegmento*) seg);
+	log_debug(logger, "Segmento cargado en tabla");
 }
 
 tSegmento* obtenerSegmentoDeTabla(t_list* tablaSeg, int index) {
@@ -279,9 +321,9 @@ int buscarPaginaEnMemoria(int key, tSegmento* miseg, void* memoria, tPagina* pag
 	elem_tabla_pag* tablaPaginas = (elem_tabla_pag*)miseg->tablaPaginas;
 
 	bool buscarKey(void* elemento){
-		elem_tabla_pag* elemPagAux = malloc(sizeof(elem_tabla_pag));
+		elem_tabla_pag* elemPagAux;
 		elemPagAux = (elem_tabla_pag*)elemento;
-		tPagina* paginaAux = malloc(sizeof(tPagina));
+		tPagina* paginaAux;
 		paginaAux = (tPagina*)(memoria + elemPagAux->offsetMemoria);
 		return paginaAux->key == key;
 	}
@@ -290,8 +332,6 @@ int buscarPaginaEnMemoria(int key, tSegmento* miseg, void* memoria, tPagina* pag
 		if(list_find((t_list*)tablaPaginas, buscarKey) != NULL){
 			elem_tabla_pag* miElem = (elem_tabla_pag*)list_find((t_list*)tablaPaginas, buscarKey);
 			*pagina = *(tPagina*)(memoria + miElem->offsetMemoria);
-			log_debug(logger, "%d", miElem->index);
-			log_debug(logger, "%s", pagina->value);
 			return miElem->index;
 		} else {
 			return -1;
@@ -307,7 +347,7 @@ t_miConfig* cargarConfig() {
 	t_miConfig* miConfig = malloc(sizeof(t_miConfig));
 	t_config* config;
 	config = config_create("Memoria.config");
-	miConfig->puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
+	miConfig->puerto_kernel =config_get_string_value(config, "PUERTO_KERNEL");
 	miConfig->puerto_fs = config_get_string_value(config, "PUERTO_FS");
 	miConfig->ip_fs = config_get_string_value(config, "IP");
 	miConfig->tam_mem = config_get_int_value(config, "TAM_MEM");

@@ -101,68 +101,9 @@ type validarSegunHeader(char* header) {
 	return NIL;
 }
 
-void cargarPaqueteSelect(tSelect *pack, char* cons) {
-	char** spliteado;
-	spliteado = string_n_split(cons, 3, " ");
-	if (strcmp(spliteado[1], "") && strcmp(spliteado[2], "")) {
-		pack->type = SELECT;
-		pack->nombre_tabla = spliteado[1];
-		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
-		pack->key = atoi(spliteado[2]);
-		pack->length = sizeof(pack->type) + sizeof(pack->nombre_tabla_long)
-				+ pack->nombre_tabla_long + sizeof(pack->key);
-	} else {
-		printf("no entendi tu consulta\n");
-		log_error(loggerError,"Se ingreso una consulta no valida");
-	}
-	free(spliteado);
-}
-void cargarPaqueteInsert(tInsert *pack, char* cons) {
-	char** spliteado;
-	spliteado = string_n_split(cons, 4, " ");
-	if (strcmp(spliteado[1], "") && strcmp(spliteado[2], "")
-			&& strcmp(spliteado[3], "")) {
-		pack->type = INSERT;
-		pack->nombre_tabla = spliteado[1];
-		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
-		pack->key = atoi(spliteado[2]);
-		pack->value = spliteado[3];
-		pack->value_long = strlen(spliteado[3])+1;
-		pack->length = sizeof(pack->type) + sizeof(pack->nombre_tabla_long)
-				+ pack->nombre_tabla_long + sizeof(pack->key)
-				+ sizeof(pack->value_long) + pack->value_long;
-	} else {
-		printf("no entendi tu consulta\n");
-		log_error(loggerError,"Se ingreso una consulta no valida");
-	}
-	free(spliteado);
-}
 
-void cargarPaqueteCreate(tCreate *pack, char* cons) {
-	char** spliteado;
-	spliteado = string_n_split(cons, 5, " ");
-	if (strcmp(spliteado[1], "") && strcmp(spliteado[2], "")
-			&& strcmp(spliteado[3], "") && strcmp(spliteado[4], "")) {
-		pack->type = CREATE;
-		pack->nombre_tabla = spliteado[1];
-		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
-		pack->consistencia = spliteado[2];
-		pack->consistencia_long = strlen(spliteado[2]) + 1;
-		pack->particiones = atoi(spliteado[3]);
-		pack->compaction_time = atoi(spliteado[4]);
-		pack->length = sizeof(pack->type)
-				+ sizeof(pack->nombre_tabla_long)
-				+ pack->nombre_tabla_long
-				+ sizeof(pack->consistencia_long)
-				+ pack->consistencia_long
-				+ sizeof(pack->particiones)
-				+ sizeof(pack->compaction_time);
-	} else {
-		printf("no entendi tu consulta\n");
-		log_error(loggerError,"Se ingreso una consulta no valida");
-	}
-	free(spliteado);
-}
+
+
 
 
 int despacharQuery(char* consulta, int socket_memoria) {

@@ -7,14 +7,14 @@
 
 #include "Querys.h"
 
-void enviarPagina(int socket,tPagina* pagina) {
+void enviarPagina(int socket,tPagina* pagina,bool leyoConsola) {
 	tRegistroRespuesta* registro = malloc(sizeof(tRegistroRespuesta));
 	registro->tipo = REGISTRO;
 	registro->timestamp = pagina->timestamp;
 	registro->value = pagina->value;
 	registro->key = pagina->key;
 	registro->value_long = strlen(pagina->value) + 1;
-	enviarRegistroAKernel(registro,socket);
+	enviarRegistroAKernel(registro,socket,leyoConsola);
 	free(registro);
 }
 
@@ -28,7 +28,35 @@ void pedirRegistroALFS(int socket, tSelect* packSelect, tRegistroRespuesta* reg)
 }
 
 
-void enviarRegistroAKernel(tRegistroRespuesta* reg, int socket){
-	char* registroSerializado = serializarRegistro(reg);
-	enviarPaquete(socket, registroSerializado,reg->length);
+void enviarRegistroAKernel(tRegistroRespuesta* reg, int socket,bool leyoConsola){
+	//SI LEYO DE CONSOLA NO QUIERO ENVIARSELO A KERNEL
+	if(!leyoConsola){
+		char* registroSerializado = serializarRegistro(reg);
+		enviarPaquete(socket, registroSerializado,reg->length);
+		log_debug(logger, "Value enviado a Kernel");
+	}
 }
+
+void* leerQuery(void* params) {
+    tHiloConsola* parametros =(tHiloConsola*) params;
+	leyoConsola = false;
+	fgets(parametros->consulta, 256, stdin);
+	log_debug(logger,"lei de consola");
+	char** tempSplit;
+	tempSplit = string_n_split(parametros->consulta, 2, " ");
+	if(!strcmp(tempSplit[0],"SELECT")){
+		log_debug(logger,"compara piola");
+		*(parametros->header) = SELECT;
+	}
+	if(!strcmp(tempSplit[0],"INSERT")){
+		*(parametros->header) = INSERT;
+	}
+	if(!strcmp(tempSplit[0],"CREATE")){
+		*(parametros->header) = CREATE;
+	}
+	leyoConsola = true;
+	sem_post(&semConsulta);
+}
+
+
+

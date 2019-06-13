@@ -22,3 +22,53 @@
 [DEBUG] 17:20:16:785 Memoria.c/(4205:4205): Pagina cargada en memoria
 [DEBUG] 17:20:29:502 Memoria.c/(4205:4205): Encontre segmento TABLA1: 
 [DEBUG] 17:20:34:166 Memoria.c/(4205:4205): Encontre pagina buscada
+[DEBUG] 13:15:18:166 Memoria.c/(7214:7214): Levanta archivo de config
+[DEBUG] 13:15:25:149 Memoria.c/(7214:7214): Levanta conexion con kernel
+[DEBUG] 13:15:25:149 Memoria.c/(7214:7214): Levanta conexion con LFS
+[DEBUG] 14:28:13:905 Memoria.c/(9709:9709): Levanta archivo de config
+[DEBUG] 14:28:18:539 Memoria.c/(9709:9709): Levanta conexion con kernel
+[DEBUG] 14:28:18:539 Memoria.c/(9709:9709): Levanta conexion con LFS
+[DEBUG] 14:29:29:868 Memoria.c/(9709:9748): lei de consola
+[DEBUG] 15:32:32:799 Memoria.c/(13169:13169): Levanta archivo de config
+[DEBUG] 15:33:00:590 Memoria.c/(13221:13221): Levanta archivo de config
+[DEBUG] 15:33:07:804 Memoria.c/(13221:13221): Levanta conexion con kernel
+[DEBUG] 15:33:07:804 Memoria.c/(13221:13221): Levanta conexion con LFS
+[DEBUG] 15:34:16:240 Memoria.c/(13221:13237): lei de consola
+[DEBUG] 15:34:16:240 Memoria.c/(13221:13237): compara piola
+[ERROR] 15:34:32:129 Memoria.c/(13221:13221): No entendi la consulta
+[DEBUG] 15:35:45:207 Memoria.c/(13221:13283): lei de consola
+[ERROR] 15:35:45:207 Memoria.c/(13221:13221): No entendi la consulta
+[DEBUG] 15:35:45:207 Memoria.c/(13221:13283): compara piola
+[DEBUG] 16:43:33:120 Memoria.c/(5340:5340): Levanta archivo de config
+[DEBUG] 16:43:36:748 Memoria.c/(5340:5340): Levanta conexion con kernel
+[DEBUG] 16:43:36:748 Memoria.c/(5340:5340): Levanta conexion con LFS
+[ERROR] 16:44:29:324 Memoria.c/(5340:5340): No entendi la consulta
+[DEBUG] 16:44:30:564 Memoria.c/(5340:5374): lei de consola
+[DEBUG] 16:44:30:564 Memoria.c/(5340:5374): compara piola
+[DEBUG] 16:45:20:212 Memoria.c/(5340:5395): lei de consola
+[DEBUG] 16:45:20:212 Memoria.c/(5340:5340): Llego un SELECT de consola
+[DEBUG] 16:45:20:212 Memoria.c/(5340:5395): compara piola
+[DEBUG] 11:55:00:901 Memoria.c/(4967:4967): Levanta archivo de config
+[DEBUG] 11:55:04:205 Memoria.c/(4967:4967): Levanta conexion con kernel
+[DEBUG] 11:55:04:205 Memoria.c/(4967:4967): Levanta conexion con LFS
+[DEBUG] 11:56:09:587 Memoria.c/(4967:4990): lei de consola
+[ERROR] 11:56:09:587 Memoria.c/(4967:4967): No entendi la consulta
+[DEBUG] 11:56:09:587 Memoria.c/(4967:4990): compara piola
+[DEBUG] 12:15:11:675 Memoria.c/(6192:6192): Levanta archivo de config
+[DEBUG] 12:15:15:502 Memoria.c/(6192:6192): Levanta conexion con kernel
+[DEBUG] 12:15:15:502 Memoria.c/(6192:6192): Levanta conexion con LFS
+[DEBUG] 12:16:01:354 Memoria.c/(6192:6212): lei de consola
+[DEBUG] 12:16:01:354 Memoria.c/(6192:6212): compara piola
+[DEBUG] 12:16:14:912 Memoria.c/(6192:6192): Llego un SELECT de consola
+[DEBUG] 12:42:23:897 Memoria.c/(8510:8510): Levanta archivo de config
+[DEBUG] 12:42:27:190 Memoria.c/(8510:8510): Levanta conexion con kernel
+[DEBUG] 12:42:27:190 Memoria.c/(8510:8510): Levanta conexion con LFS
+[DEBUG] 12:42:44:672 Memoria.c/(8510:8528): lei de consola
+[DEBUG] 12:42:44:672 Memoria.c/(8510:8528): compara piola
+[DEBUG] 12:43:12:192 Memoria.c/(8510:8510): Llego un SELECT de consola
+[DEBUG] 15:05:14:935 Memoria.c/(11023:11023): Levanta archivo de config
+[DEBUG] 15:05:18:17 Memoria.c/(11023:11023): Levanta conexion con kernel
+[DEBUG] 15:05:18:17 Memoria.c/(11023:11023): Levanta conexion con LFS
+[DEBUG] 15:05:44:578 Memoria.c/(11023:11040): lei de consola
+[DEBUG] 15:05:50:600 Memoria.c/(11023:11040): compara piola
+[ERROR] 15:05:56:900 Memoria.c/(11023:11023): No entendi la consulta
