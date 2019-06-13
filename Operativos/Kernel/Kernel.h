@@ -81,6 +81,6 @@ t_infoMem* generarMem(char* consulta);
 int levantarCpus(int socket_memoria, pthread_t* cpus);
 void cargarConfig(t_config* config);
 void* obtCons( char* criterio);
-
+void inicializarTodo();
 
 #endif /* KERNEL_KERNEL_H_ */
