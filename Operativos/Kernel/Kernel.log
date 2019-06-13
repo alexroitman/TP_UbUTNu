@@ -132,3 +132,29 @@
 [DEBUG] 17:16:57:659 Kernel.c/(4082:4082): Se tendra un nivel de multiprocesamiento de: 3 cpus
 [DEBUG] 17:17:12:616 Kernel.c/(4082:4082): Se recibio un INSERT
 [DEBUG] 17:17:34:573 Kernel.c/(4082:4082): Se recibio un SELECT
+[DEBUG] 20:08:31:457 Kernel.c/(21826:21826): Cargando configuracion
+[DEBUG] 20:09:10:717 Kernel.c/(21892:21892): Cargando configuracion
+[DEBUG] 20:09:10:717 Kernel.c/(21892:21892): Configuracion cargada con exito
+[DEBUG] 20:09:10:717 Kernel.c/(21892:21892): Inicializando semaforos
+[DEBUG] 20:09:10:717 Kernel.c/(21892:21892): Semaforos incializados con exito
+[DEBUG] 20:09:10:717 Kernel.c/(21892:21892): Inicializando sockets
+[DEBUG] 20:09:10:718 Kernel.c/(21892:21892): Sockets inicializados con exito
+[DEBUG] 20:09:10:718 Kernel.c/(21892:21892): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 20:12:52:286 Kernel.c/(22033:22033): Cargando configuracion
+[DEBUG] 20:12:52:289 Kernel.c/(22033:22033): Configuracion cargada con exito
+[DEBUG] 20:12:52:289 Kernel.c/(22033:22033): Inicializando semaforos
+[DEBUG] 20:12:52:289 Kernel.c/(22033:22033): Semaforos incializados con exito
+[DEBUG] 20:12:52:289 Kernel.c/(22033:22033): Inicializando sockets
+[DEBUG] 20:13:16:174 Kernel.c/(22073:22073): Cargando configuracion
+[DEBUG] 20:13:16:175 Kernel.c/(22073:22073): Configuracion cargada con exito
+[DEBUG] 20:13:16:175 Kernel.c/(22073:22073): Inicializando semaforos
+[DEBUG] 20:13:16:175 Kernel.c/(22073:22073): Semaforos incializados con exito
+[DEBUG] 20:13:16:175 Kernel.c/(22073:22073): Inicializando sockets
+[DEBUG] 20:13:38:15 Kernel.c/(22112:22112): Cargando configuracion
+[DEBUG] 20:13:38:15 Kernel.c/(22112:22112): Configuracion cargada con exito
+[DEBUG] 20:13:38:15 Kernel.c/(22112:22112): Inicializando semaforos
+[DEBUG] 20:13:38:15 Kernel.c/(22112:22112): Semaforos incializados con exito
+[DEBUG] 20:13:38:15 Kernel.c/(22112:22112): Inicializando sockets
+[DEBUG] 20:13:43:362 Kernel.c/(22112:22112): Sockets inicializados con exito
+[DEBUG] 20:13:43:362 Kernel.c/(22112:22112): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[ERROR] 20:14:39:207 Kernel.c/(22112:22112): Se ingreso una consulta no valida

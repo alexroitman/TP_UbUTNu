@@ -30,21 +30,7 @@ int contScript;
 // Define cual va a ser el size maximo del paquete a enviar
 
 int main(){
-	contScript = 1;
-	logger = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_DEBUG);
-	loggerError = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_ERROR);
-	log_debug(logger,"Cargando configuracion");
-	t_config* config = config_create("Kernel.config");
-	cargarConfig(config);
-	log_debug(logger,"Configuracion cargada con exito");
-	log_debug(logger,"Inicializando semaforos");
-	sem_init(&semReady,0,0);
-	sem_init(&semNew,0,0);
-	sem_init(&mutexNew,0,1);
-	sem_init(&mutexReady,0,1);
-	sem_init(&mutexSocket,0,1);
-	log_debug(logger,"Semaforos incializados con exito");
-	log_debug(logger,"Inicializando sockets");
+	inicializarTodo();
 	int socket_memoria = levantarCliente(miConfig->puerto_mem, miConfig->ip_mem);
 	listaMems = list_create();
 	log_debug(logger,"Sockets inicializados con exito");
@@ -66,9 +52,9 @@ int main(){
 				consultaOk = 0;
 			}
 			for(int i = 0; i < miConfig->MULT_PROC; i++){
-				pthread_join(cpus[i],NULL);
+				pthread_detach(cpus[i]);
 			}
-			pthread_join(planificador_t,NULL);
+			pthread_detach(planificador_t);
 	}else{
 		log_error(loggerError,"No se han podido levantar las cpus...");
 	}
@@ -98,6 +84,9 @@ type validarSegunHeader(char* header) {
 					return ADD;
 			}
 
+	if (!strcmp(header, "DESCRIBE")) {
+					return DESCRIBE;
+			}
 	return NIL;
 }
 
@@ -143,6 +132,7 @@ int despacharQuery(char* consulta, int socket_memoria) {
 				cargarPaqueteInsert(paqueteInsert,
 						string_substring_until(consulta,string_length(consulta)-1 ) );
 				serializado = serializarInsert(paqueteInsert);
+				log_debug(logger,"%s",paqueteInsert->value);
 				sem_wait(&mutexSocket);
 				enviarPaquete(socket_memoria, serializado, paqueteInsert->length);
 				sem_post(&mutexSocket);
@@ -190,6 +180,9 @@ int despacharQuery(char* consulta, int socket_memoria) {
 				log_debug(logger,"Se agrego el criterio a: %d ", ((t_infoMem*) list_get(listaMems, 0))->id);
 			}
 			consultaOk = 1;
+			break;
+		case DESCRIBE:
+			log_debug(logger,"Se recibio un DESCRIBE");
 			break;
 		default:
 			printf("Operacion no valida por el momento \n");
@@ -316,13 +309,19 @@ int validarSelect(char* consulta){
 	return 3 == i;
 }
 int validarInsert(char* consulta){
-	char** split = string_split(consulta," ");
+	char** value = string_split(consulta,"\"");
+	char** split = string_split(value[0]," ");
 	int i = 0;
 	while(split[i] != NULL){
 		i++;
 	}
+	int j = 0;
+	while(value[j] != NULL){
+			j++;
+		}
 	free(split);
-	return 4 == i;
+	free(value);
+	return ((3 == i) && (3 == j)) ;
 }
 int validarCreate(char* consulta){
 	char** split = string_split(consulta," ");
@@ -402,4 +401,22 @@ void cargarConfig(t_config* config){
 	miConfig->puerto_mem = config_get_string_value(config,"PUERTO_MEMORIA");
 	miConfig->sleep = config_get_int_value(config,"SLEEP_EJECUCION");
 	miConfig->quantum = config_get_int_value(config,"QUANTUM");
+}
+
+void inicializarTodo(){
+	contScript = 1;
+	logger = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_DEBUG);
+	loggerError = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_ERROR);
+	log_debug(logger,"Cargando configuracion");
+	t_config* config = config_create("Kernel.config");
+	cargarConfig(config);
+	log_debug(logger,"Configuracion cargada con exito");
+	log_debug(logger,"Inicializando semaforos");
+	sem_init(&semReady,0,0);
+	sem_init(&semNew,0,0);
+	sem_init(&mutexNew,0,1);
+	sem_init(&mutexReady,0,1);
+	sem_init(&mutexSocket,0,1);
+	log_debug(logger,"Semaforos incializados con exito");
+	log_debug(logger,"Inicializando sockets");
 }
