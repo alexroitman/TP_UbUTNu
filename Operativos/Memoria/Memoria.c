@@ -14,16 +14,23 @@
 char package[PACKAGESIZE];
 struct addrinfo hints;
 struct addrinfo *serverInfo;
-#define TAMANIOMAXVALUE 10
 #define PUERTOLFS "7879"
 int socket_kernel;
 pthread_t hiloConsola;
 pthread_t hiloSocket;
+t_miConfig* miConfig;
+void* memoria;
 // Define cual va a ser el size maximo del paquete a enviar
 
 int main() {
+	typedef struct{
+		int timestamp;
+		u_int16_t key;
+		char value[20];
+		//Valor hardcodeado, cuando haya handshake con lfs lo tengo que sacar de ahi el tamanio max
+	}tPagina;
 	logger = log_create("Memoria.log", "Memoria.c", 1, LOG_LEVEL_DEBUG);
-	t_miConfig* miConfig;
+
 	miConfig = cargarConfig();
 	log_debug(logger, "Levanta archivo de config");
 	int socket_sv = levantarServidor((char*) miConfig->puerto_kernel);
@@ -32,14 +39,12 @@ int main() {
 	int socket_lfs = levantarCliente((char*) miConfig->puerto_fs,miConfig->ip_fs);
 	log_debug(logger, "Levanta conexion con LFS");
 	sem_init(&semConsulta,0,0);
-	void* memoria = malloc(miConfig->tam_mem);
+	memoria = malloc(miConfig->tam_mem);
 	t_list* tablaSegmentos = list_create();
 
 	int encontroSeg = -1;
 	int indexPag = -1;
 	type* header = malloc(sizeof(type));
-	tHiloConsola* paramsConsola;
-	paramsConsola->header = header;
 	tSelect* packSelect;
 	tInsert* packInsert;
 	tCreate* packCreate;
@@ -47,9 +52,12 @@ int main() {
 	recibioSocket = true;
 	while (1) {
 		*header = NIL;
+		tHiloConsola* paramsConsola = malloc(sizeof(tHiloConsola));
+		paramsConsola->header = header;
 		crearHilosRecepcion(header,hiloSocket,hiloConsola,paramsConsola);
 		tPagina* pagina = malloc(sizeof(tPagina));
 		tSegmento* miSegmento = malloc(sizeof(tSegmento));
+		elem_tabla_pag* pagTabla = malloc(sizeof(elem_tabla_pag));
 		encontroSeg = -1;
 		indexPag = -1;
 		sem_wait(&semConsulta);
@@ -62,30 +70,31 @@ int main() {
 				if (encontroSeg == 1) {
 					log_debug(logger, "Encontre segmento: %s ",
 							packSelect->nombre_tabla);
-					indexPag = buscarPaginaEnMemoria(packSelect->key,
-							miSegmento, memoria, pagina);
+					indexPag = buscarPaginaEnMemoria(packSelect->key,miSegmento,pagTabla);
 				}
+				tRegistroRespuesta* reg = malloc(sizeof(tRegistroRespuesta));
 				if (indexPag >= 0) {
 					log_debug(logger, "Encontre pagina buscada");
-					enviarPagina(socket_kernel, pagina,leyoConsola);
+					*pagina = *(tPagina*)(memoria + pagTabla->offsetMemoria);
+					reg->tipo = REGISTRO;
+					reg->timestamp = pagina->timestamp;
+					reg->value = pagina->value;
+					reg->key = pagina->key;
+					reg->value_long = strlen(pagina->value) + 1;
+					enviarRegistroAKernel(reg,socket_kernel,leyoConsola);
 					log_debug(logger, "El value es: %s", pagina->value);
 				} else {
-					tRegistroRespuesta* reg = malloc(
-							sizeof(tRegistroRespuesta));
 					pedirRegistroALFS(socket_lfs, packSelect, reg);
 					if (reg->key != -1) {
-						tPagina pagAux;
-						pagAux.key = reg->key;
-						pagAux.timestamp = reg->timestamp;
-						pagAux.value = reg->value;
+						char value[20];
+						strcpy(value,reg->value);
 						if (encontroSeg != 1) {
 							cargarSegmentoEnTabla(packSelect->nombre_tabla,
 									tablaSegmentos);
 							miSegmento = obtenerUltimoSegmentoDeTabla(
 									tablaSegmentos);
 						}
-						agregarPaginaAMemoria(miSegmento, pagAux, memoria,
-								miConfig->tam_mem);
+						agregarPaginaAMemoria(miSegmento,reg->key,reg->timestamp,value);
 
 					}
 					//SI NO LO ENCONTRO IGUALMENTE SE LO MANDO A KERNEL PARA QUE TAMBIEN MANEJE EL ERROR
@@ -94,41 +103,34 @@ int main() {
 					free(reg);
 
 				}
+
 				free(packSelect);
-
-
-
 			break;
 		case INSERT:
 			packInsert = malloc(sizeof(tInsert));
 			cargarPackInsert(packInsert,leyoConsola,paramsConsola->consulta);
-			tPagina pagAux;
-			pagAux.key = packInsert->key;
-			pagAux.timestamp = (int) time(NULL);
-			pagAux.value = packInsert->value;
-
+			char value[20];
+			strcpy(value,packInsert->value);
 			encontroSeg = buscarSegmentoEnTabla(packInsert->nombre_tabla,
 					miSegmento, tablaSegmentos);
+
 			if (encontroSeg == 1) {
 				log_debug(logger, "Encontre segmento %s ",
 						packInsert->nombre_tabla);
 
-				indexPag = buscarPaginaEnMemoria(packInsert->key, miSegmento,
-						memoria, pagina);
+				indexPag = buscarPaginaEnMemoria(packInsert->key, miSegmento,pagTabla);
 				if (indexPag >= 0) {
 					log_debug(logger,
 							"Encontre la pagina buscada en el segmento %s ",
 							packInsert->nombre_tabla);
-					actualizarPaginaEnMemoria(packInsert, miSegmento, memoria,
-							indexPag);
+					actualizarPaginaEnMemoria(miSegmento,indexPag, packInsert->key, value);
 
 				} else {
 					//Encontro el segmento en tabla pero no tiene la pagina en memoria
 
 					log_debug(logger,
 							"Encontro el segmento en tabla pero no tiene la pagina en memoria");
-					agregarPaginaAMemoria(miSegmento, pagAux, memoria,
-							miConfig->tam_mem);
+					agregarPaginaAMemoria(miSegmento, packInsert->key, (int) time(NULL), value);
 				}
 
 			} else {
@@ -137,8 +139,7 @@ int main() {
 						"No encontro el segmento en tabla de segmentos");
 				cargarSegmentoEnTabla(packInsert->nombre_tabla, tablaSegmentos);
 				tSegmento* newSeg = obtenerUltimoSegmentoDeTabla(tablaSegmentos);
-				agregarPaginaAMemoria(newSeg, pagAux, memoria,
-						miConfig->tam_mem);
+				agregarPaginaAMemoria(newSeg, packInsert->key, (int) time(NULL), value);
 			}
 			free(packInsert);
 			break;
@@ -157,6 +158,8 @@ int main() {
 
 		free(miSegmento);
 		free(pagina);
+		free(paramsConsola);
+		free(pagTabla);
 		pthread_detach(hiloSocket);
 		pthread_detach(hiloConsola);
 
@@ -222,14 +225,20 @@ void cargarPackCreate(tCreate* packCreate,bool leyoConsola,char consulta[]){
 }
 
 
-void actualizarPaginaEnMemoria(tInsert* packInsert, tSegmento* segmento, void* memoria, int index) {
-	tPagina* pag;
+void actualizarPaginaEnMemoria(tSegmento* segmento,int index, u_int16_t key, char value[20]) {
+	typedef struct{
+			int timestamp;
+			u_int16_t key;
+			char value[20];
+			//Valor hardcodeado, cuando haya handshake con lfs lo tengo que sacar de ahi el tamanio max
+	}tPagina;
 	elem_tabla_pag* elemTablaPag =  malloc(sizeof(elem_tabla_pag));
 	elemTablaPag = (elem_tabla_pag*)list_get(segmento->tablaPaginas, index);
 	int offsetMemoria = elemTablaPag->offsetMemoria;
-	pag = (tPagina*) (memoria + offsetMemoria);
-	pag->value = packInsert->value;
-	pag->timestamp = (int) time(NULL);
+	((tPagina*) (memoria + offsetMemoria))->key = key;
+	strcpy(((tPagina*) (memoria + offsetMemoria))->value,value);
+
+	((tPagina*) (memoria + offsetMemoria))->timestamp = (int) time(NULL);
 	elemTablaPag->modificado = true;
 	log_debug(logger, "Pagina encontrada y actualizada.");
 }
@@ -241,9 +250,15 @@ tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg) {
 	return seg;
 }
 
-int agregarPaginaAMemoria(tSegmento* seg, tPagina pag, void* memoria, int tam_max) {
+int agregarPaginaAMemoria(tSegmento* seg,u_int16_t key, int time, char value[20]) {
+	typedef struct{
+			int timestamp;
+			u_int16_t key;
+			char value[20];
+			//Valor hardcodeado, cuando haya handshake con lfs lo tengo que sacar de ahi el tamanio max
+	}tPagina;
 	int cantPags = 0;
-	int cantPagsMax = tam_max / sizeof(tPagina);
+	int cantPagsMax = miConfig->tam_mem / sizeof(tPagina);
 	tPagina temp = *(tPagina*) memoria;
 	while (temp.timestamp != 0) {
 		cantPags++;
@@ -255,8 +270,9 @@ int agregarPaginaAMemoria(tSegmento* seg, tPagina pag, void* memoria, int tam_ma
 		}
 	}
 	int offset = (cantPags * sizeof(tPagina));
-	*(tPagina*) (memoria + offset) = pag;
-
+	((tPagina*)(memoria + offset))->key = key;
+	((tPagina*)(memoria + offset))->timestamp = time;
+	strcpy(((tPagina*)(memoria + offset))->value,value);
 
 	elem_tabla_pag* pagina = malloc(sizeof(elem_tabla_pag));
 	pagina->modificado = true;
@@ -265,7 +281,7 @@ int agregarPaginaAMemoria(tSegmento* seg, tPagina pag, void* memoria, int tam_ma
 
 	list_add(seg->tablaPaginas, (elem_tabla_pag*)pagina);
 	log_debug(logger, "Pagina cargada en memoria.");
-	log_debug(logger, "El value es: %s", pag.value);
+	log_debug(logger, "El value es: %s", ((tPagina*)(memoria + offset))->value);
 	return 1;
 
 }
@@ -316,22 +332,24 @@ char* separarNombrePath(char* path) {
 	return nombre;
 }
 
-int buscarPaginaEnMemoria(int key, tSegmento* miseg, void* memoria, tPagina* pagina) {
-	elem_tabla_pag* tablaPaginas = (elem_tabla_pag*)miseg->tablaPaginas;
-
+int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla) {
+	typedef struct{
+				int timestamp;
+				u_int16_t key;
+				char value[20];
+				//Valor hardcodeado, cuando haya handshake con lfs lo tengo que sacar de ahi el tamanio max
+	}tPagina;
 	bool buscarKey(void* elemento){
 		elem_tabla_pag* elemPagAux;
 		elemPagAux = (elem_tabla_pag*)elemento;
-		tPagina* paginaAux;
-		paginaAux = (tPagina*)(memoria + elemPagAux->offsetMemoria);
-		return paginaAux->key == key;
+		return ((tPagina*)(memoria + elemPagAux->offsetMemoria))->key == key;
 	}
 
-	if(!list_is_empty((t_list*)tablaPaginas)){
-		if(list_find((t_list*)tablaPaginas, buscarKey) != NULL){
-			elem_tabla_pag* miElem = (elem_tabla_pag*)list_find((t_list*)tablaPaginas, buscarKey);
-			*pagina = *(tPagina*)(memoria + miElem->offsetMemoria);
-			return miElem->index;
+	if(!list_is_empty((t_list*)miseg->tablaPaginas)){
+		if(list_find((t_list*)miseg->tablaPaginas, buscarKey) != NULL){
+			*pagTabla = *(elem_tabla_pag*)list_find((t_list*)miseg->tablaPaginas, buscarKey);
+			//*pagina = *(tPagina*)(memoria + miElem->offsetMemoria);
+			return pagTabla->index;
 		} else {
 			return -1;
 		}

@@ -38,11 +38,7 @@ typedef struct{
 	char consulta[256];
 }tHiloConsola;
 
-typedef struct{
-	int timestamp;
-	int key;
-	char* value;
-}tPagina;
+
 
 typedef struct {
 	int offsetMemoria;
@@ -74,13 +70,12 @@ void cargarPackSelect(tSelect* packSelect,bool leyoConsola,char* consulta);
 void cargarPackInsert(tInsert* packInsert, bool leyoConsola, char consulta[]);
 
 
-int agregarPaginaAMemoria(tSegmento* seg, tPagina pag, void* memoria, int tam_max);
-int buscarPaginaEnMemoria(int key, tSegmento* miseg, void* memoria, tPagina* pagina);
+int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla);
+int agregarPaginaAMemoria(tSegmento* seg,u_int16_t key, int time, char value[20]);
 void cargarSegmentoEnTabla(char* path,t_list* listaSeg);
 tSegmento* obtenerSegmentoDeTabla(t_list* tablaSeg,int index);
 int buscarSegmentoEnTabla(char* nombreTabla, tSegmento* segmento, t_list* listaSegmentos);
-int buscarPaginaEnTabla(tSegmento* segmento, tPagina* pagina, int key);
-void actualizarPaginaEnMemoria(tInsert* packInsert,tSegmento* segmento, void* memoria,int index);
+void actualizarPaginaEnMemoria(tSegmento* segmento,int index, u_int16_t key, char value[20]);
 tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg);
 void recibirMensajeDeKernel();
 char* separarNombrePath(char* path);

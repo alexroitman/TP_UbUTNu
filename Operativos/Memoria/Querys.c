@@ -7,16 +7,6 @@
 
 #include "Querys.h"
 
-void enviarPagina(int socket,tPagina* pagina,bool leyoConsola) {
-	tRegistroRespuesta* registro = malloc(sizeof(tRegistroRespuesta));
-	registro->tipo = REGISTRO;
-	registro->timestamp = pagina->timestamp;
-	registro->value = pagina->value;
-	registro->key = pagina->key;
-	registro->value_long = strlen(pagina->value) + 1;
-	enviarRegistroAKernel(registro,socket,leyoConsola);
-	free(registro);
-}
 
 void pedirRegistroALFS(int socket, tSelect* packSelect, tRegistroRespuesta* reg) {
 	char* selectAEnviar = serializarSelect(packSelect);
