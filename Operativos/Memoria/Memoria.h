@@ -19,6 +19,7 @@
 #include <sock/comunicacion.h>
 #include <commons/config.h>
 #include <commons/log.h>
+#include <signal.h>
 
 #ifndef MEMORIA_MEMORIA_H_
 #define MEMORIA_MEMORIA_H_
@@ -27,17 +28,30 @@
 #define BACKLOG 5			// Define cuantas conexiones vamos a mantener pendientes al mismo tiempo
 #define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
 t_log *logger;
+t_config* config;
 
 sem_t semConsulta;
 bool leyoConsola;
 bool recibioSocket;
 
+tSelect* packSelect;
+tInsert* packInsert;
+tCreate* packCreate;
+type* header;
+t_list* tablaSegmentos;
+
+int socket_lfs;
+int socket_kernel;
+int socket_sv;
+int encontroSeg;
+int indexPag;
+void* memoria;
 
 typedef struct{
 	type* header;
 	char consulta[256];
 }tHiloConsola;
-
+tHiloConsola* paramsConsola;
 
 
 typedef struct {
@@ -81,6 +95,7 @@ void recibirMensajeDeKernel();
 char* separarNombrePath(char* path);
 void* recibirHeader(void* arg);
 
+void finalizarEjecucion();
 void enviarMensajeAKernel();
 t_miConfig* cargarConfig();
 

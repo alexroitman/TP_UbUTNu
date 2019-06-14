@@ -15,11 +15,10 @@ char package[PACKAGESIZE];
 struct addrinfo hints;
 struct addrinfo *serverInfo;
 #define PUERTOLFS "7879"
-int socket_kernel;
 pthread_t hiloConsola;
 pthread_t hiloSocket;
 t_miConfig* miConfig;
-void* memoria;
+
 // Define cual va a ser el size maximo del paquete a enviar
 
 int main() {
@@ -29,171 +28,46 @@ int main() {
 		char value[20];
 		//Valor hardcodeado, cuando haya handshake con lfs lo tengo que sacar de ahi el tamanio max
 	}tPagina;
+	signal(SIGINT, finalizarEjecucion);
 	logger = log_create("Memoria.log", "Memoria.c", 1, LOG_LEVEL_DEBUG);
-
 	miConfig = cargarConfig();
 	log_debug(logger, "Levanta archivo de config");
-	int socket_sv = levantarServidor((char*) miConfig->puerto_kernel);
+	socket_sv = levantarServidor((char*) miConfig->puerto_kernel);
 	socket_kernel = aceptarCliente(socket_sv);
 	log_debug(logger, "Levanta conexion con kernel");
-	int socket_lfs = levantarCliente((char*) miConfig->puerto_fs,miConfig->ip_fs);
+	socket_lfs = levantarCliente((char*) miConfig->puerto_fs,miConfig->ip_fs);
 	log_debug(logger, "Levanta conexion con LFS");
 	sem_init(&semConsulta,0,0);
 	memoria = malloc(miConfig->tam_mem);
-	t_list* tablaSegmentos = list_create();
-
-	int encontroSeg = -1;
-	int indexPag = -1;
-	type* header = malloc(sizeof(type));
-	tSelect* packSelect;
-	tInsert* packInsert;
-	tCreate* packCreate;
+	tablaSegmentos = list_create();
+	header = malloc(sizeof(type));
 	leyoConsola = true;
 	recibioSocket = true;
-	while (1) {
-		*header = NIL;
-		tHiloConsola* paramsConsola = malloc(sizeof(tHiloConsola));
-		paramsConsola->header = header;
-		crearHilosRecepcion(header,hiloSocket,hiloConsola,paramsConsola);
-		tPagina* pagina = malloc(sizeof(tPagina));
-		tSegmento* miSegmento = malloc(sizeof(tSegmento));
-		elem_tabla_pag* pagTabla = malloc(sizeof(elem_tabla_pag));
-		encontroSeg = -1;
-		indexPag = -1;
-		sem_wait(&semConsulta);
-		switch (*header) {
-		case SELECT:
-				packSelect = malloc(sizeof(tSelect));
-				cargarPackSelect(packSelect,leyoConsola,paramsConsola->consulta);
-				encontroSeg = buscarSegmentoEnTabla(packSelect->nombre_tabla,
-						miSegmento, tablaSegmentos);
-				if (encontroSeg == 1) {
-					log_debug(logger, "Encontre segmento: %s ",
-							packSelect->nombre_tabla);
-					indexPag = buscarPaginaEnMemoria(packSelect->key,miSegmento,pagTabla);
-				}
-				tRegistroRespuesta* reg = malloc(sizeof(tRegistroRespuesta));
-				if (indexPag >= 0) {
-					log_debug(logger, "Encontre pagina buscada");
-					*pagina = *(tPagina*)(memoria + pagTabla->offsetMemoria);
-					reg->tipo = REGISTRO;
-					reg->timestamp = pagina->timestamp;
-					reg->value = pagina->value;
-					reg->key = pagina->key;
-					reg->value_long = strlen(pagina->value) + 1;
-					enviarRegistroAKernel(reg,socket_kernel,leyoConsola);
-					log_debug(logger, "El value es: %s", pagina->value);
-				} else {
-					pedirRegistroALFS(socket_lfs, packSelect, reg);
-					if (reg->key != -1) {
-						char value[20];
-						strcpy(value,reg->value);
-						if (encontroSeg != 1) {
-							cargarSegmentoEnTabla(packSelect->nombre_tabla,
-									tablaSegmentos);
-							miSegmento = obtenerUltimoSegmentoDeTabla(
-									tablaSegmentos);
-						}
-						agregarPaginaAMemoria(miSegmento,reg->key,reg->timestamp,value);
+	*header = NIL;
+	encontroSeg = -1;
+	indexPag = -1;
+	paramsConsola = malloc(sizeof(tHiloConsola));
+	paramsConsola->header = header;
+	pthread_create(&hiloSocket, NULL, (void*) recibirHeader, (void*) header);
+	pthread_create(&hiloConsola, NULL, (void*) leerQuery,
+			(void*) paramsConsola);
+	pthread_join(hiloSocket, NULL);
+	pthread_join(hiloConsola, NULL);
 
-					}
-					//SI NO LO ENCONTRO IGUALMENTE SE LO MANDO A KERNEL PARA QUE TAMBIEN MANEJE EL ERROR
-					enviarRegistroAKernel(reg, socket_kernel,leyoConsola);
 
-					free(reg);
-
-				}
-
-				free(packSelect);
-			break;
-		case INSERT:
-			packInsert = malloc(sizeof(tInsert));
-			cargarPackInsert(packInsert,leyoConsola,paramsConsola->consulta);
-			char value[20];
-			strcpy(value,packInsert->value);
-			encontroSeg = buscarSegmentoEnTabla(packInsert->nombre_tabla,
-					miSegmento, tablaSegmentos);
-
-			if (encontroSeg == 1) {
-				log_debug(logger, "Encontre segmento %s ",
-						packInsert->nombre_tabla);
-
-				indexPag = buscarPaginaEnMemoria(packInsert->key, miSegmento,pagTabla);
-				if (indexPag >= 0) {
-					log_debug(logger,
-							"Encontre la pagina buscada en el segmento %s ",
-							packInsert->nombre_tabla);
-					actualizarPaginaEnMemoria(miSegmento,indexPag, packInsert->key, value);
-
-				} else {
-					//Encontro el segmento en tabla pero no tiene la pagina en memoria
-
-					log_debug(logger,
-							"Encontro el segmento en tabla pero no tiene la pagina en memoria");
-					agregarPaginaAMemoria(miSegmento, packInsert->key, (int) time(NULL), value);
-				}
-
-			} else {
-				//No encontro el segmento en tabla de segmentos
-				log_debug(logger,
-						"No encontro el segmento en tabla de segmentos");
-				cargarSegmentoEnTabla(packInsert->nombre_tabla, tablaSegmentos);
-				tSegmento* newSeg = obtenerUltimoSegmentoDeTabla(tablaSegmentos);
-				agregarPaginaAMemoria(newSeg, packInsert->key, (int) time(NULL), value);
-			}
-			free(packInsert);
-			break;
-		case CREATE:
-			packCreate = malloc(sizeof(tCreate));
-			cargarPackCreate(packCreate,leyoConsola,paramsConsola->consulta);
-			char* createAEnviar = serializarCreate(packCreate);
-			enviarPaquete(socket_lfs, createAEnviar, packCreate->length);
-			log_debug(logger, "Mando la consulta a LFS");
-			free(packCreate);
-			break;
-		case NIL:
-			log_error(logger, "No entendi la consulta");
-			break;
-		}
-
-		free(miSegmento);
-		free(pagina);
-		free(paramsConsola);
-		free(pagTabla);
-		pthread_detach(hiloSocket);
-		pthread_detach(hiloConsola);
-
-	}
-	close(socket_lfs);
-	close(socket_kernel);
-	close(socket_sv);
-
-}
-
-void crearHilosRecepcion(type* header, pthread_t hiloSocket,
-		pthread_t hiloConsola,tHiloConsola* paramsConsola) {
-
-	//PREGUNTO PARA SABER SI EL HILO SIGUE BLOQUEADO ESPERANDO ALGO O YA TERMINO SU EJECUCION
-	//SI TERNINO SU EJECUCION CREO UNO NUEVO
-	//SI SIGUE BLOQUEADO ESPERANDO QUE LE LLEGUE ALGO, NO HAGO NADA
-	if (recibioSocket) {
-		pthread_create(&hiloSocket, NULL, (void*) recibirHeader,
-				(void*) header);
-	}
-	if (leyoConsola) {
-		pthread_create(&hiloConsola, NULL, (void*) leerQuery, (void*) paramsConsola);
-	}
 }
 
 void* recibirHeader(void* arg) {
-	recibioSocket = false;
-	type* header = (type*) arg;
-	recv(socket_kernel, &(*header), sizeof(type), MSG_WAITALL);
-	recibioSocket = true;
-	if(*header != NIL){
-		//EN REALIDAD LO QUE ESTOY PREGUNTANDO ES SI RECIBIO ALGO DE KERNEL
-		//PORQUE SI SE CORTO LA CONEXION CON KERNEL NO QUIERO QUE HAGA EL SIGNAL DEL SEMAFORO
-		sem_post(&semConsulta);
+	while (1) {
+		recibioSocket = false;
+		type* header = (type*) arg;
+		recv(socket_kernel, &(*header), sizeof(type), MSG_WAITALL);
+		recibioSocket = true;
+		if (*header != NIL) {
+			//EN REALIDAD LO QUE ESTOY PREGUNTANDO ES SI RECIBIO ALGO DE KERNEL
+			//PORQUE SI SE CORTO LA CONEXION CON KERNEL NO QUIERO QUE HAGA EL SIGNAL DEL SEMAFORO
+			ejecutarConsulta(memoria);
+		}
 	}
 }
 
@@ -367,7 +241,6 @@ t_miConfig* cargarConfig() {
 	fgets(buffer, 256, stdin);
 	strncpy(pathConfig, buffer, strlen(buffer)-1);
 	t_miConfig* miConfig = malloc(sizeof(t_miConfig));
-	t_config* config;
 	config = config_create(pathConfig);
 	miConfig->puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
 	miConfig->puerto_fs = config_get_string_value(config, "PUERTO_FS");
@@ -375,3 +248,18 @@ t_miConfig* cargarConfig() {
 	miConfig->tam_mem = config_get_int_value(config, "TAM_MEM");
 	return miConfig;
 }
+
+void finalizarEjecucion() {
+	printf("------------------------\n");
+	printf("¿chau chau adios?\n");
+	printf("------------------------\n");
+	log_destroy(logger);
+	config_destroy(config);
+	close(socket_lfs);
+	close(socket_kernel);
+	close(socket_sv);
+	list_iterate(tablaSegmentos, free);
+	raise(SIGTERM);
+}
+
+
