@@ -30,7 +30,6 @@
 t_log *logger;
 t_config* config;
 
-sem_t semConsulta;
 bool leyoConsola;
 bool recibioSocket;
 

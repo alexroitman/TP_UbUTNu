@@ -7,19 +7,15 @@
 
 #include "Memoria.h"
 #include "Querys.h"
-#define IP "127.0.0.1"
-#define PUERTOKERNEL "7878"
 #define BACKLOG 5			// Define cuantas conexiones vamos a mantener pendientes al mismo tiempo
 #define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
 char package[PACKAGESIZE];
 struct addrinfo hints;
 struct addrinfo *serverInfo;
-#define PUERTOLFS "7879"
 pthread_t hiloConsola;
 pthread_t hiloSocket;
 t_miConfig* miConfig;
 
-// Define cual va a ser el size maximo del paquete a enviar
 
 int main() {
 	typedef struct{
@@ -31,21 +27,17 @@ int main() {
 	signal(SIGINT, finalizarEjecucion);
 	logger = log_create("Memoria.log", "Memoria.c", 1, LOG_LEVEL_DEBUG);
 	miConfig = cargarConfig();
-	log_debug(logger, "Levanta archivo de config");
 	socket_sv = levantarServidor((char*) miConfig->puerto_kernel);
 	socket_kernel = aceptarCliente(socket_sv);
 	log_debug(logger, "Levanta conexion con kernel");
 	socket_lfs = levantarCliente((char*) miConfig->puerto_fs,miConfig->ip_fs);
 	log_debug(logger, "Levanta conexion con LFS");
-	sem_init(&semConsulta,0,0);
 	memoria = malloc(miConfig->tam_mem);
 	tablaSegmentos = list_create();
 	header = malloc(sizeof(type));
 	leyoConsola = true;
 	recibioSocket = true;
 	*header = NIL;
-	encontroSeg = -1;
-	indexPag = -1;
 	paramsConsola = malloc(sizeof(tHiloConsola));
 	paramsConsola->header = header;
 	pthread_create(&hiloSocket, NULL, (void*) recibirHeader, (void*) header);
@@ -237,15 +229,18 @@ int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla) {
 t_miConfig* cargarConfig() {
 	char* buffer = malloc(256);
 	char* pathConfig = malloc(256);
-	printf("Se levanto un proceso Memoria. \nPor favor ingrese el path de su archivo de configuracion (Memoria.config): ");
+	log_info(logger,
+			"Por favor ingrese el path de su archivo de configuracion (Memoria.config): ");
 	fgets(buffer, 256, stdin);
-	strncpy(pathConfig, buffer, strlen(buffer)-1);
+	strncpy(pathConfig, buffer, strlen(buffer) - 1);
 	t_miConfig* miConfig = malloc(sizeof(t_miConfig));
 	config = config_create(pathConfig);
-	miConfig->puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
-	miConfig->puerto_fs = config_get_string_value(config, "PUERTO_FS");
+	miConfig->puerto_kernel = (int) config_get_string_value(config,
+			"PUERTO_KERNEL");
+	miConfig->puerto_fs = (int) config_get_string_value(config, "PUERTO_FS");
 	miConfig->ip_fs = config_get_string_value(config, "IP");
 	miConfig->tam_mem = config_get_int_value(config, "TAM_MEM");
+	log_debug(logger, "Levanta archivo de config");
 	return miConfig;
 }
 
@@ -259,6 +254,9 @@ void finalizarEjecucion() {
 	close(socket_kernel);
 	close(socket_sv);
 	list_iterate(tablaSegmentos, free);
+	free(header);
+	free(memoria);
+	free(paramsConsola);
 	raise(SIGTERM);
 }
 

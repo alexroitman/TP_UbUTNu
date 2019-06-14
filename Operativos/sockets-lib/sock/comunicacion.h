@@ -111,6 +111,8 @@ int numero;									//ADD
 int criterio;
 } tAdd;
 
+type leerHeader(int socket);
+
 void cargarPaqueteSelect(tSelect *pack, char* cons);
 void cargarPaqueteInsert(tInsert *pack, char* cons);
 void cargarPaqueteCreate(tCreate *pack, char* cons);

@@ -16,7 +16,8 @@ void ejecutarConsulta(void* memoria) {
 			char value[20];
 			//Valor hardcodeado, cuando haya handshake con lfs lo tengo que sacar de ahi el tamanio max
 	}tPagina;
-
+	encontroSeg = -1;
+	indexPag = -1;
 	tPagina* pagina = malloc(sizeof(tPagina));
 	tSegmento* miSegmento = malloc(sizeof(tSegmento));
 	elem_tabla_pag* pagTabla = malloc(sizeof(elem_tabla_pag));
@@ -67,7 +68,6 @@ void ejecutarConsulta(void* memoria) {
 		}
 
 		free(packSelect);
-		log_debug(logger,"sale del case");
 		break;
 	case INSERT:
 		packInsert = malloc(sizeof(tInsert));
@@ -137,8 +137,11 @@ void pedirRegistroALFS(int socket, tSelect* packSelect, tRegistroRespuesta* reg)
 	enviarPaquete(socket, selectAEnviar, packSelect->length);
 
 	type header = leerHeader(socket);
-	desSerializarRegistro(reg, socket);
-	reg->tipo = REGISTRO;
+	if(header == REGISTRO){
+		desSerializarRegistro(reg, socket);
+		reg->tipo = REGISTRO;
+	}
+
 }
 
 
