@@ -26,12 +26,14 @@ t_queue *colaNew;
 t_list *listaMems;
 configKernel *miConfig;
 int contScript;
+int socket_memoria;
 
 // Define cual va a ser el size maximo del paquete a enviar
 
 int main(){
+	signal(SIGINT, finalizarEjecucion);
 	inicializarTodo();
-	int socket_memoria = levantarCliente(miConfig->puerto_mem, miConfig->ip_mem);
+	socket_memoria = levantarCliente(miConfig->puerto_mem, miConfig->ip_mem);
 	listaMems = list_create();
 	log_debug(logger,"Sockets inicializados con exito");
 	log_debug(logger,"Se tendra un nivel de multiprocesamiento de: %d cpus", miConfig->MULT_PROC);
@@ -420,3 +422,14 @@ void inicializarTodo(){
 	log_debug(logger,"Semaforos incializados con exito");
 	log_debug(logger,"Inicializando sockets");
 }
+
+void finalizarEjecucion() {
+	printf("------------------------\n");
+	printf("¿chau chau adios?\n");
+	printf("------------------------\n");
+	log_destroy(logger);
+	close(socket_memoria);
+	raise(SIGTERM);
+}
+
+

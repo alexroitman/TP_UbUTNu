@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <ctype.h>
 
+#include <signal.h>
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -82,5 +83,6 @@ int levantarCpus(int socket_memoria, pthread_t* cpus);
 void cargarConfig(t_config* config);
 void* obtCons( char* criterio);
 void inicializarTodo();
+void finalizarEjecucion();
 
 #endif /* KERNEL_KERNEL_H_ */
