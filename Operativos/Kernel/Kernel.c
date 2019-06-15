@@ -25,6 +25,7 @@ t_queue *colaReady;
 t_queue *colaNew;
 t_list *listaMems;
 configKernel *miConfig;
+t_config* config;
 int contScript;
 int socket_memoria;
 
@@ -185,6 +186,7 @@ int despacharQuery(char* consulta, int socket_memoria) {
 			break;
 		case DESCRIBE:
 			log_debug(logger,"Se recibio un DESCRIBE");
+			consultaOk = 1;
 			break;
 		default:
 			printf("Operacion no valida por el momento \n");
@@ -221,8 +223,16 @@ void CPU(int socket_memoria){
 				break;
 			case 1:
 				log_debug(logger,"Enviando linea %d", unScript->pos);
-				despacharQuery(consulta,socket_memoria);
-				unScript->pos++;
+				info = despacharQuery(consulta,socket_memoria);
+				if(info!=1){
+					i = miConfig->quantum;
+					unScript->estado = exit_;
+					log_error(loggerError,"El script rompio en la linea: %d",
+							unScript->pos);
+					free(unScript);
+				}else{
+					unScript->pos++;
+				}
 				break;
 			case 2:
 				unScript->estado = exit_;
@@ -410,7 +420,7 @@ void inicializarTodo(){
 	logger = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_DEBUG);
 	loggerError = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_ERROR);
 	log_debug(logger,"Cargando configuracion");
-	t_config* config = config_create("Kernel.config");
+	config = config_create("Kernel.config");
 	cargarConfig(config);
 	log_debug(logger,"Configuracion cargada con exito");
 	log_debug(logger,"Inicializando semaforos");
@@ -428,6 +438,8 @@ void finalizarEjecucion() {
 	printf("¿chau chau adios?\n");
 	printf("------------------------\n");
 	log_destroy(logger);
+	log_destroy(loggerError);
+	list_iterate(listaMems,free);
 	close(socket_memoria);
 	raise(SIGTERM);
 }
