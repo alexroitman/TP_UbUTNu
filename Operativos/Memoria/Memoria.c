@@ -18,12 +18,7 @@ t_miConfig* miConfig;
 
 
 int main() {
-	typedef struct{
-		int timestamp;
-		u_int16_t key;
-		char value[20];
-		//Valor hardcodeado, cuando haya handshake con lfs lo tengo que sacar de ahi el tamanio max
-	}tPagina;
+	tamanioMaxValue = 10;
 	signal(SIGINT, finalizarEjecucion);
 	logger = log_create("Memoria.log", "Memoria.c", 1, LOG_LEVEL_DEBUG);
 	miConfig = cargarConfig();
@@ -91,20 +86,14 @@ void cargarPackCreate(tCreate* packCreate,bool leyoConsola,char consulta[]){
 }
 
 
-void actualizarPaginaEnMemoria(tSegmento* segmento,int index, u_int16_t key, char value[20]) {
-	typedef struct{
-			int timestamp;
-			u_int16_t key;
-			char value[20];
-			//Valor hardcodeado, cuando haya handshake con lfs lo tengo que sacar de ahi el tamanio max
-	}tPagina;
+void actualizarPaginaEnMemoria(tSegmento* segmento,int index, tPagina* pagina) {
 	elem_tabla_pag* elemTablaPag =  malloc(sizeof(elem_tabla_pag));
 	elemTablaPag = (elem_tabla_pag*)list_get(segmento->tablaPaginas, index);
 	int offsetMemoria = elemTablaPag->offsetMemoria;
-	((tPagina*) (memoria + offsetMemoria))->key = key;
-	strcpy(((tPagina*) (memoria + offsetMemoria))->value,value);
-
-	((tPagina*) (memoria + offsetMemoria))->timestamp = (int) time(NULL);
+	pagina->timestamp = (int) time(NULL);
+	memcpy(memoria + offsetMemoria + 2, &(pagina->timestamp),4);
+	memcpy(memoria + offsetMemoria + 4,&(pagina->value),tamanioMaxValue);
+	//((tPagina*) (memoria + offsetMemoria))->timestamp = (int) time(NULL);
 	elemTablaPag->modificado = true;
 	log_debug(logger, "Pagina encontrada y actualizada.");
 }
@@ -116,38 +105,42 @@ tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg) {
 	return seg;
 }
 
-int agregarPaginaAMemoria(tSegmento* seg,u_int16_t key, int time, char value[20]) {
-	typedef struct{
-			int timestamp;
-			u_int16_t key;
-			char value[20];
-			//Valor hardcodeado, cuando haya handshake con lfs lo tengo que sacar de ahi el tamanio max
-	}tPagina;
+int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina) {
 	int cantPags = 0;
-	int cantPagsMax = miConfig->tam_mem / sizeof(tPagina);
-	tPagina temp = *(tPagina*) memoria;
-	while (temp.timestamp != 0) {
+	int cantPagsMax = miConfig->tam_mem / (6 + tamanioMaxValue);
+	int* time = malloc(4);
+	memcpy(&time,(memoria+2),4);
+	while (time != 0) {
 		cantPags++;
 		if (cantPags <= cantPagsMax) {
-			temp = *(tPagina*) (memoria + cantPags * sizeof(tPagina));
+			memcpy(&time,memoria + cantPags*(6+tamanioMaxValue) + 2,4);
 		} else {
 			return -1;
 			//no hay mas lugar en memoria
 		}
 	}
-	int offset = (cantPags * sizeof(tPagina));
-	((tPagina*)(memoria + offset))->key = key;
+	int offset = (cantPags * (6 + tamanioMaxValue));
+	log_debug(logger,"offset: %d",offset);
+	/*((tPagina*)(memoria + offset))->key = key;
 	((tPagina*)(memoria + offset))->timestamp = time;
-	strcpy(((tPagina*)(memoria + offset))->value,value);
+	strcpy(((tPagina*)(memoria + offset))->value,value);*/
+	memcpy(memoria + offset,&(pagina->key),2);
+	log_debug(logger,"cargo key");
+	memcpy(memoria + offset + 2,&(pagina->timestamp),4);
+	log_debug(logger,"cargo time");
+	memcpy(memoria + offset + 4,&(pagina->value),tamanioMaxValue);
+	log_debug(logger,"cargo value %s",pagina->value);
 
-	elem_tabla_pag* pagina = malloc(sizeof(elem_tabla_pag));
-	pagina->modificado = true;
-	pagina->offsetMemoria = offset;
-	pagina->index = list_size(seg->tablaPaginas);
+	elem_tabla_pag* pagTabla = malloc(sizeof(elem_tabla_pag));
+	pagTabla->modificado = true;
+	pagTabla->offsetMemoria = offset;
+	pagTabla->index = list_size(seg->tablaPaginas);
 
-	list_add(seg->tablaPaginas, (elem_tabla_pag*)pagina);
+	list_add(seg->tablaPaginas, (elem_tabla_pag*)pagTabla);
 	log_debug(logger, "Pagina cargada en memoria.");
-	log_debug(logger, "El value es: %s", ((tPagina*)(memoria + offset))->value);
+	log_debug(logger, "El key es: %d", (int)(memoria + offset));
+	log_debug(logger, "El value es: %d", (int)(memoria + offset + 2));
+	log_debug(logger, "El value es: %s", (char*)(memoria + offset + 6));
 	return 1;
 
 }
@@ -198,7 +191,7 @@ char* separarNombrePath(char* path) {
 	return nombre;
 }
 
-int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla) {
+int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla,tPagina* pagina) {
 	typedef struct{
 				int timestamp;
 				u_int16_t key;
@@ -215,6 +208,9 @@ int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla) {
 		if(list_find((t_list*)miseg->tablaPaginas, buscarKey) != NULL){
 			*pagTabla = *(elem_tabla_pag*)list_find((t_list*)miseg->tablaPaginas, buscarKey);
 			//*pagina = *(tPagina*)(memoria + miElem->offsetMemoria);
+			memcpy(&(pagina->key),memoria + pagTabla->offsetMemoria,2);
+			memcpy(&(pagina->timestamp),memoria + pagTabla->offsetMemoria + 2,4);
+			memcpy(&(pagina->value),memoria + pagTabla->offsetMemoria + 4,tamanioMaxValue);
 			return pagTabla->index;
 		} else {
 			return -1;

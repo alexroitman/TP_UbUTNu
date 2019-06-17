@@ -38,7 +38,7 @@ tInsert* packInsert;
 tCreate* packCreate;
 type* header;
 t_list* tablaSegmentos;
-
+int tamanioMaxValue;
 int socket_lfs;
 int socket_kernel;
 int socket_sv;
@@ -65,6 +65,12 @@ typedef struct {
 }tSegmento;
 
 typedef struct {
+	int timestamp;
+	u_int16_t key;
+	char* value;
+} tPagina;
+
+typedef struct {
 	int puerto_kernel;
 	int puerto_fs;
 	char* ip_fs;
@@ -83,12 +89,12 @@ void cargarPackSelect(tSelect* packSelect,bool leyoConsola,char* consulta);
 void cargarPackInsert(tInsert* packInsert, bool leyoConsola, char consulta[]);
 
 
-int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla);
-int agregarPaginaAMemoria(tSegmento* seg,u_int16_t key, int time, char value[20]);
+int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla,tPagina* pagina);
+int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina);
 void cargarSegmentoEnTabla(char* path,t_list* listaSeg);
 tSegmento* obtenerSegmentoDeTabla(t_list* tablaSeg,int index);
 int buscarSegmentoEnTabla(char* nombreTabla, tSegmento* segmento, t_list* listaSegmentos);
-void actualizarPaginaEnMemoria(tSegmento* segmento,int index, u_int16_t key, char value[20]);
+void actualizarPaginaEnMemoria(tSegmento* segmento,int index, tPagina* pagina);
 tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg);
 void recibirMensajeDeKernel();
 char* separarNombrePath(char* path);
