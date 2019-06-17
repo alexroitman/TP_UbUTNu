@@ -18,17 +18,32 @@ int socket_cli;
 int cantidadDeDumpeos = 0;
 t_log* logger;
 t_list* memtable;
+t_config* configLFS;
+t_config* configMetadata;
+char* dirMontaje;
+int cantBloques;
 int main(void) {
+	logger = iniciar_logger();
+	configLFS = config_create("../LFS.config");
+	dirMontaje = config_get_string_value(configLFS, "PUNTO_MONTAJE");
+	char* puerto = config_get_string_value(configLFS, "PUERTO_ESCUCHA");
+	configMetadata = config_create("../../FS_LISSANDRA/Metadata/Metadata.bin");
 
+	cantBloques = config_get_int_value(configMetadata, "BLOCKS");
+	log_debug(logger, dirMontaje);
+	log_debug(logger, puerto);
 	int errorHandler;
 	signal(SIGINT, finalizarEjecutcion);
 	//signal(SIGSEGV, finalizarEjecutcion);
 
-	socket_sv = levantarServidor(PUERTOLFS);
+	// ---------------Pruebas con bitmap propio-----------------
+	crearBitmapNuestro();
+
+	socket_sv = levantarServidor(puerto);
 	socket_cli = aceptarCliente(socket_sv);
 	type header;
 	memtable = inicializarMemtable();
-	logger = iniciar_logger();
+
 	while (1) {
 		header = leerHeader(socket_cli);
 		tSelect* packSelect = malloc(sizeof(tSelect));
@@ -37,11 +52,11 @@ int main(void) {
 
 		switch (header) {
 		case SELECT:
-			log_debug(logger,"llego el select");
+			log_debug(logger, "llego el select");
 			desSerializarSelect(packSelect, socket_cli);
 			packSelect->type = header;
 			registro* reg = Select(packSelect->nombre_tabla, packSelect->key);
-			log_debug(logger,"%s",reg->value);
+			log_debug(logger, "%s", reg->value);
 			tRegistroRespuesta* registro = malloc(sizeof(tRegistroRespuesta));
 			registro->tipo = REGISTRO;
 			registro->timestamp = reg->timestamp;
@@ -65,23 +80,25 @@ int main(void) {
 			if (errorHandler == todoJoya) {
 				log_debug(logger, "se inserto bien");
 			}
-			dumpeoMemoria();
+
+//			HACEMOS PRUEBA CON TABLA HARCODEADA
+
 			free(packSelect);
 			break;
 		case CREATE:
-			log_debug(logger, "LLEGO EL CREATE");
-			desSerializarCreate(packCreate, socket_cli);
-			packCreate->type = header;
+			/*	log_debug(logger, "LLEGO EL CREATE");
+			 desSerializarCreate(packCreate, socket_cli);
+			 packCreate->type = header;
+			 errorHandler = Create(packCreate->nombre_tabla,
+			 packCreate->consistencia, packCreate->particiones,
+			 packCreate->compaction_time);
 
-			errorHandler = Create(packCreate->nombre_tabla,
-					packCreate->consistencia, packCreate->particiones,
-					packCreate->compaction_time);
+			 if (errorHandler == todoJoya) {
+			 log_debug(logger, "se creo bien");
+			 }
 
-			if (errorHandler == todoJoya) {
-				log_debug(logger, "se creo bien");
-			}
-
-			free(packSelect);
+			 free(packSelect);*/
+			dumpeoMemoria();
 			break;
 		}
 	}
@@ -109,7 +126,8 @@ int main(void) {
 	log_destroy(logger);
 	close(socket_cli);
 	close(socket_sv);
-
+	config_destroy(configLFS);
+	config_destroy(configMetadata);
 	return 0;
 }
 
@@ -124,8 +142,8 @@ void imprimir_registro(registro* unreg) {
 int insertarEnMemtable(tInsert *packinsert) {
 
 	char* mi_ruta = string_new();
-	char* tables = "/home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/tables/";
-	string_append(&mi_ruta, tables);
+	string_append(&mi_ruta, dirMontaje);
+	string_append(&mi_ruta, "Tablas/");
 	string_append(&mi_ruta, packinsert->nombre_tabla);
 	log_debug(logger, mi_ruta);
 	if (!verificadorDeTabla(mi_ruta)) {
@@ -206,7 +224,8 @@ int existe_tabla_en_memtable(char* posible_tabla) {
 int Create(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES,
 		int COMPACTATION_TIME) {
 	char* ruta = string_new();
-	string_append(&ruta, DirTablas);
+	string_append(&ruta, dirMontaje);
+	string_append(&ruta, "Tablas/");
 	string_append(&ruta, NOMBRE_TABLA);
 	// ---- Verifico que la tabla no exista ----
 	if (!verificadorDeTabla(ruta) == 0)
@@ -220,7 +239,7 @@ int Create(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES,
 	if (crearMetadata(ruta, TIPO_CONSISTENCIA, NUMERO_PARTICIONES,
 			COMPACTATION_TIME))
 		return metadataNoCreada;
-
+	log_debug(logger, "cree metadata");
 	// ---- Creo los archivos binarios ----
 	crearBinarios(ruta, NUMERO_PARTICIONES);
 	free(ruta);
@@ -266,31 +285,30 @@ registro* Select(char* NOMBRE_TABLA, int KEY) {
 		}
 		return 0;
 	}
-	log_debug(logger,"Entro al select");
+	log_debug(logger, "Entro al select");
 	char* ruta = string_new();
-	string_append(&ruta, DirTablas);
+	string_append(&ruta, dirMontaje);
+	string_append(&ruta, "Tablas/");
 	string_append(&ruta, NOMBRE_TABLA);
-	log_debug(logger,ruta);
-	/*if (!verificadorDeTabla(ruta)){
-		log_debug(logger,"no existe la tabla");
+	log_debug(logger, ruta);
+	if (!verificadorDeTabla(ruta)) {
+		log_debug(logger, "no existe la tabla");
 		return noExisteTabla;
-
-	}*/
-	log_debug(logger," existe la tabla");
-//1) busca en memtable
-//2)busca en FS
-//3) busca en TMP
-// COMPARA
+	}
+	log_debug(logger, " existe la tabla");
 	registro* registro_select = malloc(sizeof(registro));
 	t_list* registros = list_create();
-	log_debug(logger,"me voy a fijar a memtable");
+	log_debug(logger, "me voy a fijar a memtable");
 	list_add_all(registros, selectEnMemtable(KEY, NOMBRE_TABLA));
-	log_debug(logger,"me voy a fijar a FS");
+	log_debug(logger, "me voy a fijar a FS");
 	list_add(registros, SelectFS(ruta, KEY));
+	log_debug(logger, "me voy a fijar a Temp");
+	list_add_all(registros, SelectTemp(ruta, KEY));
 	//en algun momento agreagar tmp
 	list_sort(registros, (int) &es_mayor);
 	registro_select = list_get(registros, 0);
 	log_debug(logger, registro_select->value);
+	free(ruta);
 	return registro_select;
 
 }
@@ -327,26 +345,30 @@ registro* SelectFS(char* ruta, int KEY) {
 	// ---- Verifico que la tabla exista ----
 
 	// ---- Obtengo la metadata ----
-	log_debug(logger,"%s",ruta);
+	log_debug(logger, "%s", ruta);
 	particiones = buscarEnMetadata(ruta, "PARTITIONS");
-	log_debug(logger,"%d",particiones);
+	log_debug(logger, "%d", particiones);
 	if (particiones < 0)
 		return particiones;
 
 	// ---- Calculo particion del KEY ----
 	particiones = (KEY % particiones);
-	string_append(&ruta, ("/"));
-	string_append(&ruta, string_itoa(particiones));
-	string_append(&ruta, ".bin");
-	log_debug(logger,"%s",ruta);
-	t_config* particion = config_create(ruta);
-	int size = config_get_int_value(particion, "SIZE_BLOCKS");
+	char* rutaFS = string_new();
+	string_append(&rutaFS, ruta);
+	string_append(&rutaFS, ("/"));
+	string_append(&rutaFS, string_itoa(particiones));
+	string_append(&rutaFS, ".bin");
+	log_debug(logger, "%s", rutaFS);
+	t_config* particion = config_create(rutaFS);
+	int size = config_get_int_value(particion, "SIZE");
 	char** bloquesABuscar = config_get_array_value(particion, "BLOCKS");
 	int i = 0;
 	registro* registro = malloc(sizeof(registro));
 	while (bloquesABuscar[i] != NULL) {
 		char* bloque = string_new();
-		string_append(&bloque, DirBloques);
+		string_append(&bloque, dirMontaje);
+		string_append(&bloque, "Bloques/");
+
 		string_append(&bloque, bloquesABuscar[i]);
 		string_append(&bloque, ".bin");
 		int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
@@ -385,7 +407,7 @@ registro* SelectFS(char* ruta, int KEY) {
 		i++;
 	}
 
-	free(ruta);
+	free(rutaFS);
 	free(bloquesABuscar);
 
 	config_destroy(particion);
@@ -399,6 +421,90 @@ registro* SelectFS(char* ruta, int KEY) {
 	// ---- Retorno la KEY de mayor Timestamp ----
 
 	return registro;
+}
+
+t_list* SelectTemp(char* ruta, int KEY) {
+	t_list* listRegistros = list_create();
+	log_debug(logger, "arranca SelectTemp con contDumpeos:%d",
+			cantidadDeDumpeos);
+	for (int aux = 0; aux < cantidadDeDumpeos; aux++) {
+		char* rutaTemporal = string_new();
+		string_append(&rutaTemporal, ruta);
+		string_append(&rutaTemporal, ("/"));
+		string_append_with_format(&rutaTemporal, "%d", aux);
+		string_append(&rutaTemporal, ".tmp");
+		log_debug(logger, "Ruta de SelectTemp: %s", rutaTemporal);
+		t_config* particion = config_create(rutaTemporal);
+		int size = config_get_int_value(particion, "SIZE");
+		char** bloquesABuscar = config_get_array_value(particion, "BLOCKS");
+		int i = 0;
+
+		while (bloquesABuscar[i] != NULL) {
+			log_debug(logger, "Arranco a buscar bloques: Bloque N°%d", i);
+			char* bloque = string_new();
+			string_append(&bloque, dirMontaje);
+			string_append(&bloque, "Bloques/");
+			string_append(&bloque, bloquesABuscar[i]);
+			string_append(&bloque, ".bin");
+			log_debug(logger, "Ruta para buscar bloques: %s", bloque);
+			int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
+			struct stat s;
+			int status = fstat(fd, &s);
+			size = s.st_size;
+
+			char* f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+			log_debug(logger, "Hice mmap");
+			int j = 0;
+			char** registros = string_split(f, "\n");
+			while (registros[j] != NULL) {
+				registro* registro = malloc(sizeof(registro));
+				char** datos_registro = string_split(registros[j], ";");
+				log_debug(logger, "Lei esto: %s", registros[j]);
+				if (atoi(datos_registro[1]) == KEY) {
+					log_debug(logger, "entre al if");
+					//if (atol(datos_registro[0]) > registro->timestamp) {
+//					free(registro->value);
+					registro->timestamp = atoi(datos_registro[0]);
+					log_debug(logger, "Hago timestamp");
+					registro->key = atoi(datos_registro[1]);
+					log_debug(logger, "Hago key");
+					registro->value = malloc(strlen(datos_registro[2]) + 1);
+					strcpy(registro->value, datos_registro[2]);
+					//}
+					log_debug(logger, "Voy a agregar el registro");
+					list_add(listRegistros, registro);
+				}
+				log_debug(logger, "sali del if");
+
+				string_iterate_lines(datos_registro, (void*) free);
+
+				free(datos_registro);
+
+				j++;
+			}
+			string_iterate_lines(registros, (void*) free);
+			free(registros);
+			close(fd);
+
+			free(bloque);
+			i++;
+		}
+
+		free(rutaTemporal);
+		free(bloquesABuscar);
+
+		config_destroy(particion);
+
+		log_debug(logger, "Destrui la config particion");
+
+		// ---- Escaneo particion objetivo ----
+		//Escaneo en la memtable
+		//Escaneo en archivos temporales
+
+		// ---- Retorno la KEY de mayor Timestamp ----
+	}
+
+	return listRegistros;
 }
 /*
  int DESCRIBE (char* NOMBRE_TABLA,metadata *myMetadata){
@@ -457,32 +563,43 @@ int crearMetadata(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA,
 
 int crearBinarios(char* NOMBRE_TABLA, int NUMERO_PARTICIONES) {
 	//Opitimizacion1B: Se puede hace que fp se pase por parámetro para no abrirlo en crearMetadata y crearBIN
-	FILE *fp;
-	char aux[strlen(NOMBRE_TABLA) + 10];
+	log_debug(logger, "voy a crear bin");
 	while (NUMERO_PARTICIONES > 0) {
-		snprintf(aux, sizeof(aux), "%s/%i.bin", NOMBRE_TABLA,
-				NUMERO_PARTICIONES);
-		fp = fopen(aux, "w+");
-		if (!fp)
-			return BINNoCreado;
+		char* nuevaParticion = string_new();
+		string_append(&nuevaParticion, NOMBRE_TABLA);
+		string_append(&nuevaParticion, "/");
+		string_append_with_format(&nuevaParticion, "%d", NUMERO_PARTICIONES);
+		string_append(&nuevaParticion, ".bin");
+		log_debug(logger, nuevaParticion);
+		int fd = creat(nuevaParticion, (mode_t) 0600);
+		close(fd);
+		t_config* particion = config_create(nuevaParticion);
+		char* bloques = string_new();
+		string_append_with_format(&bloques, "[%d]", obtener_bit_libre());
+		config_set_value(particion, "BLOCKS", bloques);
+		config_set_value(particion, "SIZE", "0");
+		config_save(particion);
+		config_destroy(particion);
+		free(bloques);
 		NUMERO_PARTICIONES -= 1;
+		free(nuevaParticion);
 	}
-	fclose(fp);
+
 	return todoJoya;
 }
 
 int verificadorDeTabla(char* NOMBRE_TABLA) {
 	int status = 1;
 	DIR *dirp;
-	log_debug(logger,NOMBRE_TABLA);
+	log_debug(logger, NOMBRE_TABLA);
 	dirp = opendir(NOMBRE_TABLA);
-	log_debug(logger,"abrio el directorio");
+	log_debug(logger, "abrio el directorio");
 
 	if (dirp == NULL) {
 		status = 0;
 	}
 	closedir(dirp);
-	log_debug(logger,"cerro el directorio %d",status);
+	log_debug(logger, "cerro el directorio %d", status);
 	return status;
 }
 
@@ -518,33 +635,77 @@ int borrarDirectorio(const char *dir) {
 
 int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo) {
 
-	char* ruta=string_new();
-	string_append(&ruta,NOMBRE_TABLA);
-	string_append(&ruta,"/metadata");
-	log_debug(logger,ruta);
-	t_config* metadata=config_create("../../FS_LISSANDRA/Tablas/TABLA1/metadata");
-	log_debug(logger,"%s",objetivo);
-	log_debug(logger,"crea metadata");
-	int obj=config_get_int_value(metadata,objetivo);
-	log_debug(logger,"obtiene obj",obj);
+	char* ruta = string_new();
+	string_append(&ruta, NOMBRE_TABLA);
+	string_append(&ruta, "/metadata");
+	log_debug(logger, ruta);
+	t_config* metadata = config_create(ruta);
+	log_debug(logger, "%s", objetivo);
+	log_debug(logger, "crea metadata");
+	int obj = config_get_int_value(metadata, objetivo);
+	log_debug(logger, "obtiene obj", obj);
 	config_destroy(metadata);
-	log_debug(logger,"mata metadata",obj);
+	log_debug(logger, "mata metadata", obj);
 	free(ruta);
-	log_debug(logger,"%d",obj);
+	log_debug(logger, "%d", obj);
 	return obj;
 }
 
+t_bitarray* levantarBitmap() {
+
+	char* ruta = string_new();
+	string_append(&ruta, dirMontaje);
+	string_append(&ruta, "Metadata/Bitmap.bin");
+	int size = cantBloques / 8;
+	if (cantBloques % 8 != 0)
+		size++;
+	int fd = open(ruta, O_RDWR, S_IRUSR | S_IWUSR);
+	ftruncate(fd, size);
+	char* bitarray = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd,
+			0);
+	t_bitarray* structBitarray = bitarray_create_with_mode(bitarray, size,
+			MSB_FIRST);
+	free(ruta);
+	return structBitarray;
+
+}
+off_t obtener_bit_libre() {
+	t_bitarray* bitmap = levantarBitmap();
+	off_t bit_index = 0;
+
+	//leer el primero libre y ponerle 1
+	while (bitarray_test_bit(bitmap, bit_index))
+		bit_index++;
+	bitarray_set_bit(bitmap, bit_index);
+	return bit_index;
+}
 void dumpearTabla(t_tabla* UnaTabla) {
 	char* tablaParaDumpeo = string_new();
-	string_append(&tablaParaDumpeo, DirTablas);
+	string_append(&tablaParaDumpeo, dirMontaje);
+	string_append(&tablaParaDumpeo, "Tablas/");
 	string_append(&tablaParaDumpeo, UnaTabla->nombreTabla);
 	string_append(&tablaParaDumpeo, "/");
 	string_append(&tablaParaDumpeo, string_itoa(cantidadDeDumpeos));
 	string_append(&tablaParaDumpeo, ".tmp");
-	int fd = open(tablaParaDumpeo, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);
-	void dumpearRegistros(registro* UnRegistro) {
-		char* registroParaEscribir = string_new();
+	off_t bit_index = obtener_bit_libre();
+	int fd = creat(tablaParaDumpeo, (mode_t) 0600);
+	close(fd);
+	t_config* tmp = config_create(tablaParaDumpeo);
+	char* bloque = string_new();
+	string_append_with_format(&bloque, "[%d]", bit_index);
+	config_set_value(tmp, "SIZE", "0");
+	config_set_value(tmp, "BLOCKS", bloque);
+	config_save(tmp);
 
+	char* bloqueDumpeo = string_new();
+	string_append(&bloqueDumpeo, dirMontaje);
+	string_append(&bloqueDumpeo, "Bloques/");
+	string_append_with_format(&bloqueDumpeo, "%d", bit_index);
+	string_append(&bloqueDumpeo, ".bin");
+
+	int fd2 = open(bloqueDumpeo, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);
+	char* registroParaEscribir = string_new();
+	void dumpearRegistros(registro* UnRegistro) {
 		string_append(&registroParaEscribir,
 				string_itoa(UnRegistro->timestamp));
 		string_append(&registroParaEscribir, ";");
@@ -552,65 +713,23 @@ void dumpearTabla(t_tabla* UnaTabla) {
 		string_append(&registroParaEscribir, ";");
 		string_append(&registroParaEscribir, UnRegistro->value);
 		string_append(&registroParaEscribir, "\n");
-
-		size_t textsize = strlen(registroParaEscribir) + 1; // + \0 null character
-
-		lseek(fd, textsize - 1, SEEK_SET);
-		/*
-		 Something needs to be written at the end of the file to
-		 * have the file actually have the new size.
-		 * Just writing an empty string at the current file position will do.
-		 *
-		 * Note:
-		 *  - The current position in the file is at the end of the stretched
-		 *    file due to the call to lseek().
-		 *  - An empty string is actually a single '\0' character, so a zero-byte
-		 *    will be written at the last byte of the file.
-		 */
-
-		write(fd, "", 1);
-
-		// Now the file is ready to be mmapped.
-		char *map = mmap(0, textsize, PROT_READ | PROT_WRITE, MAP_SHARED, fd,
-				0);
-
-		size_t i = 0;
-		while (i < textsize) {
-			map[i] = registroParaEscribir[i];
-			i++;
-		}
-
-		//memcpy(map, registroParaEscribir, strlen(registroParaEscribir));
-		// Write it now to disk
-		msync(map, textsize, MS_SYNC);
-		munmap(map, textsize);
+		log_debug(logger, "voy a escribir esto: %s", registroParaEscribir);
 	}
-
 	list_iterate(UnaTabla->registros, (void*) &dumpearRegistros);
-	struct stat s;
-	int status = fstat(fd, &s);
-
-	//-----------------
-
-	// Don't forget to free the mmapped memory
-
-	// Un-mmaping doesn't close the file, so we still need to do that.
-	close(fd);
-	//-----------------
-
+	bajarAMemoria(&fd2, registroParaEscribir, tmp);
+//	struct stat s;
+//	int status = fstat(fd2, &s);
+	close(fd2);
+	config_destroy(tmp);
+	free(registroParaEscribir);
 }
 
 int dumpeoMemoria() {
 	if (list_is_empty(memtable))
 		return 1;	// poner define para memtable vacia
-	cantidadDeDumpeos++;
-
 	list_iterate(memtable, &dumpearTabla);
-	/*
-
-
-
-	 */
+	list_clean(memtable);
+	cantidadDeDumpeos++;
 	return 0;
 }
 
@@ -686,6 +805,81 @@ metadata* listarDirectorios(char *dir) {
 	fts_close(ftsp);
 }
 
+void crearBitmapNuestro() {
+	int size = cantBloques / 8;
+	if (cantBloques % 8 != 0)
+		size++;
+	char* bitarray = calloc(cantBloques / 8, sizeof(char));
+	t_bitarray* structBitarray = bitarray_create_with_mode(bitarray, size,
+			MSB_FIRST);
+	for (int i = 0; i < cantBloques; i++) {
+		if (i == 10)
+			bitarray_set_bit(structBitarray, i);
+		else
+			bitarray_clean_bit(structBitarray, i);
+	}
+	//mmap par
+	char* path = string_from_format("%s/Metadata/Bitmap.bin", dirMontaje);
+
+	FILE* file = fopen(path, "wb+");
+	fwrite(structBitarray->bitarray, sizeof(char), cantBloques / 8, file);
+	fclose(file);
+	bitarray_destroy(structBitarray);
+	free(path);
+}
+
+void bajarAMemoria(int* fd2, char* registroParaEscribir, t_config* tmp) {
+	int block_size = config_get_int_value(configMetadata, "BLOCK_SIZE");
+	//TODO: levantar un struct metadata global del metadata general
+	size_t textsize = strlen(registroParaEscribir) + 1; // + \0 null character
+	int size = config_get_int_value(tmp, "SIZE");
+	char* strsize = string_new();
+	string_append_with_format(&strsize, "%d", (size + textsize - 1));
+	config_set_value(tmp, "SIZE", strsize);
+	config_save(tmp);
+	free(strsize);
+	log_debug(logger, "libere strsize");
+	char* map = mapearBloque(*fd2, textsize);
+	int i = 0;
+	int posmap = 0;
+	while (i < textsize) {
+		if (posmap < block_size)
+			map[posmap] = registroParaEscribir[i];
+		else {
+			//llamar a bloque
+//			TODO: armar lo que sigue como subfuncion, esta en dumpeo memoria repetido
+			off_t bit_index = obtener_bit_libre();
+			char* bloqueDumpeoNuevo = string_new();
+			string_append(&bloqueDumpeoNuevo, dirMontaje);
+			string_append(&bloqueDumpeoNuevo, "Bloques/");
+			string_append_with_format(&bloqueDumpeoNuevo, "%d", bit_index);
+//			actualizarEnTemporal();
+			string_append(&bloqueDumpeoNuevo, ".bin");
+
+			*fd2 = open(bloqueDumpeoNuevo, O_RDWR | O_CREAT | O_TRUNC,
+					(mode_t) 0600);
+//			Hasta aca
+			map = mapearBloque(*fd2, textsize-i);
+			obtener_bit_libre();
+			posmap = 0;
+			map[posmap] = registroParaEscribir[i];
+		}
+		i++;
+		posmap++;
+	}
+	log_debug(logger, "baje a memoria esto: %s", map);
+	msync(map, size, MS_SYNC);
+	munmap(map, textsize);
+}
+
+char* mapearBloque(int fd2, size_t textsize) {
+	lseek(fd2, textsize, SEEK_SET);
+	write(fd2, "", 1);
+	log_debug(logger, "escribi el barra 0");
+	char *map = mmap(0, textsize, PROT_READ | PROT_WRITE, MAP_SHARED, fd2, 0);
+	return map;
+}
+
 void finalizarEjecutcion() {
 	printf("------------------------\n");
 	printf("¿chau chau adios?\n");
@@ -694,5 +888,7 @@ void finalizarEjecutcion() {
 	close(socket_cli);
 	close(socket_sv);
 	list_iterate(memtable, free);
+	config_destroy(configLFS);
+	config_destroy(configMetadata);
 	raise(SIGTERM);
 }

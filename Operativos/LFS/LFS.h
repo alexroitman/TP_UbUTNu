@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <commons/log.h>
 #include <commons/string.h>
+#include <commons/bitarray.h>
 #include <commons/config.h>
 #include <commons/collections/list.h>
 #include <readline/readline.h>
@@ -79,13 +80,15 @@ int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo);
 int dumpeoMemoria();
 
 registro* Select(char* NOMBRE_TABLA, int KEY);
-
+t_list* SelectTemp(char* ruta, int KEY);
 void imprimir_registro(registro* unreg);
 t_list* inicializarMemtable();
 int insertarEnMemtable(tInsert* packinsert);
 t_list* selectEnMemtable( uint16_t key, char* tabla);
 int insertarRegistro(registro* registro, char* nombre_tabla);
 int agregar_tabla_a_memtable(char* tabla);
+off_t obtener_bit_libre();
+char* mapearBloque(int fd2, size_t textsize);
 
 // Funciones de logger
 t_log* iniciar_logger(void);
