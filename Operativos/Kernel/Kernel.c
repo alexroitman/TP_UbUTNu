@@ -40,6 +40,10 @@ int main(){
 	log_debug(logger,"Se tendra un nivel de multiprocesamiento de: %d cpus", miConfig->MULT_PROC);
 	pthread_t cpus[miConfig->MULT_PROC];
 	if(levantarCpus(socket_memoria,cpus)){
+		for(int i = 0; i < miConfig->MULT_PROC; i++){
+						pthread_detach(cpus[i]);
+					}
+					pthread_detach(planificador_t);
 		colaReady = queue_create();
 		colaNew = queue_create();
 		pthread_create(&planificador_t, NULL, (void*) planificador, NULL);
@@ -48,16 +52,12 @@ int main(){
 
 				fgets(consulta, 256, stdin);
 				int consultaOk = despacharQuery(consulta, socket_memoria);
-				if (!consultaOk) {
-					printf("no entendi tu header \n");
+				if (consultaOk == 0) {
 					log_error(loggerError,"Se ingreso un header no valido");
 				}
 				consultaOk = 0;
 			}
-			for(int i = 0; i < miConfig->MULT_PROC; i++){
-				pthread_detach(cpus[i]);
-			}
-			pthread_detach(planificador_t);
+
 	}else{
 		log_error(loggerError,"No se han podido levantar las cpus...");
 	}
@@ -123,11 +123,11 @@ int despacharQuery(char* consulta, int socket_memoria) {
 				desSerializarRegistro(reg,socket_memoria);
 				log_debug(logger,"Value: %s",reg->value);
 				sem_post(&mutexSocket);
+				consultaOk = 1;
 			}else{
-				printf("Por favor ingrese la consulta en formato correcto \n");
 				log_error(loggerError,"Se ingreso una consulta no valida");
+				consultaOk = 2;
 			}
-			consultaOk = 1;
 			break;
 		case INSERT:
 			if(validarInsert(consulta)){
@@ -139,11 +139,11 @@ int despacharQuery(char* consulta, int socket_memoria) {
 				sem_wait(&mutexSocket);
 				enviarPaquete(socket_memoria, serializado, paqueteInsert->length);
 				sem_post(&mutexSocket);
+				consultaOk = 1;
 			}else{
-				printf("Por favor ingrese la consulta en formato correcto \n");
 				log_error(loggerError,"Se ingreso una consulta no valida");
+				consultaOk = 2;
 			}
-			consultaOk = 1;
 			break;
 		case CREATE:
 			if(validarCreate(consulta)){
@@ -154,11 +154,11 @@ int despacharQuery(char* consulta, int socket_memoria) {
 				sem_wait(&mutexSocket);
 				enviarPaquete(socket_memoria, serializado, paqueteCreate->length);
 				sem_post(&mutexSocket);
+				consultaOk = 1;
 			}else{
-				printf("Por favor ingrese la consulta en formato correcto \n");
 				log_error(loggerError,"Se ingreso una consulta no valida");
+				consultaOk = 2;
 			}
-			consultaOk = 1;
 			break;
 		case RUN:
 			log_debug(logger,"Se recibio un RUN con la siguiente path: %s", tempSplit[1]);
@@ -180,16 +180,23 @@ int despacharQuery(char* consulta, int socket_memoria) {
 			if(validarAdd(consulta)){
 				log_debug(logger,"Se recibio un ADD");
 				int id = ejecutarAdd(consulta);
-				log_debug(logger,"Se agrego el criterio a: %d ", ((t_infoMem*) list_get(listaMems, 0))->id);
+				log_debug(logger,"Se agrego el criterio a: %d ",
+						((t_infoMem*) list_get(listaMems, 0))->id);
+				consultaOk = 1;
+			}else{
+				log_error(loggerError,"Se ingreso una consulta no valida");
+				consultaOk = 2;
 			}
-			consultaOk = 1;
 			break;
 		case DESCRIBE:
 			log_debug(logger,"Se recibio un DESCRIBE");
 			consultaOk = 1;
 			break;
+		case NIL:
+			log_error(loggerError,"Se ingreso una consulta no valida");
+			break;
 		default:
-			printf("Operacion no valida por el momento \n");
+			log_error(loggerError,"Se ingreso una consulta no disponible por el momento");
 			break;
 		}
 
@@ -440,6 +447,13 @@ void finalizarEjecucion() {
 	log_destroy(logger);
 	log_destroy(loggerError);
 	list_iterate(listaMems,free);
+	sem_destroy(&semReady);
+	sem_destroy(&semNew);
+	sem_destroy(&mutexNew);
+	sem_destroy(&mutexReady);
+	sem_destroy(&mutexSocket);
+	queue_destroy_and_destroy_elements(colaNew,free);
+	queue_destroy_and_destroy_elements(colaReady,free);
 	close(socket_memoria);
 	raise(SIGTERM);
 }
