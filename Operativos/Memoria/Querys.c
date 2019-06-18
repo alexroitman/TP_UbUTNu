@@ -10,10 +10,15 @@
 
 
 void ejecutarConsulta(void* memoria) {
+	typedef struct{
+			int timestamp;
+			u_int16_t key;
+			char value[20];
+			//Valor hardcodeado, cuando haya handshake con lfs lo tengo que sacar de ahi el tamanio max
+	}tPagina;
 	encontroSeg = -1;
 	indexPag = -1;
 	tPagina* pagina = malloc(sizeof(tPagina));
-	pagina->value = malloc(tamanioMaxValue);
 	tSegmento* miSegmento = malloc(sizeof(tSegmento));
 	elem_tabla_pag* pagTabla = malloc(sizeof(elem_tabla_pag));
 	encontroSeg = -1;
@@ -27,12 +32,13 @@ void ejecutarConsulta(void* memoria) {
 		if (encontroSeg == 1) {
 			log_debug(logger, "Encontre segmento: %s ",
 					packSelect->nombre_tabla);
-			indexPag = buscarPaginaEnMemoria(packSelect->key,miSegmento ,pagTabla,pagina);
+			indexPag = buscarPaginaEnMemoria(packSelect->key, miSegmento,
+					pagTabla);
 		}
 		tRegistroRespuesta* reg = malloc(sizeof(tRegistroRespuesta));
 		if (indexPag >= 0) {
 			log_debug(logger, "Encontre pagina buscada");
-			//*pagina = *(tPagina*) (memoria + pagTabla->offsetMemoria);
+			*pagina = *(tPagina*) (memoria + pagTabla->offsetMemoria);
 			reg->tipo = REGISTRO;
 			reg->timestamp = pagina->timestamp;
 			reg->value = pagina->value;
@@ -43,15 +49,15 @@ void ejecutarConsulta(void* memoria) {
 		} else {
 			pedirRegistroALFS(socket_lfs, packSelect, reg);
 			if (reg->key != -1) {
-				pagina->key = reg->key;
-				pagina->timestamp = reg->timestamp;
-				strcpy(pagina->value, reg->value);
+				char value[20];
+				strcpy(value, reg->value);
 				if (encontroSeg != 1) {
 					cargarSegmentoEnTabla(packSelect->nombre_tabla,
 							tablaSegmentos);
 					miSegmento = obtenerUltimoSegmentoDeTabla(tablaSegmentos);
 				}
-				agregarPaginaAMemoria(miSegmento, pagina);
+				agregarPaginaAMemoria(miSegmento, reg->key, reg->timestamp,
+						value);
 
 			}
 			//SI NO LO ENCONTRO IGUALMENTE SE LO MANDO A KERNEL PARA QUE TAMBIEN MANEJE EL ERROR
@@ -66,40 +72,40 @@ void ejecutarConsulta(void* memoria) {
 	case INSERT:
 		packInsert = malloc(sizeof(tInsert));
 		cargarPackInsert(packInsert, leyoConsola, paramsConsola->consulta);
+		char value[20];
+		strcpy(value, packInsert->value);
 		encontroSeg = buscarSegmentoEnTabla(packInsert->nombre_tabla,
 				miSegmento, tablaSegmentos);
+
 		if (encontroSeg == 1) {
 			log_debug(logger, "Encontre segmento %s ",
 					packInsert->nombre_tabla);
 
 			indexPag = buscarPaginaEnMemoria(packInsert->key, miSegmento,
-					pagTabla,pagina);
+					pagTabla);
 			if (indexPag >= 0) {
 				log_debug(logger,
 						"Encontre la pagina buscada en el segmento %s ",
 						packInsert->nombre_tabla);
-				actualizarPaginaEnMemoria(miSegmento, indexPag, pagina);
+				actualizarPaginaEnMemoria(miSegmento, indexPag, packInsert->key,
+						value);
 
 			} else {
 				//Encontro el segmento en tabla pero no tiene la pagina en memoria
 
 				log_debug(logger,
 						"Encontro el segmento en tabla pero no tiene la pagina en memoria");
-				pagina->key = packInsert->key;
-				pagina->timestamp = (int) time (NULL);
-				strcpy(pagina->value,packInsert->value);
-				agregarPaginaAMemoria(miSegmento,pagina);
+				agregarPaginaAMemoria(miSegmento, packInsert->key,
+						(int) time(NULL), value);
 			}
 
 		} else {
 			//No encontro el segmento en tabla de segmentos
 			log_debug(logger, "No encontro el segmento en tabla de segmentos");
-			pagina->key = packInsert->key;
-			pagina->timestamp = (int) time(NULL);
-			strcpy(pagina->value, packInsert->value);
 			cargarSegmentoEnTabla(packInsert->nombre_tabla, tablaSegmentos);
 			tSegmento* newSeg = obtenerUltimoSegmentoDeTabla(tablaSegmentos);
-			agregarPaginaAMemoria(newSeg,pagina);
+			agregarPaginaAMemoria(newSeg, packInsert->key, (int) time(NULL),
+					value);
 		}
 		free(packInsert);
 		break;
@@ -119,28 +125,31 @@ void ejecutarConsulta(void* memoria) {
 	free(miSegmento);
 	free(pagina);
 	free(pagTabla);
-	free(pagina->value);
 
 }
+
+
+
+
 
 void pedirRegistroALFS(int socket, tSelect* packSelect, tRegistroRespuesta* reg) {
 	char* selectAEnviar = serializarSelect(packSelect);
 	enviarPaquete(socket, selectAEnviar, packSelect->length);
 
 	type header = leerHeader(socket);
-	if (header == REGISTRO) {
+	if(header == REGISTRO){
 		desSerializarRegistro(reg, socket);
 		reg->tipo = REGISTRO;
 	}
 
 }
 
-void enviarRegistroAKernel(tRegistroRespuesta* reg, int socket,
-		bool leyoConsola) {
+
+void enviarRegistroAKernel(tRegistroRespuesta* reg, int socket,bool leyoConsola){
 	//SI LEYO DE CONSOLA NO QUIERO ENVIARSELO A KERNEL
-	if (!leyoConsola) {
+	if(!leyoConsola){
 		char* registroSerializado = serializarRegistro(reg);
-		enviarPaquete(socket, registroSerializado, reg->length);
+		enviarPaquete(socket, registroSerializado,reg->length);
 		log_debug(logger, "Value enviado a Kernel");
 	}
 }
