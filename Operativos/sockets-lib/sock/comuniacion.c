@@ -86,6 +86,17 @@ void cargarPaqueteDescribe(tDescribe *pack, char* cons) {
 	free(spliteado);
 }
 
+void cargarPaqueteDrop(tDrop *pack, char* cons){
+	char** spliteado;
+	spliteado = string_n_split(cons, 2, " ");
+		pack->type = DROP;
+		pack->nombre_tabla = strtok(spliteado[1], "\n");
+		pack->nombre_tabla_long = strlen(pack->nombre_tabla + 1);
+		pack->length = sizeof(pack->type)
+				+ sizeof(pack->nombre_tabla_long)
+				+ pack->nombre_tabla_long;
+		free(spliteado);
+}
 
 
 char* serializarSelect(tSelect* packageSelect) {
@@ -370,9 +381,54 @@ int desSerializarDescribe(tDescribe* packageDescribe, int socket) {
 	packageDescribe->length = sizeof(packageDescribe->type)
 					+ sizeof(packageDescribe->nombre_tabla_long)
 					+ packageDescribe->nombre_tabla_long;
-	packageDescribe->type = CREATE;
+	packageDescribe->type = DESCRIBE;
 	return status;
 
+}
+
+char* serializarDrop(tDrop* packageDrop){
+	char* serializedPackage = malloc(packageDrop->length);
+	int offset = 0;
+	int size_to_send = 0;
+
+	size_to_send = sizeof(packageDrop->type);
+	memcpy(serializedPackage + offset, &(packageDrop->type), size_to_send); //sizeof(int8_t)
+	offset += size_to_send;
+
+	size_to_send = sizeof(packageDrop->nombre_tabla_long);
+	memcpy(serializedPackage + offset, &(packageDrop->nombre_tabla_long),
+			size_to_send);
+	offset += size_to_send;
+
+	size_to_send = packageDrop->nombre_tabla_long;
+
+	memcpy(serializedPackage + offset, (packageDrop->nombre_tabla),
+			size_to_send);
+	offset += size_to_send;
+
+	return serializedPackage;
+}
+
+int desSerializarDrop(tDrop* packageDrop, int socket){
+	int status;
+	int buffer_size;
+	char *buffer = malloc(buffer_size = sizeof(uint32_t));
+
+	uint32_t nombrelong;
+	status = recv(socket, buffer, sizeof((packageDrop->nombre_tabla_long)),0); //recibo la longitud
+	memcpy(&(packageDrop->nombre_tabla_long), buffer, buffer_size);
+	if (!status)
+		return 0;
+	packageDrop->nombre_tabla = malloc(packageDrop->nombre_tabla_long);
+
+	status = recv(socket, packageDrop->nombre_tabla,
+			packageDrop->nombre_tabla_long, 0); //recibo el nombre de la tabla
+	free(buffer);
+	packageDrop->length = sizeof(packageDrop->type)
+					+ sizeof(packageDrop->nombre_tabla_long)
+					+ packageDrop->nombre_tabla_long;
+	packageDrop->type = DROP;
+	return status;
 }
 
 char* serializarRegistro(tRegistroRespuesta* reg){

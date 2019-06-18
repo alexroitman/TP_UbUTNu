@@ -194,6 +194,27 @@ int buscarSegmentoEnTabla(char* nombreTabla, tSegmento* miseg, t_list* listaSegm
 	return -1;
 }
 
+void liberarPaginasDelSegmento(tSegmento* miSegmento, t_list* tablaSegmentos){
+	void eliminarDeMemoria(void* elemento){
+		elem_tabla_pag* elemPag = (elem_tabla_pag*)elemento;
+		*(int*)(memoria + elemPag->offsetMemoria + 2) = 0; //LIMPIAR EL TIMESTAMP
+	}
+
+	bool mismoNombre(void* elemento){
+		tSegmento* miseg = (tSegmento*)elemento;
+		return !strcmp(miseg->path, miSegmento->path);
+	}
+	t_list* tablaDePaginas = miSegmento->tablaPaginas;
+	if(!list_is_empty(tablaDePaginas)){
+		list_iterate(tablaDePaginas, eliminarDeMemoria);
+	}
+	list_destroy(tablaDePaginas);
+	list_remove_by_condition(tablaSegmentos, mismoNombre);
+
+}
+
+
+
 char* separarNombrePath(char* path) {
 	char** separado = string_split(path, "/");
 	int i = 0;

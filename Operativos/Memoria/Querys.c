@@ -117,6 +117,16 @@ void ejecutarConsulta(void* memoria) {
 		cargarPackDrop(packDrop, leyoConsola, paramsConsola->consulta);
 		log_debug(logger, "LLEGO UN DROP");
 		log_debug(logger, "Drop Tabla: %s", packDrop->nombre_tabla);
+		encontroSeg = buscarSegmentoEnTabla(packDrop->nombre_tabla, miSegmento, tablaSegmentos);
+		if(encontroSeg == 1){
+			log_debug(logger, "Encontre segmento: %s", packDrop->nombre_tabla);
+			liberarPaginasDelSegmento(miSegmento, tablaSegmentos);
+			log_debug(logger, "teoricamente se borro todo...");
+
+		} else {
+			log_error(logger, "No se encontro el segmento");
+		}
+
 		break;
 	case NIL:
 		log_error(logger, "No entendi la consulta");

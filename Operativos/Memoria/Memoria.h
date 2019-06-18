@@ -102,6 +102,8 @@ void recibirMensajeDeKernel();
 char* separarNombrePath(char* path);
 void* recibirHeader(void* arg);
 
+void liberarPaginasDelSegmento(tSegmento* miSegmento, t_list* tablaSegmentos);
+
 void finalizarEjecucion();
 void enviarMensajeAKernel();
 t_miConfig* cargarConfig();
