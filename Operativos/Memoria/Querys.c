@@ -111,6 +111,13 @@ void ejecutarConsulta(void* memoria) {
 		log_debug(logger, "Mando la consulta a LFS");
 		free(packCreate);
 		break;
+
+	case DROP:
+		packDrop = malloc(sizeof(tDrop));
+		cargarPackDrop(packDrop, leyoConsola, paramsConsola->consulta);
+		log_debug(logger, "LLEGO UN DROP");
+		log_debug(logger, "Drop Tabla: %s", packDrop->nombre_tabla);
+		break;
 	case NIL:
 		log_error(logger, "No entendi la consulta");
 		break;
@@ -119,7 +126,7 @@ void ejecutarConsulta(void* memoria) {
 	free(miSegmento);
 	free(pagina);
 	free(pagTabla);
-	free(pagina->value);
+	//free(pagina->value);
 
 }
 
@@ -162,6 +169,9 @@ void* leerQuery(void* params) {
 		}
 		if (!strcmp(tempSplit[0], "CREATE")) {
 			*(parametros->header) = CREATE;
+		}
+		if(!strcmp(tempSplit[0], "DROP")){
+			*(parametros->header) = DROP;
 		}
 		leyoConsola = true;
 		ejecutarConsulta(memoria);

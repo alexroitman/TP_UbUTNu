@@ -36,6 +36,7 @@ bool recibioSocket;
 tSelect* packSelect;
 tInsert* packInsert;
 tCreate* packCreate;
+tDrop* packDrop;
 type* header;
 t_list* tablaSegmentos;
 int tamanioMaxValue;
@@ -87,6 +88,7 @@ void crearHilosRecepcion(type* header, pthread_t hiloSocket,
 void cargarPackCreate(tCreate* packCreate,bool leyoConsola,char consulta[]);
 void cargarPackSelect(tSelect* packSelect,bool leyoConsola,char* consulta);
 void cargarPackInsert(tInsert* packInsert, bool leyoConsola, char consulta[]);
+void cargarPackDrop(tDrop* packDrop, bool leyoConsola, char consulta[]);
 
 
 int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla,tPagina* pagina);

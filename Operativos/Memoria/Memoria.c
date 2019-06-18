@@ -85,6 +85,14 @@ void cargarPackCreate(tCreate* packCreate,bool leyoConsola,char consulta[]){
 
 }
 
+void cargarPackDrop(tDrop* packDrop, bool leyoConsola, char consulta[]){
+	if(leyoConsola){
+		cargarPaqueteDrop(packDrop, consulta);
+	} else {
+		desSerializarDrop(packDrop, socket_kernel);
+	}
+}
+
 
 void actualizarPaginaEnMemoria(tSegmento* segmento,int index, tPagina* pagina) {
 	elem_tabla_pag* elemTablaPag =  malloc(sizeof(elem_tabla_pag));
