@@ -26,7 +26,8 @@ int main() {
 	socket_kernel = aceptarCliente(socket_sv);
 	log_debug(logger, "Levanta conexion con kernel");
 	socket_lfs = levantarCliente((char*) miConfig->puerto_fs,miConfig->ip_fs);
-	log_debug(logger, "Levanta conexion con LFS");
+	tamanioMaxValue = handshakeLFS(socket_lfs);
+	log_debug(logger,"Handshake con LFS realizado. Tamanio max del value: %d",tamanioMaxValue);
 	memoria = calloc(miConfig->tam_mem,6 + tamanioMaxValue);
 	tablaSegmentos = list_create();
 	header = malloc(sizeof(type));
@@ -56,6 +57,12 @@ void* recibirHeader(void* arg) {
 			ejecutarConsulta(memoria);
 		}
 	}
+}
+
+int handshakeLFS(int socket_lfs){
+	int buffer;
+	recv(socket_lfs,&buffer,4,MSG_WAITALL);
+	return buffer;
 }
 
 void cargarPackSelect(tSelect* packSelect,bool leyoConsola,char consulta[]){

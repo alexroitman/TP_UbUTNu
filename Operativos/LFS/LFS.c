@@ -27,6 +27,7 @@ int main(void) {
 	configLFS = config_create("../LFS.config");
 	dirMontaje = config_get_string_value(configLFS, "PUNTO_MONTAJE");
 	char* puerto = config_get_string_value(configLFS, "PUERTO_ESCUCHA");
+	int tamanioValue = config_get_int_value(configLFS, "TAMANIO_VALUE");
 	configMetadata = config_create("../../FS_LISSANDRA/Metadata/Metadata.bin");
 
 	cantBloques = config_get_int_value(configMetadata, "BLOCKS");
@@ -41,6 +42,7 @@ int main(void) {
 
 	socket_sv = levantarServidor(puerto);
 	socket_cli = aceptarCliente(socket_sv);
+	send(socket_cli,&tamanioValue,4,0);
 	type header;
 	memtable = inicializarMemtable();
 
