@@ -78,7 +78,7 @@ void ejecutarConsulta(void* memoria) {
 				log_debug(logger,
 						"Encontre la pagina buscada en el segmento %s ",
 						packInsert->nombre_tabla);
-				actualizarPaginaEnMemoria(miSegmento, indexPag, pagina);
+				actualizarPaginaEnMemoria(miSegmento, indexPag, packInsert->value);
 
 			} else {
 				//Encontro el segmento en tabla pero no tiene la pagina en memoria
@@ -102,6 +102,9 @@ void ejecutarConsulta(void* memoria) {
 			agregarPaginaAMemoria(newSeg,pagina);
 		}
 		free(packInsert);
+		free(packInsert->nombre_tabla);
+		free(packInsert->value);
+
 		break;
 	case CREATE:
 		packCreate = malloc(sizeof(tCreate));
@@ -136,7 +139,7 @@ void ejecutarConsulta(void* memoria) {
 	free(miSegmento);
 	free(pagina);
 	free(pagTabla);
-	//free(pagina->value);
+	free(pagina->value);
 
 }
 
@@ -167,11 +170,9 @@ void* leerQuery(void* params) {
 		tHiloConsola* parametros = (tHiloConsola*) params;
 		leyoConsola = false;
 		fgets(parametros->consulta, 256, stdin);
-		log_debug(logger, "lei de consola");
 		char** tempSplit;
 		tempSplit = string_n_split(parametros->consulta, 2, " ");
 		if (!strcmp(tempSplit[0], "SELECT")) {
-			log_debug(logger, "compara piola");
 			*(parametros->header) = SELECT;
 		}
 		if (!strcmp(tempSplit[0], "INSERT")) {

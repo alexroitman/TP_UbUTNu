@@ -96,7 +96,7 @@ int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina);
 void cargarSegmentoEnTabla(char* path,t_list* listaSeg);
 tSegmento* obtenerSegmentoDeTabla(t_list* tablaSeg,int index);
 int buscarSegmentoEnTabla(char* nombreTabla, tSegmento* segmento, t_list* listaSegmentos);
-void actualizarPaginaEnMemoria(tSegmento* segmento,int index, tPagina* pagina);
+void actualizarPaginaEnMemoria(tSegmento* segmento,int index, char* newValue);
 tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg);
 void recibirMensajeDeKernel();
 char* separarNombrePath(char* path);

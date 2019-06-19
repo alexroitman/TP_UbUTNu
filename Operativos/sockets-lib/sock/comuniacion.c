@@ -15,9 +15,10 @@ type leerHeader(int socket) {
 void cargarPaqueteSelect(tSelect *pack, char* cons) {
 	char** spliteado;
 	spliteado = string_n_split(cons, 3, " ");
+	pack->nombre_tabla = malloc(8);
 	if (strcmp(spliteado[1], "") && strcmp(spliteado[2], "")) {
 		pack->type = SELECT;
-		pack->nombre_tabla = spliteado[1];
+		strcpy(pack->nombre_tabla,spliteado[1]);
 		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
 		pack->key = atoi(spliteado[2]);
 		pack->length = sizeof(pack->type) + sizeof(pack->nombre_tabla_long)
@@ -32,13 +33,15 @@ void cargarPaqueteInsert(tInsert *pack, char* cons) {
 	char** spliteado;
 	char** value = string_split(cons,"\"");
 	spliteado = string_n_split(cons, 4, " ");
+	pack->value = malloc(8);//hardcodeo para probar algo
+	pack->nombre_tabla = malloc(8);
 	if (strcmp(spliteado[1], "") && strcmp(spliteado[2], "")
 			&& strcmp(spliteado[3], "")) {
 		pack->type = INSERT;
-		pack->nombre_tabla = spliteado[1];
+		strcpy(pack->nombre_tabla,spliteado[1]);
 		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
 		pack->key = atoi(spliteado[2]);
-		pack->value = value[1];
+		strcpy(pack->value,value[1]);
 		pack->value_long = strlen(value[1])+1;
 		pack->length = sizeof(pack->type) + sizeof(pack->nombre_tabla_long)
 				+ pack->nombre_tabla_long + sizeof(pack->key)
