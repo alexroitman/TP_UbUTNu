@@ -18,12 +18,18 @@ sem_t semReady;
 sem_t mutexReady;
 sem_t mutexNew;
 sem_t semNew;
+sem_t mutexSC;
+sem_t mutexSHC;
+sem_t mutexEC;
 pthread_t planificador_t;
 t_log *logger;
 t_log *loggerError;
+t_log *loggerWarning;
 t_queue *colaReady;
 t_queue *colaNew;
-t_list *listaMems;
+t_list *listaMemsSC;
+t_list *listaMemsSHC;
+t_list *listaMemsEC;
 configKernel *miConfig;
 t_config* config;
 int contScript;
@@ -35,7 +41,6 @@ int main(){
 	signal(SIGINT, finalizarEjecucion);
 	inicializarTodo();
 	socket_memoria = levantarCliente(miConfig->puerto_mem, miConfig->ip_mem);
-	listaMems = list_create();
 	log_debug(logger,"Sockets inicializados con exito");
 	log_debug(logger,"Se tendra un nivel de multiprocesamiento de: %d cpus", miConfig->MULT_PROC);
 	pthread_t cpus[miConfig->MULT_PROC];
@@ -61,12 +66,6 @@ int main(){
 	}else{
 		log_error(loggerError,"No se han podido levantar las cpus...");
 	}
-	sem_destroy(&semReady);
-	sem_destroy(&semNew);
-	sem_destroy(&mutexNew);
-	sem_destroy(&mutexReady);
-	sem_destroy(&mutexSocket);
-	close(socket_memoria);
 }
 
 type validarSegunHeader(char* header) {
@@ -87,7 +86,7 @@ type validarSegunHeader(char* header) {
 					return ADD;
 			}
 
-	if (!strcmp(header, "DESCRIBE")) {
+	if (!strcmp(header, "DESCRIBE") || !strcmp(header, "DESCRIBE\n") ) {
 					return DESCRIBE;
 			}
 	return NIL;
@@ -179,9 +178,9 @@ int despacharQuery(char* consulta, int socket_memoria) {
 		case ADD:
 			if(validarAdd(consulta)){
 				log_debug(logger,"Se recibio un ADD");
-				int id = ejecutarAdd(consulta);
-				log_debug(logger,"Se agrego el criterio a: %d ",
-						((t_infoMem*) list_get(listaMems, 0))->id);
+				int id = ejecutarAdd
+						(string_substring_until
+								(consulta,string_length(consulta)-1 ));
 				consultaOk = 1;
 			}else{
 				log_error(loggerError,"Se ingreso una consulta no valida");
@@ -219,6 +218,7 @@ void CPU(int socket_memoria){
 		int info;
 		log_debug(logger,"Se esta corriendo el script: %d", unScript->id);
 		for(int i = 0 ; i < miConfig->quantum; i++){
+			unScript->pos++;
 			info = leerLinea(unScript->path,unScript->pos,consulta);
 			switch(info){
 			case 0:
@@ -237,8 +237,6 @@ void CPU(int socket_memoria){
 					log_error(loggerError,"El script rompio en la linea: %d",
 							unScript->pos);
 					free(unScript);
-				}else{
-					unScript->pos++;
 				}
 				break;
 			case 2:
@@ -292,7 +290,7 @@ int leerLinea(char* path, int linea, char* leido){
 	log_debug(logger,"%s", path);
 	FILE* archivo = fopen(path,"r");
 	if(archivo != NULL){
-		int cont = 0;
+		int cont = 1;
 		while (fgets(leido, 256, archivo) != NULL)
 		{
 			if (cont == linea)
@@ -324,7 +322,7 @@ int validarSelect(char* consulta){
 	while(split[i] != NULL){
 		i++;
 	}
-	free(split);
+	string_iterate_lines(split,free);
 	return 3 == i;
 }
 int validarInsert(char* consulta){
@@ -338,8 +336,8 @@ int validarInsert(char* consulta){
 	while(value[j] != NULL){
 			j++;
 		}
-	free(split);
-	free(value);
+	string_iterate_lines(split,free);
+	string_iterate_lines(value,free);;
 	return ((3 == i) && (3 == j)) ;
 }
 int validarCreate(char* consulta){
@@ -348,7 +346,7 @@ int validarCreate(char* consulta){
 	while(split[i] != NULL){
 		i++;
 	}
-	free(split);
+	string_iterate_lines(split,free);
 	return 5 == i;
 }
 
@@ -371,24 +369,61 @@ int validarAdd(char* consulta){
 		}
 		i++;
 	}
-	free(split);
+	string_iterate_lines(split,free);
 	return ((5 == i) && sintaxis);
 }
 
 int ejecutarAdd(char* consulta){
 	char** split = string_split(consulta," ");
 	t_infoMem* memAdd = generarMem(consulta);
-	/*bool mismoId(void* elemento) {
-			t_infoMem* mem = malloc(sizeof(t_infoMem));
-			mem = (t_infoMem*) elemento;
-			int id = mem->id;
-			return (atoi(split[2]) == id);
+	consistencias cons = obtCons(split[4]);
+	bool mismoId(void* elemento) {
+				t_infoMem* mem = malloc(sizeof(t_infoMem));
+				mem = (t_infoMem*) elemento;
+				int id = mem->id;
+				return (atoi(split[2]) == id);
+			}
+	switch (cons){
+	case sc:
+		if(list_is_empty(list_filter(listaMemsSC, mismoId))){
+			sem_wait(&mutexSC);
+			list_add_in_index(listaMemsSC,memAdd->id - 1, memAdd);
+			sem_post(&mutexSC);
+			log_debug(logger,"Se agrego el criterio a: %d ",
+									((t_infoMem*) list_get(listaMemsSC, memAdd->id-1 ))->id);
 		}
-	if(list_is_empty(list_filter(listaMems, mismoId))){
-		list_add(listaMems, memAdd);
+		else{
+			log_warning(loggerWarning,"Ya existe la memoria al criterio especificado");
+		}
+		break;
+	case shc:
+			if(list_is_empty(list_filter(listaMemsSHC, mismoId))){
+				sem_wait(&mutexSHC);
+				list_add_in_index(listaMemsSHC,memAdd->id-1 , memAdd);
+				sem_post(&mutexSHC);
+				log_debug(logger,"Se agrego el criterio a: %d ",
+										((t_infoMem*) list_get(listaMemsSHC, memAdd->id-1 ))->id);
+			}
+			else{
+				log_warning(loggerWarning,"Ya existe la memoria al criterio especificado");
+			}
+			break;
+	case ec:
+			if(list_is_empty(list_filter(listaMemsEC, mismoId))){
+				sem_wait(&mutexEC);
+				list_add_in_index(listaMemsEC,memAdd->id-1 , memAdd);
+				sem_post(&mutexEC);
+				log_debug(logger,"Se agrego el criterio a: %d ",
+										((t_infoMem*) list_get(listaMemsEC, memAdd->id-1 ))->id);
+			}
+			else{
+				log_warning(loggerWarning,"Ya existe la memoria al criterio especificado");
+			}
+			break;
+	}
+	/*
 	}*/
-	list_add(listaMems, memAdd);
-	free(split);
+	string_iterate_lines(split,free);
 	return 0;
 }
 
@@ -396,11 +431,12 @@ t_infoMem* generarMem(char* consulta){
 	char** split = string_split(consulta," ");
 	t_infoMem* mem = malloc(sizeof(t_infoMem));
 	mem->id = atoi(split[2]);
-	mem->cons = (consistencias *)obtCons(split[4]);
+	string_iterate_lines(split,free);
+	free(split);
 	return mem;
 }
 
-void* obtCons(char* criterio){
+consistencias obtCons(char* criterio){
 	string_to_upper(criterio);
 	if(!strcmp(criterio,"SC")){
 		return sc;
@@ -426,6 +462,7 @@ void inicializarTodo(){
 	contScript = 1;
 	logger = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_DEBUG);
 	loggerError = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_ERROR);
+	loggerWarning = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_WARNING);
 	log_debug(logger,"Cargando configuracion");
 	config = config_create("Kernel.config");
 	cargarConfig(config);
@@ -436,8 +473,14 @@ void inicializarTodo(){
 	sem_init(&mutexNew,0,1);
 	sem_init(&mutexReady,0,1);
 	sem_init(&mutexSocket,0,1);
+	sem_init(&mutexSC,0,1);
+	sem_init(&mutexSHC,0,1);
+	sem_init(&mutexEC,0,1);
 	log_debug(logger,"Semaforos incializados con exito");
 	log_debug(logger,"Inicializando sockets");
+	listaMemsEC = list_create();
+	listaMemsSC = list_create();
+	listaMemsSHC = list_create();
 }
 
 void finalizarEjecucion() {
@@ -446,12 +489,18 @@ void finalizarEjecucion() {
 	printf("------------------------\n");
 	log_destroy(logger);
 	log_destroy(loggerError);
-	list_iterate(listaMems,free);
+	log_destroy(loggerWarning);
+	list_iterate(listaMemsEC,free);
+	list_iterate(listaMemsSC,free);
+	list_iterate(listaMemsSHC,free);
 	sem_destroy(&semReady);
 	sem_destroy(&semNew);
 	sem_destroy(&mutexNew);
 	sem_destroy(&mutexReady);
 	sem_destroy(&mutexSocket);
+	sem_destroy(&mutexSC);
+	sem_destroy(&mutexSHC);
+	sem_destroy(&mutexEC);
 	queue_destroy_and_destroy_elements(colaNew,free);
 	queue_destroy_and_destroy_elements(colaReady,free);
 	close(socket_memoria);

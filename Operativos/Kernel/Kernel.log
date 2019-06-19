@@ -158,3 +158,73 @@
 [DEBUG] 20:13:43:362 Kernel.c/(22112:22112): Sockets inicializados con exito
 [DEBUG] 20:13:43:362 Kernel.c/(22112:22112): Se tendra un nivel de multiprocesamiento de: 3 cpus
 [ERROR] 20:14:39:207 Kernel.c/(22112:22112): Se ingreso una consulta no valida
+[DEBUG] 19:03:31:807 Kernel.c/(26053:26053): Cargando configuracion
+[DEBUG] 19:03:31:833 Kernel.c/(26053:26053): Configuracion cargada con exito
+[DEBUG] 19:03:31:833 Kernel.c/(26053:26053): Inicializando semaforos
+[DEBUG] 19:03:31:833 Kernel.c/(26053:26053): Semaforos incializados con exito
+[DEBUG] 19:03:31:833 Kernel.c/(26053:26053): Inicializando sockets
+[DEBUG] 19:03:31:834 Kernel.c/(26053:26053): Sockets inicializados con exito
+[DEBUG] 19:03:31:834 Kernel.c/(26053:26053): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 19:40:08:267 Kernel.c/(27225:27225): Cargando configuracion
+[DEBUG] 19:40:08:295 Kernel.c/(27225:27225): Configuracion cargada con exito
+[DEBUG] 19:40:08:295 Kernel.c/(27225:27225): Inicializando semaforos
+[DEBUG] 19:40:08:295 Kernel.c/(27225:27225): Semaforos incializados con exito
+[DEBUG] 19:40:08:295 Kernel.c/(27225:27225): Inicializando sockets
+[DEBUG] 19:40:08:296 Kernel.c/(27225:27225): Sockets inicializados con exito
+[DEBUG] 19:40:08:296 Kernel.c/(27225:27225): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 19:40:29:280 Kernel.c/(27225:27225): Se recibio un ADD
+[DEBUG] 19:41:51:647 Kernel.c/(27306:27306): Cargando configuracion
+[DEBUG] 19:41:51:648 Kernel.c/(27306:27306): Configuracion cargada con exito
+[DEBUG] 19:41:51:648 Kernel.c/(27306:27306): Inicializando semaforos
+[DEBUG] 19:41:51:648 Kernel.c/(27306:27306): Semaforos incializados con exito
+[DEBUG] 19:41:51:648 Kernel.c/(27306:27306): Inicializando sockets
+[DEBUG] 19:41:51:648 Kernel.c/(27306:27306): Sockets inicializados con exito
+[DEBUG] 19:41:51:648 Kernel.c/(27306:27306): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 19:41:56:74 Kernel.c/(27306:27306): Se recibio un ADD
+[DEBUG] 19:44:58:617 Kernel.c/(27442:27442): Cargando configuracion
+[DEBUG] 19:44:58:617 Kernel.c/(27442:27442): Configuracion cargada con exito
+[DEBUG] 19:44:58:617 Kernel.c/(27442:27442): Inicializando semaforos
+[DEBUG] 19:44:58:617 Kernel.c/(27442:27442): Semaforos incializados con exito
+[DEBUG] 19:44:58:617 Kernel.c/(27442:27442): Inicializando sockets
+[DEBUG] 19:44:58:618 Kernel.c/(27442:27442): Sockets inicializados con exito
+[DEBUG] 19:44:58:618 Kernel.c/(27442:27442): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 19:45:03:776 Kernel.c/(27442:27442): Se recibio un ADD
+[DEBUG] 19:46:18:114 Kernel.c/(27505:27505): Cargando configuracion
+[DEBUG] 19:46:18:114 Kernel.c/(27505:27505): Configuracion cargada con exito
+[DEBUG] 19:46:18:114 Kernel.c/(27505:27505): Inicializando semaforos
+[DEBUG] 19:46:18:114 Kernel.c/(27505:27505): Semaforos incializados con exito
+[DEBUG] 19:46:18:114 Kernel.c/(27505:27505): Inicializando sockets
+[DEBUG] 19:46:18:114 Kernel.c/(27505:27505): Sockets inicializados con exito
+[DEBUG] 19:46:18:114 Kernel.c/(27505:27505): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 19:46:23:365 Kernel.c/(27505:27505): Se recibio un ADD
+[DEBUG] 19:47:14:412 Kernel.c/(27505:27505): Se recibio un ADD
+[DEBUG] 19:48:30:491 Kernel.c/(27505:27505): Se recibio un ADD
+[DEBUG] 19:53:44:190 Kernel.c/(27815:27815): Cargando configuracion
+[DEBUG] 19:53:44:204 Kernel.c/(27815:27815): Configuracion cargada con exito
+[DEBUG] 19:53:44:205 Kernel.c/(27815:27815): Inicializando semaforos
+[DEBUG] 19:53:44:205 Kernel.c/(27815:27815): Semaforos incializados con exito
+[DEBUG] 19:53:44:205 Kernel.c/(27815:27815): Inicializando sockets
+[DEBUG] 19:53:44:205 Kernel.c/(27815:27815): Sockets inicializados con exito
+[DEBUG] 19:53:44:205 Kernel.c/(27815:27815): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 19:53:47:109 Kernel.c/(27815:27815): Se recibio un ADD
+[DEBUG] 19:55:43:751 Kernel.c/(27911:27911): Cargando configuracion
+[DEBUG] 19:55:43:751 Kernel.c/(27911:27911): Configuracion cargada con exito
+[DEBUG] 19:55:43:751 Kernel.c/(27911:27911): Inicializando semaforos
+[DEBUG] 19:55:43:751 Kernel.c/(27911:27911): Semaforos incializados con exito
+[DEBUG] 19:55:43:751 Kernel.c/(27911:27911): Inicializando sockets
+[DEBUG] 19:55:43:751 Kernel.c/(27911:27911): Sockets inicializados con exito
+[DEBUG] 19:55:43:751 Kernel.c/(27911:27911): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 19:55:47:316 Kernel.c/(27911:27911): Se recibio un ADD
+[DEBUG] 19:58:55:448 Kernel.c/(28037:28037): Cargando configuracion
+[DEBUG] 19:58:55:448 Kernel.c/(28037:28037): Configuracion cargada con exito
+[DEBUG] 19:58:55:448 Kernel.c/(28037:28037): Inicializando semaforos
+[DEBUG] 19:58:55:448 Kernel.c/(28037:28037): Semaforos incializados con exito
+[DEBUG] 19:58:55:448 Kernel.c/(28037:28037): Inicializando sockets
+[DEBUG] 19:58:55:449 Kernel.c/(28037:28037): Sockets inicializados con exito
+[DEBUG] 19:58:55:449 Kernel.c/(28037:28037): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 19:58:58:433 Kernel.c/(28037:28037): Se recibio un ADD
+[DEBUG] 19:59:28:764 Kernel.c/(28037:28037): Se agrego el criterio a: 1 
+[DEBUG] 19:59:43:639 Kernel.c/(28037:28037): Se recibio un ADD
+[WARNING] 19:59:45:897 Kernel.c/(28037:28037): Ya existe la memoria al criterio especificado
+[DEBUG] 19:59:58:977 Kernel.c/(28037:28037): Se recibio un ADD
+[DEBUG] 20:00:02:729 Kernel.c/(28037:28037): Se agrego el criterio a: 2 
