@@ -23,7 +23,7 @@
 #define noAbreMetadata -7
 #define noExisteParametro -8
 #define noExisteTabla -9
-#define noSeAgregoTabla -9
+#define noSeAgregoTabla -10
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -63,35 +63,48 @@ typedef struct{
 }t_memtable ;
 
 
+// MEMTABLE
+t_list* inicializarMemtable();
+int insertarEnMemtable(tInsert* packinsert);
+int insertarRegistro(registro* registro, char* nombre_tabla);
+int agregar_tabla_a_memtable(char* tabla);
+int existe_tabla_en_memtable(char* posible_tabla);
 
 // APIs
-registro* SelectFS(char* NOMBRE_TABLA, int KEY);
-int Insert (char* NOMBRE_TABLA, int KEY, char* VALUE, int Timestamp);
 int Create(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME);
-metadata Describe(char* NOMBRE_TABLA);
+int Insert (char* NOMBRE_TABLA, int KEY, char* VALUE, int Timestamp);
 int Drop(char* NOMBRE_TABLA);
+registro* Select(char* NOMBRE_TABLA, int KEY);
+metadata Describe(char* NOMBRE_TABLA);
 
-// Funciones de tabla
+// AUXILIARES DE SELECT
+registro* SelectFS(char* NOMBRE_TABLA, int KEY);
+t_list* selectEnMemtable( uint16_t key, char* tabla);
+t_list* SelectTemp(char* ruta, int KEY);
+
+// TABLAS
 int crearMetadata(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME);
 int crearBinarios(char* NOMBRE_TABLA, int NUMERO_PARTICIONES);
 int verificadorDeTabla(char* NOMBRE_TABLA);
-int borrarDirectorio(const char* directorio);
 int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo);
-int dumpeoMemoria();
-
-registro* Select(char* NOMBRE_TABLA, int KEY);
-t_list* SelectTemp(char* ruta, int KEY);
-void imprimir_registro(registro* unreg);
-t_list* inicializarMemtable();
-int insertarEnMemtable(tInsert* packinsert);
-t_list* selectEnMemtable( uint16_t key, char* tabla);
-int insertarRegistro(registro* registro, char* nombre_tabla);
-int agregar_tabla_a_memtable(char* tabla);
+t_bitarray* levantarBitmap();
 off_t obtener_bit_libre();
+
+// DUMPEO
+void bajarAMemoria(int* fd2, char* registroParaEscribir, t_config* tmp);
+void dumpearTabla(t_tabla* UnaTabla);
+int dumpeoMemoria();
 char* mapearBloque(int fd2, size_t textsize);
 
-// Funciones de logger
+// LOGGER
 t_log* iniciar_logger(void);
+void imprimir_registro(registro* unreg);
 void logeoDeErrores(int errorHandler, t_log* logger);
+
+// OTROS
+void crearBitmapNuestro(); // Solo lo usamos para pruebas
+int borrarDirectorio(char* directorio);
+
+// CIERRE
 void finalizarEjecutcion();
 #endif /* LFS_H_ */
