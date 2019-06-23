@@ -95,11 +95,12 @@ void bajarAMemoria(int* fd2, char* registroParaEscribir, t_config* tmp);
 void dumpearTabla(t_tabla* UnaTabla);
 int dumpeoMemoria();
 char* mapearBloque(int fd2, size_t textsize);
+void actualizarBloquesEnTemporal(t_config* tmp, off_t bloque);
 
 // LOGGER
 t_log* iniciar_logger(void);
 void imprimir_registro(registro* unreg);
-void logeoDeErrores(int errorHandler, t_log* logger);
+void logeoDeErrores(int errorHandler);
 
 // OTROS
 void crearBitmapNuestro(); // Solo lo usamos para pruebas
