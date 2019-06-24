@@ -13,24 +13,12 @@
 #define SHC 2 //Strong Hash Consistency
 #define EC 3 // Eventual Consistency
 
-// TIPOS DE ERRORES PARA LOGGER
-#define todoJoya 0
-#define tablaExistente -1
-#define carpetaNoCreada -2
-#define metadataNoCreada -3
-#define BINNoCreado -4
-#define tablaNoEliminada -6
-#define noAbreMetadata -7
-#define noExisteParametro -8
-#define noExisteTabla -9
-#define noSeAgregoTabla -10
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <commons/log.h>
 #include <commons/string.h>
 #include <commons/bitarray.h>
 #include <commons/config.h>
@@ -42,17 +30,20 @@
 #include <dirent.h>
 #include <sock/sockets-lib.h>
 #include <sock/comunicacion.h>
+#include <sock/logger.h>
 #include <sys/socket.h>
 #include <stdbool.h>
 #include <dirent.h>
 #include <errno.h>
 #include <signal.h>
+
 // Estructuras
 typedef struct {
 	int particiones;
 	int consistencia;
 	int tiempo_compactacion;
 } metadata;
+
 typedef struct{
 	char* nombreTabla;
 	t_list* registros;
@@ -96,11 +87,6 @@ void dumpearTabla(t_tabla* UnaTabla);
 int dumpeoMemoria();
 char* mapearBloque(int fd2, size_t textsize);
 void actualizarBloquesEnTemporal(t_config* tmp, off_t bloque);
-
-// LOGGER
-t_log* iniciar_logger(void);
-void imprimir_registro(registro* unreg);
-void logeoDeErrores(int errorHandler);
 
 // OTROS
 void crearBitmapNuestro(); // Solo lo usamos para pruebas

@@ -48,7 +48,6 @@ typedef struct{
 	uint16_t key;
 	char* value;
 	int timestamp;
-
 } registro;
 
 typedef struct{
@@ -58,7 +57,6 @@ typedef struct{
 	char* value;
 	int timestamp;
 	int length;
-
 } tRegistroRespuesta;
 
 typedef struct {
@@ -94,7 +92,7 @@ typedef struct {
 	type type;
 char* nombre_tabla;							//DESCRIBE
 int nombre_tabla_long;
-int length
+int length;
 } tDescribe;
 
 typedef struct {

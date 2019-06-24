@@ -124,7 +124,7 @@ int main(void) {
 
 	//Rutina de cierre
 	if (errorHandler)
-		logeoDeErrores(errorHandler);
+		logeoDeErrores(errorHandler, logger);
 	log_destroy(logger);
 	close(socket_cli);
 	close(socket_sv);
@@ -714,52 +714,7 @@ void actualizarBloquesEnTemporal(t_config* tmp, off_t bloque){
 	free(bloques);
 }
 
-// ---------------LOGGER-----------------
 
-t_log* iniciar_logger() {
-	return log_create("LFS.log", "LFS", 1, LOG_LEVEL_DEBUG);
-}
-
-void imprimir_registro(registro* unreg) {
-	printf("Encontre un %s", unreg->value);
-}
-
-void logeoDeErrores(int errorHandler) {
-	//Optimizacion: ver si hay una forma mejor de manejar los errores
-	switch (errorHandler) {
-	case tablaExistente:
-		log_info(logger, "Se trato de crear una tabla ya existente");
-		break;
-
-	case carpetaNoCreada:
-		log_info(logger, "No se pudo crear la carpeta de la tabla");
-		break;
-
-	case metadataNoCreada:
-		log_info(logger, "No se pudo crear el archivo metadata");
-		break;
-
-	case BINNoCreado:
-		log_info(logger, "No se pudo crear un archivo .bin");
-		break;
-
-	case noExisteTabla:
-		log_info(logger, "No existe la tabla solicitada");
-		break;
-
-	case tablaNoEliminada:
-		log_info(logger, "La tabla solicitada no pudo ser eliminada");
-		break;
-
-	case noAbreMetadata:
-		log_info(logger, "No se pudo abrir el archivo metadata");
-		break;
-
-	case noExisteParametro:
-		log_info(logger, "El parametro solicitado no existe");
-		break;
-	}
-}
 
 // ---------------OTROS-----------------
 

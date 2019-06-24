@@ -5,14 +5,17 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../sock/comuniacion.c \
+../sock/logger.c \
 ../sock/sockets-lib.c 
 
 OBJS += \
 ./sock/comuniacion.o \
+./sock/logger.o \
 ./sock/sockets-lib.o 
 
 C_DEPS += \
 ./sock/comuniacion.d \
+./sock/logger.d \
 ./sock/sockets-lib.d 
 
 
