@@ -54,6 +54,7 @@ int main(void) {
 		tSelect* packSelect = malloc(sizeof(tSelect));
 		tInsert* packInsert = malloc(sizeof(tInsert));
 		tCreate* packCreate = malloc(sizeof(tCreate));
+		tDrop* packDrop = malloc(sizeof(tDrop));
 
 		switch (header) {
 		case SELECT:
@@ -78,27 +79,26 @@ int main(void) {
 			desSerializarInsert(packInsert, socket_cli);
 			packInsert->type = header;
 			printf("Comando INSERT recibido: tabla %s con key %d y value %s \n",
-					packInsert->nombre_tabla,
-					packInsert->key,
+					packInsert->nombre_tabla, packInsert->key,
 					packInsert->value);
 			errorHandler = insertarEnMemtable(packInsert);
 			if (errorHandler == todoJoya)
 				log_debug(logger, "se inserto bien");
-			free(packSelect);
+			free(packInsert);
 			break;
 
 		case CREATE:
-//			TODO: Restablecer funcionamiento normal de CREATE
-//			log_debug(logger, "Comando CREATE recibido");
-//			desSerializarCreate(packCreate, socket_cli);
-//			packCreate->type = header;
-//			errorHandler = Create(packCreate->nombre_tabla,
-//					packCreate->consistencia, packCreate->particiones,
-//					packCreate->compaction_time);
-//			if (errorHandler == todoJoya)
-//				log_debug(logger, "se creo bien");
-//			free(packSelect);
-			dumpeoMemoria();
+			//TODO: Restablecer funcionamiento normal de CREATE
+			log_debug(logger, "Comando CREATE recibido");
+			desSerializarCreate(packCreate, socket_cli);
+			packCreate->type = header;
+			errorHandler = Create(packCreate->nombre_tabla,
+					packCreate->consistencia, packCreate->particiones,
+					packCreate->compaction_time);
+			if (errorHandler == todoJoya)
+				log_debug(logger, "se creo bien");
+			free(packCreate);
+			//	dumpeoMemoria();
 			break;
 
 		case ADD:
@@ -108,6 +108,17 @@ int main(void) {
 			break;
 
 		case DROP:
+
+			log_debug(logger, "Recibi un drop");
+			desSerializarDrop(packDrop, socket_cli);
+			log_debug(logger, "Desserialice bien");
+			packDrop->type = header;
+
+			errorHandler = Drop(packDrop->nombre_tabla);
+			if (errorHandler == todoJoya)
+				log_debug(logger, "se elimino bien");
+
+			free(packDrop);
 			break;
 
 		case JOURNAL:
@@ -264,15 +275,91 @@ int Insert(char* NOMBRE_TABLA, int KEY, char* VALUE, int Timestamp) {
 }
 
 int Drop(char* NOMBRE_TABLA) {
-
+	log_debug(logger, "entre al drop");
 	// ---- Verifico que la tabla exista ----
-	if (verificadorDeTabla(NOMBRE_TABLA) != 0)
+	char* ruta = string_new();
+	string_append(&ruta, dirMontaje);
+	string_append(&ruta, "Tablas/");
+	string_append(&ruta, NOMBRE_TABLA);
+	log_debug(logger, "no me fijo en %s", ruta);
+	if (!verificadorDeTabla(ruta)) {
+		log_debug(logger, "no existe la tabla en %s", ruta);
 		return noExisteTabla;
+	}
+	//eliminar de la memtable
+	char* rutametadata = string_new();
+	string_append(&rutametadata, ruta);
+	string_append(&rutametadata, "/metadata");
+	t_config* metadataTabla = config_create(rutametadata);
+	int cantParticiones = config_get_int_value(metadataTabla, "PARTITIONS");
+	log_debug(logger, "PART: %d", cantParticiones);
+	config_destroy(metadataTabla);
+	free(rutametadata);
+	for (int i = 1; i <= cantParticiones; i++) {
+		log_debug(logger, "entre al for");
+		char* binario_a_limpiar = string_new();
+		string_append(&binario_a_limpiar, dirMontaje);
+		string_append(&binario_a_limpiar, "Tablas/");
+		string_append(&binario_a_limpiar, NOMBRE_TABLA);
+		string_append_with_format(&binario_a_limpiar, "/%d", i);
+		string_append(&binario_a_limpiar, ".bin");
+		log_debug(logger, "Me voy a fijar bloques en : %s", binario_a_limpiar);
+		t_config* binario = config_create(binario_a_limpiar);
+		char** bloques_a_limpiar = config_get_array_value(binario, "BLOCKS");
+		int i = 0;
+		while (bloques_a_limpiar[i] != NULL) {
+			log_debug(logger, "Me voy a fijar en el: %s", bloques_a_limpiar[i]);
+			limpiar_bit(bloques_a_limpiar[i]);
+			i++;
+		}
+		free(binario_a_limpiar);
+		config_destroy(binario);
+	}
+	if (cantidadDeDumpeos > 1) {
+		for (int j = 1; j <= cantidadDeDumpeos; j++) {
+			log_debug(logger, "entre al for");
+			char* temporal_a_limpiar = string_new();
+			string_append(&temporal_a_limpiar, dirMontaje);
+			string_append(&temporal_a_limpiar, "Tablas/");
+			string_append(&temporal_a_limpiar, NOMBRE_TABLA);
+			string_append_with_format(&temporal_a_limpiar, "/%d", j);
+			string_append(&temporal_a_limpiar, ".tmp");
+			log_debug(logger, "Me voy a fijar bloques en : %s",
+					temporal_a_limpiar);
+			t_config* temporal = config_create(temporal_a_limpiar);
+			char** bloques_a_limpiar = config_get_array_value(temporal,
+					"BLOCKS");
+			int i = 0;
+			while (bloques_a_limpiar[i] != NULL) {
+				log_debug(logger, "Me voy a fijar en el: %s",
+						bloques_a_limpiar[i]);
+				limpiar_bit(bloques_a_limpiar[i]);
+				i++;
+			}
+			free(temporal_a_limpiar);
+			config_destroy(temporal);
+		}
+	}
+	char* comando_a_ejecutar = string_new();
+	string_append_with_format(&comando_a_ejecutar, "rm -rf %s", ruta);
+	system(comando_a_ejecutar);
+	free(comando_a_ejecutar);
 
 	// ---- Elimino el directorio y todos los archivos ----
-	if (borrarDirectorio(NOMBRE_TABLA) != 0)
-		return tablaNoEliminada;
+	//if (borrarDirectorio(NOMBRE_TABLA) != 0)
+	//	return tablaNoEliminada;
+
+	free(rutametadata);
 	return todoJoya;
+}
+off_t limpiar_bit(char* bit) {
+	t_bitarray* bitmap = levantarBitmap();
+
+	log_debug(logger, "levanteBitmap y voy a setear el %s", bit);
+	bitarray_clean_bit(bitmap, atoi(bit));
+//	bitarray_clean_bit(bitmap,bit);
+
+	return bit;
 }
 
 registro* Select(char* NOMBRE_TABLA, int KEY) {
@@ -669,7 +756,8 @@ void bajarAMemoria(int* fd2, char* registroParaEscribir, t_config* tmp) {
 			//llamar a bloque
 //			TODO: armar lo que sigue como subfuncion, esta en dumpeo memoria repetido
 			off_t bit_index = obtener_bit_libre();
-			log_debug(logger, "entre al else de textsize y bit_index vale %d", bit_index);
+			log_debug(logger, "entre al else de textsize y bit_index vale %d",
+					bit_index);
 			actualizarBloquesEnTemporal(tmp, bit_index);
 			log_debug(logger, "voy a crear string de bloques dumpeo");
 			char* bloqueDumpeoNuevo = string_new();
@@ -701,11 +789,12 @@ char* mapearBloque(int fd2, size_t textsize) {
 	return map;
 }
 
-void actualizarBloquesEnTemporal(t_config* tmp, off_t bloque){
+void actualizarBloquesEnTemporal(t_config* tmp, off_t bloque) {
 	char* bloques = config_get_string_value(tmp, "BLOCKS");
 	log_debug(logger, "habia %s bloques en el .tmp", bloques);
-	bloques = string_substring_until(bloques, string_length(bloques)-1);
-	log_debug(logger, "queda %s despues de cortar %d caracteres", bloques, string_length(bloques)+2);
+	bloques = string_substring_until(bloques, string_length(bloques) - 1);
+	log_debug(logger, "queda %s despues de cortar %d caracteres", bloques,
+			string_length(bloques) + 2);
 	string_append_with_format(&bloques, ",%d]", bloque);
 	log_debug(logger, "van a quedar %s bloques en el .tmp", bloques);
 	config_set_value(tmp, "BLOCKS", bloques);
@@ -713,8 +802,6 @@ void actualizarBloquesEnTemporal(t_config* tmp, off_t bloque){
 	log_debug(logger, "grabe los bloques");
 	free(bloques);
 }
-
-
 
 // ---------------OTROS-----------------
 

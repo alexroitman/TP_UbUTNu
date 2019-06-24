@@ -96,7 +96,10 @@ int length;
 } tDescribe;
 
 typedef struct {
-char* nombre_tabla;							//DROP
+	type type;
+char* nombre_tabla;
+int nombre_tabla_long;
+int length;										//DROP
 } tDrop;
 
 typedef struct {
@@ -115,6 +118,7 @@ void cargarPaqueteSelect(tSelect *pack, char* cons);
 void cargarPaqueteInsert(tInsert *pack, char* cons);
 void cargarPaqueteCreate(tCreate *pack, char* cons);
 void cargarPaqueteDescribe(tDescribe *pack, char* cons);
+void cargarPaqueteDrop(tDrop*pack, char* cons);
 
 int desSerializarRegistro(tRegistroRespuesta* reg, int socket);
 char* serializarRegistro(tRegistroRespuesta* reg);
@@ -122,8 +126,8 @@ char* serializarRegistro(tRegistroRespuesta* reg);
 int desSerializarInsert(tInsert* packageInsert, int socket);
 char* serializarInsert(tInsert* packageInsert);
 
-int serializarDrop(tDrop packageDrop, tPaquete* paqueteSerializado);
-int desSerializarDrop(tPaquete* paqueteSerializado, tDrop* packageDrop);
+char* serializarDrop(tDrop* packageDrop);
+int desSerializarDrop(tDrop* packageDrop, int socket) ;
 
 char* serializarSelect(tSelect* packageSelect);
 int desSerializarSelect(tSelect* packageSelect,int socket);
