@@ -15,8 +15,8 @@ type leerHeader(int socket) {
 void cargarPaqueteSelect(tSelect *pack, char* cons) {
 	char** spliteado;
 	spliteado = string_n_split(cons, 3, " ");
-	pack->nombre_tabla = malloc(8);
 	if (strcmp(spliteado[1], "") && strcmp(spliteado[2], "")) {
+		pack->nombre_tabla = malloc(strlen(spliteado[1])+1);
 		pack->type = SELECT;
 		strcpy(pack->nombre_tabla,spliteado[1]);
 		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
@@ -26,18 +26,20 @@ void cargarPaqueteSelect(tSelect *pack, char* cons) {
 	} else {
 		printf("no entendi tu consulta\n");
 	}
-	free(spliteado);
+	free(spliteado[0]);
+	free(spliteado[1]);
+	free(spliteado[2]);
 }
 
 void cargarPaqueteInsert(tInsert *pack, char* cons) {
 	char** spliteado;
 	char** value = string_split(cons,"\"");
 	spliteado = string_n_split(cons, 4, " ");
-	pack->value = malloc(8);//hardcodeo para probar algo
-	pack->nombre_tabla = malloc(8);
 	if (strcmp(spliteado[1], "") && strcmp(spliteado[2], "")
 			&& strcmp(spliteado[3], "")) {
 		pack->type = INSERT;
+		pack->value = malloc(strlen(spliteado[1]));
+		pack->nombre_tabla = malloc(strlen(value[1]));
 		strcpy(pack->nombre_tabla,spliteado[1]);
 		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
 		pack->key = atoi(spliteado[2]);
@@ -49,7 +51,12 @@ void cargarPaqueteInsert(tInsert *pack, char* cons) {
 	} else {
 		printf("no entendi tu consulta\n");
 	}
-	free(spliteado);
+	free(spliteado[0]);
+	free(spliteado[1]);
+	free(spliteado[2]);
+	free(spliteado[3]);
+	free(value[1]);
+	free(value[2]);
 	free(value);
 }
 
