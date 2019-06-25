@@ -51,6 +51,7 @@ typedef struct {
 	int offsetMemoria;
 	bool modificado;
 	int index;
+	int ultimoTime;
 }elem_tabla_pag;
 
 typedef struct {
@@ -77,12 +78,6 @@ struct addrinfo *serverInfo;
 
 void crearHilosRecepcion(type* header, pthread_t hiloSocket,
 		pthread_t hiloConsola,tHiloConsola* paramsConsola);
-
-void cargarPackCreate(tCreate* packCreate,bool leyoConsola,char consulta[]);
-void cargarPackSelect(tSelect* packSelect,bool leyoConsola,char* consulta);
-void cargarPackInsert(tInsert* packInsert, bool leyoConsola, char consulta[]);
-void cargarPackDrop(tDrop* packDrop, bool leyoConsola, char consulta[]);
-
 
 int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla,tPagina* pagina);
 int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina);

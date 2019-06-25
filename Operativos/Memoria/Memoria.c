@@ -58,32 +58,6 @@ int handshakeLFS(int socket_lfs){
 	return buffer;
 }
 
-void cargarPackSelect(tSelect* packSelect,bool leyoConsola,char consulta[]){
-	if(leyoConsola){
-		cargarPaqueteSelect(packSelect, consulta);
-	}else{
-		desSerializarSelect(packSelect, socket_kernel);
-	}
-
-}
-
-void cargarPackInsert(tInsert* packInsert, bool leyoConsola, char consulta[]) {
-	if (leyoConsola) {
-		cargarPaqueteInsert(packInsert, consulta);
-	} else {
-		desSerializarInsert(packInsert, socket_kernel);
-	}
-
-}
-
-void cargarPackCreate(tCreate* packCreate,bool leyoConsola,char consulta[]){
-	if(leyoConsola){
-		cargarPaqueteCreate(packCreate, consulta);
-	}else{
-		desSerializarCreate(packCreate, socket_kernel);
-	}
-
-}
 
 void cargarPackDrop(tDrop* packDrop, bool leyoConsola, char consulta[]){
 	if(leyoConsola){
@@ -115,11 +89,13 @@ tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg) {
 int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina) {
 	int cantPags = 0;
 	int cantPagsMax = miConfig->tam_mem / (6 + tamanioMaxValue);
-	tPagina* pag = (tPagina*)(memoria);
-	while (pag->timestamp != 0) {
+	//tPagina* pag = (tPagina*)(memoria);
+	int timeAux;
+	memcpy(&timeAux,memoria + 2,4);
+	while (timeAux != 0) {
 		cantPags++;
 		if (cantPags <= cantPagsMax) {
-			pag = (tPagina*)(memoria + cantPags*(6+tamanioMaxValue));
+			memcpy(&timeAux,memoria + cantPags*(6 + tamanioMaxValue) + 2,4);
 		} else {
 			return -1;
 			//no hay mas lugar en memoria
@@ -137,10 +113,9 @@ int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina) {
 	pagTabla->modificado = true;
 	pagTabla->offsetMemoria = offset;
 	pagTabla->index = list_size(seg->tablaPaginas);
-
+	pagTabla->ultimoTime = (int) time (NULL);
 	list_add(seg->tablaPaginas, (elem_tabla_pag*)pagTabla);
 	log_debug(logger, "Pagina cargada en memoria.");
-
 	return 1;
 
 }
@@ -178,7 +153,7 @@ int buscarSegmentoEnTabla(char* nombreTabla, tSegmento* miseg, t_list* listaSegm
 void liberarPaginasDelSegmento(tSegmento* miSegmento, t_list* tablaSegmentos) {
 	void eliminarDeMemoria(void* elemento) {
 		elem_tabla_pag* elemPag = (elem_tabla_pag*) elemento;
-		*(int*) (memoria + elemPag->offsetMemoria + 2) = 0; //LIMPIAR EL TIMESTAMP
+		memset(memoria + elemPag->offsetMemoria + 2, 0 , 4);
 	}
 
 	bool mismoNombre(void* elemento) {
@@ -228,6 +203,8 @@ int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla,tPa
 			memcpy(&(pagina->timestamp),memoria + pagTabla->offsetMemoria + 2,4);
 
 			memcpy(pagina->value,memoria + pagTabla->offsetMemoria + 6,tamanioMaxValue);
+
+			pagTabla->ultimoTime = (int) time (NULL);
 			return pagTabla->index;
 
 		} else {
@@ -240,6 +217,7 @@ int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla,tPa
 	}
 
 }
+
 
 t_miConfig* cargarConfig() {
 	char* buffer = malloc(256);
