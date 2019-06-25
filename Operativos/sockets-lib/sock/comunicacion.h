@@ -118,7 +118,11 @@ void cargarPaqueteSelect(tSelect *pack, char* cons);
 void cargarPaqueteInsert(tInsert *pack, char* cons);
 void cargarPaqueteCreate(tCreate *pack, char* cons);
 void cargarPaqueteDescribe(tDescribe *pack, char* cons);
+<<<<<<< HEAD
 void cargarPaqueteDrop(tDrop*pack, char* cons);
+=======
+void cargarPaqueteDrop(tDrop *pack, char* cons);
+>>>>>>> cfeced93040d5bb65bd4140ee71c4e74a54513ab
 
 int desSerializarRegistro(tRegistroRespuesta* reg, int socket);
 char* serializarRegistro(tRegistroRespuesta* reg);
@@ -126,8 +130,11 @@ char* serializarRegistro(tRegistroRespuesta* reg);
 int desSerializarInsert(tInsert* packageInsert, int socket);
 char* serializarInsert(tInsert* packageInsert);
 
+<<<<<<< HEAD
 char* serializarDrop(tDrop* packageDrop);
 int desSerializarDrop(tDrop* packageDrop, int socket) ;
+=======
+>>>>>>> cfeced93040d5bb65bd4140ee71c4e74a54513ab
 
 char* serializarSelect(tSelect* packageSelect);
 int desSerializarSelect(tSelect* packageSelect,int socket);
@@ -137,6 +144,9 @@ int desSerializarCreate(tCreate* packageCreate, int socket) ;
 
 char* serializarDescribe(tDescribe* packageDescribe);
 int desSerializarDescribe(tDescribe* paqueteSerializado, int socket);
+
+char* serializarDrop(tDrop* packageDrop);
+int desSerializarDrop(tDrop* packageDrop, int socket);
 
 int serializarJournal(tJournal packageJournal, tPaquete* paqueteSerializado);
 int desSerializarJournal(tPaquete* paqueteSerializado, tJournal* packageJournal);
