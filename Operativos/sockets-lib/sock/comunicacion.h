@@ -130,11 +130,6 @@ char* serializarRegistro(tRegistroRespuesta* reg);
 int desSerializarInsert(tInsert* packageInsert, int socket);
 char* serializarInsert(tInsert* packageInsert);
 
-
-char* serializarDrop(tDrop* packageDrop);
-int desSerializarDrop(tDrop* packageDrop, int socket) ;
-
-
 char* serializarSelect(tSelect* packageSelect);
 int desSerializarSelect(tSelect* packageSelect,int socket);
 
