@@ -39,6 +39,7 @@ void* recibirHeader(void* arg) {
 	while (1) {
 		recibioSocket = false;
 		type* header = (type*) arg;
+		sleep(2);
 		recv(socket_kernel, &(*header), sizeof(type), MSG_WAITALL);
 		recibioSocket = true;
 		if (*header != NIL) {
@@ -59,6 +60,7 @@ void actualizarPaginaEnMemoria(tSegmento* segmento,int index, char* newValue) {
 	log_debug(logger,"offset: %d",offsetMemoria);
 	memcpy(memoria + offsetMemoria + 6,newValue,tamanioMaxValue);
 	elemTablaPag->modificado = false; //PARA PROBARRRRR ! TIENE QUE SER TRUE
+	elemTablaPag->ultimoTime = (int) time (NULL);
 	log_debug(logger, "Pagina encontrada y actualizada.");
 }
 
@@ -189,7 +191,6 @@ int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla,tPa
 
 			memcpy(pagina->value,memoria + pagTabla->offsetMemoria + 6,tamanioMaxValue);
 
-			pagTabla->ultimoTime = (int) time (NULL);
 			return pagTabla->index;
 
 		} else {
