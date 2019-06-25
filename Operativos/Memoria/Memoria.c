@@ -2,12 +2,8 @@
 #include "Querys.h"
 #define BACKLOG 5			// Define cuantas conexiones vamos a mantener pendientes al mismo tiempo
 #define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
-char package[PACKAGESIZE];
-struct addrinfo hints;
-struct addrinfo *serverInfo;
-pthread_t hiloConsola;
-pthread_t hiloSocket;
-t_miConfig* miConfig;
+
+
 
 
 int main() {
@@ -49,21 +45,6 @@ void* recibirHeader(void* arg) {
 			//PORQUE SI SE CORTO LA CONEXION CON KERNEL NO QUIERO QUE HAGA EL SIGNAL DEL SEMAFORO
 			ejecutarConsulta(memoria);
 		}
-	}
-}
-
-int handshakeLFS(int socket_lfs){
-	int buffer;
-	recv(socket_lfs,&buffer,4,MSG_WAITALL);
-	return buffer;
-}
-
-
-void cargarPackDrop(tDrop* packDrop, bool leyoConsola, char consulta[]){
-	if(leyoConsola){
-		cargarPaqueteDrop(packDrop, consulta);
-	} else {
-		desSerializarDrop(packDrop, socket_kernel);
 	}
 }
 

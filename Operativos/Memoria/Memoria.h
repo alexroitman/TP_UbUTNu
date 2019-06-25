@@ -39,6 +39,8 @@ int socket_sv;
 int encontroSeg;
 int indexPag;
 void* memoria;
+pthread_t hiloConsola;
+pthread_t hiloSocket;
 
 typedef struct{
 	type* header;
@@ -71,13 +73,14 @@ typedef struct {
 	char* ip_fs;
 	int tam_mem ;
 } t_miConfig;
-
+t_miConfig* miConfig;
 char package[PACKAGESIZE];
 struct addrinfo hints;
 struct addrinfo *serverInfo;
 
 void crearHilosRecepcion(type* header, pthread_t hiloSocket,
 		pthread_t hiloConsola,tHiloConsola* paramsConsola);
+
 
 int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla,tPagina* pagina);
 int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina);
