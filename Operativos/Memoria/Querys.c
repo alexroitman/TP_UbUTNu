@@ -99,11 +99,19 @@ void ejecutarConsulta(void* memoria) {
 			pagina->timestamp = (int) time(NULL);
 			strcpy(pagina->value, packInsert->value);
 			cargarSegmentoEnTabla(packInsert->nombre_tabla, tablaSegmentos);
-			tSegmento* newSeg = obtenerUltimoSegmentoDeTabla(tablaSegmentos);
-			error = agregarPaginaAMemoria(newSeg,pagina);
+			miSegmento = obtenerUltimoSegmentoDeTabla(tablaSegmentos);
+			error = agregarPaginaAMemoria(miSegmento,pagina);
 		}
 
 		if(error == -1){
+			int errorLRU;
+			errorLRU = ejecutarLRU();
+			if(errorLRU == 1){
+				agregarPaginaAMemoria(miSegmento,pagina);
+			}else{
+				log_error(logger,"Hacer Journal");
+			}
+
 			//EJECUTAR LRU
 
 
@@ -193,7 +201,11 @@ void* leerQuery(void* params) {
 			*(parametros->header) = DROP;
 		}
 		leyoConsola = true;
+		free(tempSplit[0]);
+		free(tempSplit[1]);
+		free(tempSplit);
 		ejecutarConsulta(memoria);
+
 	}
 }
 
@@ -224,6 +236,16 @@ void cargarPackCreate(tCreate* packCreate,bool leyoConsola,char consulta[]){
 	}
 
 }
+void cargarPackDrop(tDrop* packDrop, bool leyoConsola, char consulta[]){
+	if(leyoConsola){
+		cargarPaqueteDrop(packDrop, consulta);
+	} else {
+		desSerializarDrop(packDrop, socket_kernel);
+	}
+}
 
-
-
+int handshakeLFS(int socket_lfs){
+	int buffer;
+	recv(socket_lfs,&buffer,4,MSG_WAITALL);
+	return buffer;
+}

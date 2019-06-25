@@ -11,6 +11,7 @@ int main() {
 	signal(SIGINT, finalizarEjecucion);
 	logger = log_create("Memoria.log", "Memoria.c", 1, LOG_LEVEL_DEBUG);
 	miConfig = cargarConfig();
+	log_debug(logger,"Tamanio Memoria: %d",miConfig->tam_mem);
 	socket_sv = levantarServidor((char*) miConfig->puerto_kernel);
 	socket_kernel = aceptarCliente(socket_sv);
 	log_debug(logger, "Levanta conexion con kernel");
@@ -18,7 +19,7 @@ int main() {
 	tamanioMaxValue = handshakeLFS(socket_lfs);
 	log_debug(logger, "Handshake con LFS realizado. Tamanio max del value: %d",
 			tamanioMaxValue);
-	memoria = calloc(miConfig->tam_mem, 6 + tamanioMaxValue);
+	memoria = calloc(miConfig->tam_mem,6 + tamanioMaxValue);
 	tablaSegmentos = list_create();
 	header = malloc(sizeof(type));
 	leyoConsola = true;
@@ -56,7 +57,7 @@ void actualizarPaginaEnMemoria(tSegmento* segmento,int index, char* newValue) {
 	int timestamp = (int) time(NULL);
 	memcpy(memoria + offsetMemoria + 2, &(timestamp),4);
 	memcpy(memoria + offsetMemoria + 6,newValue,tamanioMaxValue);
-	elemTablaPag->modificado = true;
+	elemTablaPag->modificado = false; //PARA PROBARRRRR ! TIENE QUE SER TRUE
 	log_debug(logger, "Pagina encontrada y actualizada.");
 }
 
@@ -70,12 +71,13 @@ tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg) {
 int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina) {
 	int cantPags = 0;
 	int cantPagsMax = miConfig->tam_mem / (6 + tamanioMaxValue);
+	log_debug(logger,"cant paginas max: %d",cantPagsMax);
 	//tPagina* pag = (tPagina*)(memoria);
 	int timeAux;
 	memcpy(&timeAux,memoria + 2,4);
 	while (timeAux != 0) {
 		cantPags++;
-		if (cantPags <= cantPagsMax) {
+		if (cantPags < cantPagsMax) {
 			memcpy(&timeAux,memoria + cantPags*(6 + tamanioMaxValue) + 2,4);
 		} else {
 			return -1;
@@ -83,7 +85,7 @@ int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina) {
 		}
 	}
 	int offset = (cantPags * (6 + tamanioMaxValue));
-
+	log_debug(logger,"offset: %d",offset);
 	memcpy((memoria + offset),&(pagina->key),sizeof(uint16_t));
 
 	memcpy((memoria + offset + 2),&(pagina->timestamp),sizeof(int));
@@ -91,7 +93,7 @@ int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina) {
 	memcpy((memoria + offset + 6),pagina->value,tamanioMaxValue);
 
 	elem_tabla_pag* pagTabla = malloc(sizeof(elem_tabla_pag));
-	pagTabla->modificado = true;
+	pagTabla->modificado = false;//PARA PROBARRRRRRRRRRRR!!! TIENE QUE SERTRUE
 	pagTabla->offsetMemoria = offset;
 	pagTabla->index = list_size(seg->tablaPaginas);
 	pagTabla->ultimoTime = (int) time (NULL);
@@ -131,11 +133,12 @@ int buscarSegmentoEnTabla(char* nombreTabla, tSegmento* miseg, t_list* listaSegm
 	return -1;
 }
 
+void eliminarDeMemoria(void* elemento) {
+	elem_tabla_pag* elemPag = (elem_tabla_pag*) elemento;
+	memset(memoria + elemPag->offsetMemoria + 2, 0 , 4);
+}
+
 void liberarPaginasDelSegmento(tSegmento* miSegmento, t_list* tablaSegmentos) {
-	void eliminarDeMemoria(void* elemento) {
-		elem_tabla_pag* elemPag = (elem_tabla_pag*) elemento;
-		memset(memoria + elemPag->offsetMemoria + 2, 0 , 4);
-	}
 
 	bool mismoNombre(void* elemento) {
 		tSegmento* miseg = (tSegmento*) elemento;
@@ -197,6 +200,43 @@ int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla,tPa
 		return -1;
 	}
 
+}
+
+int ejecutarLRU(){
+	t_list* LRUPaginaPorSegmento;
+	LRUPaginaPorSegmento = list_create();
+
+	bool pagLRU(void* pag1,void* pag2){
+		elem_tabla_pag* pagina1 = (elem_tabla_pag*) pag1;
+		elem_tabla_pag* pagina2 = (elem_tabla_pag*) pag2;
+		log_debug(logger,"Comparo %d con %d",pagina1->offsetMemoria,pagina2->offsetMemoria);
+		return pagina1->ultimoTime < pagina2->ultimoTime;
+	}
+
+	bool filtrarFlagModificado (void* pag){
+		elem_tabla_pag* pagina = (elem_tabla_pag*) pag;
+		return !(pagina->modificado);
+	}
+
+	void paginaMenorTimePorSeg(void* seg){
+		tSegmento* miSeg = (tSegmento*) seg;
+		t_list* tablaPags = miSeg->tablaPaginas;
+		t_list* tablaPagsOrdenada = list_sorted(tablaPags,pagLRU);
+		tablaPagsOrdenada = list_filter(tablaPagsOrdenada,filtrarFlagModificado);
+		elem_tabla_pag* pag = list_get(tablaPagsOrdenada,0);
+		list_add(LRUPaginaPorSegmento,pag);
+	}
+
+	list_iterate(tablaSegmentos,paginaMenorTimePorSeg);
+	if(list_is_empty(LRUPaginaPorSegmento)){
+		return -1;
+	}
+	LRUPaginaPorSegmento = list_sorted(LRUPaginaPorSegmento,pagLRU);
+	void* pagABorrar = list_get(LRUPaginaPorSegmento,0);
+	elem_tabla_pag* pagLog = (elem_tabla_pag*) pagABorrar;
+	log_debug(logger,"voy a borrar la pagina: %d",pagLog->offsetMemoria);
+	eliminarDeMemoria(pagABorrar);
+	return 1;
 }
 
 
