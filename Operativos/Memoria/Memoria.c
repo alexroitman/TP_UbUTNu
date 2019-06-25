@@ -56,6 +56,7 @@ void actualizarPaginaEnMemoria(tSegmento* segmento,int index, char* newValue) {
 	int offsetMemoria = elemTablaPag->offsetMemoria;
 	int timestamp = (int) time(NULL);
 	memcpy(memoria + offsetMemoria + 2, &(timestamp),4);
+	log_debug(logger,"offset: %d",offsetMemoria);
 	memcpy(memoria + offsetMemoria + 6,newValue,tamanioMaxValue);
 	elemTablaPag->modificado = false; //PARA PROBARRRRR ! TIENE QUE SER TRUE
 	log_debug(logger, "Pagina encontrada y actualizada.");
@@ -225,20 +226,42 @@ int ejecutarLRU(){
 		tablaPagsOrdenada = list_filter(tablaPagsOrdenada,filtrarFlagModificado);
 		elem_tabla_pag* pag = list_get(tablaPagsOrdenada,0);
 		list_add(LRUPaginaPorSegmento,pag);
+
 	}
 
 	list_iterate(tablaSegmentos,paginaMenorTimePorSeg);
 	if(list_is_empty(LRUPaginaPorSegmento)){
 		return -1;
 	}
-	LRUPaginaPorSegmento = list_sorted(LRUPaginaPorSegmento,pagLRU);
-	void* pagABorrar = list_get(LRUPaginaPorSegmento,0);
-	elem_tabla_pag* pagLog = (elem_tabla_pag*) pagABorrar;
-	log_debug(logger,"voy a borrar la pagina: %d",pagLog->offsetMemoria);
-	eliminarDeMemoria(pagABorrar);
+
+	elem_tabla_pag* pagBorrar = malloc(sizeof(elem_tabla_pag));
+	int indexMin = listMinTimestamp(LRUPaginaPorSegmento, pagBorrar);
+	//LRUPaginaPorSegmento = list_sorted(LRUPaginaPorSegmento,pagLRU);
+	//void* pagABorrar = list_get(LRUPaginaPorSegmento,0);
+	log_debug(logger,"voy a borrar la pagina: %d",pagBorrar->offsetMemoria);
+	tSegmento* segmento = obtenerSegmentoDeTabla(tablaSegmentos,indexMin);
+	list_remove(segmento->tablaPaginas,pagBorrar->index);
+	eliminarDeMemoria(pagBorrar);
 	return 1;
 }
 
+int listMinTimestamp(t_list* listaPaginas,elem_tabla_pag* pagina){
+	int size = list_size(listaPaginas);
+	elem_tabla_pag* pagAux = list_get(listaPaginas, 0);
+	*pagina = *pagAux;
+	int min = pagAux->ultimoTime;
+	int i;
+	int indexMin=0;
+	for (i = 1; i < size; i++) {
+		pagAux = list_get(listaPaginas,i);
+		if(pagAux->ultimoTime < min){
+			min = pagAux->ultimoTime;
+			*pagina = *pagAux;
+			indexMin = i;
+		}
+	}
+	return indexMin;
+}
 
 t_miConfig* cargarConfig() {
 	char* buffer = malloc(256);

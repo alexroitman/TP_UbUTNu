@@ -81,6 +81,7 @@ struct addrinfo *serverInfo;
 void crearHilosRecepcion(type* header, pthread_t hiloSocket,
 		pthread_t hiloConsola,tHiloConsola* paramsConsola);
 int ejecutarLRU();
+int listMinTimestamp(t_list* listaPaginas,elem_tabla_pag* pagina);
 
 int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla,tPagina* pagina);
 int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina);
