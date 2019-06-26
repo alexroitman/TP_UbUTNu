@@ -20,6 +20,8 @@ int main() {
 	log_debug(logger, "Handshake con LFS realizado. Tamanio max del value: %d",
 			tamanioMaxValue);
 	memoria = calloc(miConfig->tam_mem,6 + tamanioMaxValue);
+	cantPagsMax = miConfig->tam_mem / (6 + tamanioMaxValue);
+	log_debug(logger,"Cantidad maxima de paginas en memoria: %d",cantPagsMax);
 	tablaSegmentos = list_create();
 	header = malloc(sizeof(type));
 	leyoConsola = true;
@@ -45,7 +47,7 @@ void* recibirHeader(void* arg) {
 		if (*header != NIL) {
 			//EN REALIDAD LO QUE ESTOY PREGUNTANDO ES SI RECIBIO ALGO DE KERNEL
 			//PORQUE SI SE CORTO LA CONEXION CON KERNEL NO QUIERO QUE HAGA EL SIGNAL DEL SEMAFORO
-			ejecutarConsulta(memoria);
+			ejecutarConsulta();
 		}
 	}
 }
@@ -57,7 +59,6 @@ void actualizarPaginaEnMemoria(tSegmento* segmento,int index, char* newValue) {
 	int offsetMemoria = elemTablaPag->offsetMemoria;
 	int timestamp = (int) time(NULL);
 	memcpy(memoria + offsetMemoria + 2, &(timestamp),4);
-	log_debug(logger,"offset: %d",offsetMemoria);
 	memcpy(memoria + offsetMemoria + 6,newValue,tamanioMaxValue);
 	elemTablaPag->modificado = true; //PARA PROBARRRRR ! TIENE QUE SER TRUE
 	elemTablaPag->ultimoTime = (int) time (NULL);
@@ -73,9 +74,6 @@ tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg) {
 
 int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina) {
 	int cantPags = 0;
-	int cantPagsMax = miConfig->tam_mem / (6 + tamanioMaxValue);
-	log_debug(logger,"cant paginas max: %d",cantPagsMax);
-	//tPagina* pag = (tPagina*)(memoria);
 	int timeAux;
 	memcpy(&timeAux,memoria + 2,4);
 	while (timeAux != 0) {
@@ -88,7 +86,6 @@ int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina) {
 		}
 	}
 	int offset = (cantPags * (6 + tamanioMaxValue));
-	log_debug(logger,"offset: %d",offset);
 	memcpy((memoria + offset),&(pagina->key),sizeof(uint16_t));
 
 	memcpy((memoria + offset + 2),&(pagina->timestamp),sizeof(int));
@@ -222,8 +219,7 @@ int ejecutarLRU(){
 
 	void paginaMenorTimePorSeg(void* seg){
 		tSegmento* miSeg = (tSegmento*) seg;
-		t_list* tablaPags = miSeg->tablaPaginas;
-		t_list* tablaPagsOrdenada = list_sorted(tablaPags,pagLRU);
+		t_list* tablaPagsOrdenada = list_sorted(miSeg->tablaPaginas,pagLRU);
 		tablaPagsOrdenada = list_filter(tablaPagsOrdenada,filtrarFlagModificado);
 		log_debug(logger,"size de %s: %d",miSeg->path,list_size(tablaPagsOrdenada));
 		if(!list_is_empty(tablaPagsOrdenada)){
@@ -240,9 +236,7 @@ int ejecutarLRU(){
 
 	elem_tabla_pag* pagBorrar = malloc(sizeof(elem_tabla_pag));
 	int indexMin = listMinTimestamp(LRUPaginaPorSegmento, pagBorrar);
-	//LRUPaginaPorSegmento = list_sorted(LRUPaginaPorSegmento,pagLRU);
-	//void* pagABorrar = list_get(LRUPaginaPorSegmento,0);
-	log_debug(logger,"voy a borrar la pagina: %d",pagBorrar->offsetMemoria);
+	log_debug(logger,"Se eliminara la pagina: %d",pagBorrar->offsetMemoria);
 	tSegmento* segmento = obtenerSegmentoDeTabla(tablaSegmentos,indexMin);
 	list_remove(segmento->tablaPaginas,pagBorrar->index);
 	eliminarDeMemoria(pagBorrar);
