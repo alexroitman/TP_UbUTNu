@@ -53,6 +53,8 @@ void ejecutarConsulta(void* memoria) {
 				}
 				agregarPaginaAMemoria(miSegmento, pagina);
 
+			}else{
+				log_error(logger,"No existe el registro");
 			}
 			//SI NO LO ENCONTRO IGUALMENTE SE LO MANDO A KERNEL PARA QUE TAMBIEN MANEJE EL ERROR
 			enviarRegistroAKernel(reg, socket_kernel, leyoConsola);
@@ -65,6 +67,7 @@ void ejecutarConsulta(void* memoria) {
 		break;
 	case INSERT:
 		packInsert = malloc(sizeof(tInsert));
+		int error;
 		cargarPackInsert(packInsert, leyoConsola, paramsConsola->consulta);
 		encontroSeg = buscarSegmentoEnTabla(packInsert->nombre_tabla,
 				miSegmento, tablaSegmentos);
@@ -81,14 +84,12 @@ void ejecutarConsulta(void* memoria) {
 				actualizarPaginaEnMemoria(miSegmento, indexPag, packInsert->value);
 
 			} else {
-				//Encontro el segmento en tabla pero no tiene la pagina en memoria
-
 				log_debug(logger,
 						"Encontro el segmento en tabla pero no tiene la pagina en memoria");
 				pagina->key = packInsert->key;
 				pagina->timestamp = (int) time (NULL);
 				strcpy(pagina->value,packInsert->value);
-				agregarPaginaAMemoria(miSegmento,pagina);
+				error = agregarPaginaAMemoria(miSegmento,pagina);
 			}
 
 		} else {
@@ -98,8 +99,21 @@ void ejecutarConsulta(void* memoria) {
 			pagina->timestamp = (int) time(NULL);
 			strcpy(pagina->value, packInsert->value);
 			cargarSegmentoEnTabla(packInsert->nombre_tabla, tablaSegmentos);
-			tSegmento* newSeg = obtenerUltimoSegmentoDeTabla(tablaSegmentos);
-			agregarPaginaAMemoria(newSeg,pagina);
+			miSegmento = obtenerUltimoSegmentoDeTabla(tablaSegmentos);
+			error = agregarPaginaAMemoria(miSegmento,pagina);
+		}
+
+		if (error == -1) {
+			int errorLRU;
+			errorLRU = ejecutarLRU();
+			if (errorLRU == 1) {
+				agregarPaginaAMemoria(miSegmento, pagina);
+			} else {
+				log_error(logger, "Hacer Journal");
+			}
+
+			//EJECUTAR LRU
+
 		}
 		free(packInsert);
 		free(packInsert->nombre_tabla);
@@ -113,6 +127,7 @@ void ejecutarConsulta(void* memoria) {
 		enviarPaquete(socket_lfs, createAEnviar, packCreate->length);
 		log_debug(logger, "Mando la consulta a LFS");
 		free(packCreate);
+		free(createAEnviar);
 		break;
 
 	case DROP:
@@ -185,9 +200,51 @@ void* leerQuery(void* params) {
 			*(parametros->header) = DROP;
 		}
 		leyoConsola = true;
+		free(tempSplit[0]);
+		free(tempSplit[1]);
+		free(tempSplit);
 		ejecutarConsulta(memoria);
+
 	}
 }
 
 
+void cargarPackSelect(tSelect* packSelect,bool leyoConsola,char consulta[]){
+	if(leyoConsola){
+		cargarPaqueteSelect(packSelect, consulta);
+	}else{
+		desSerializarSelect(packSelect, socket_kernel);
+	}
 
+}
+
+void cargarPackInsert(tInsert* packInsert, bool leyoConsola, char consulta[]) {
+	if (leyoConsola) {
+		cargarPaqueteInsert(packInsert, consulta);
+	} else {
+		desSerializarInsert(packInsert, socket_kernel);
+	}
+
+}
+
+void cargarPackCreate(tCreate* packCreate,bool leyoConsola,char consulta[]){
+	if(leyoConsola){
+		cargarPaqueteCreate(packCreate, consulta);
+	}else{
+		desSerializarCreate(packCreate, socket_kernel);
+	}
+
+}
+void cargarPackDrop(tDrop* packDrop, bool leyoConsola, char consulta[]){
+	if(leyoConsola){
+		cargarPaqueteDrop(packDrop, consulta);
+	} else {
+		desSerializarDrop(packDrop, socket_kernel);
+	}
+}
+
+int handshakeLFS(int socket_lfs){
+	int buffer;
+	recv(socket_lfs,&buffer,4,MSG_WAITALL);
+	return buffer;
+}
