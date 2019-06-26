@@ -478,36 +478,31 @@ char* serializarRegistro(tRegistroRespuesta* reg){
 		return serializedPackage;
 }
 
-
 int desSerializarRegistro(tRegistroRespuesta* reg, int socket) {
 
 	int status;
 	int buffer_size;
 	char *buffer = malloc(buffer_size = sizeof(uint32_t));
 
-	reg->key = malloc(sizeof(uint16_t));
-		status = recv(socket, &reg->key, sizeof(reg->key), 0); //recibo el nombre de la key
-		if (!status)
-			return 0;
+	status = recv(socket, &reg->key, sizeof(reg->key), 0);
+	if (!status)
+		return 0;
 
-	uint32_t nombrelong;
-	status = recv(socket, buffer, sizeof((reg->value_long)),
-			0); //recibo la longitud
+	status = recv(socket, buffer, sizeof((reg->value_long)), 0);
 	memcpy(&(reg->value_long), buffer, buffer_size);
 
 	if (!status)
 		return 0;
 	reg->value = malloc(reg->value_long);
 
-	status = recv(socket, reg->value,reg->value_long, 0); //recibo el nombre de la tabla
+	status = recv(socket, reg->value, reg->value_long, 0);
 
 	if (!status)
 		return 0;
 
-	reg->timestamp = malloc(sizeof(int));
-			status = recv(socket, &reg->timestamp, sizeof(reg->timestamp), 0); //recibo el nombre de la key
-			if (!status)
-				return 0;
+	status = recv(socket, &reg->timestamp, sizeof(reg->timestamp), 0);
+	if (!status)
+		return 0;
 
 	free(buffer);
 

@@ -129,8 +129,6 @@ int despacharQuery(char* consulta, int socket_memoria) {
 				sem_post(&mutexSocket);
 				free(paqueteSelect->nombre_tabla);
 				free(reg->value);
-				free(&reg->key);
-				free(&reg->timestamp);
 				free(reg);
 				free(serializado);
 			}else{
