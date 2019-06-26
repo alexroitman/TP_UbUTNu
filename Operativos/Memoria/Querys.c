@@ -103,17 +103,16 @@ void ejecutarConsulta(void* memoria) {
 			error = agregarPaginaAMemoria(miSegmento,pagina);
 		}
 
-		if(error == -1){
+		if (error == -1) {
 			int errorLRU;
 			errorLRU = ejecutarLRU();
-			if(errorLRU == 1){
-				agregarPaginaAMemoria(miSegmento,pagina);
-			}else{
-				log_error(logger,"Hacer Journal");
+			if (errorLRU == 1) {
+				agregarPaginaAMemoria(miSegmento, pagina);
+			} else {
+				log_error(logger, "Hacer Journal");
 			}
 
 			//EJECUTAR LRU
-
 
 		}
 		free(packInsert);

@@ -59,7 +59,7 @@ void actualizarPaginaEnMemoria(tSegmento* segmento,int index, char* newValue) {
 	memcpy(memoria + offsetMemoria + 2, &(timestamp),4);
 	log_debug(logger,"offset: %d",offsetMemoria);
 	memcpy(memoria + offsetMemoria + 6,newValue,tamanioMaxValue);
-	elemTablaPag->modificado = false; //PARA PROBARRRRR ! TIENE QUE SER TRUE
+	elemTablaPag->modificado = true; //PARA PROBARRRRR ! TIENE QUE SER TRUE
 	elemTablaPag->ultimoTime = (int) time (NULL);
 	log_debug(logger, "Pagina encontrada y actualizada.");
 }
@@ -96,7 +96,7 @@ int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina) {
 	memcpy((memoria + offset + 6),pagina->value,tamanioMaxValue);
 
 	elem_tabla_pag* pagTabla = malloc(sizeof(elem_tabla_pag));
-	pagTabla->modificado = false;//PARA PROBARRRRRRRRRRRR!!! TIENE QUE SERTRUE
+	pagTabla->modificado = true;//PARA PROBARRRRRRRRRRRR!!! TIENE QUE SERTRUE
 	pagTabla->offsetMemoria = offset;
 	pagTabla->index = list_size(seg->tablaPaginas);
 	pagTabla->ultimoTime = (int) time (NULL);
@@ -225,8 +225,11 @@ int ejecutarLRU(){
 		t_list* tablaPags = miSeg->tablaPaginas;
 		t_list* tablaPagsOrdenada = list_sorted(tablaPags,pagLRU);
 		tablaPagsOrdenada = list_filter(tablaPagsOrdenada,filtrarFlagModificado);
-		elem_tabla_pag* pag = list_get(tablaPagsOrdenada,0);
-		list_add(LRUPaginaPorSegmento,pag);
+		log_debug(logger,"size de %s: %d",miSeg->path,list_size(tablaPagsOrdenada));
+		if(!list_is_empty(tablaPagsOrdenada)){
+			elem_tabla_pag* pag = list_get(tablaPagsOrdenada,0);
+			list_add(LRUPaginaPorSegmento,pag);
+		}
 
 	}
 
