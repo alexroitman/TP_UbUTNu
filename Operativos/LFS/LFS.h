@@ -80,7 +80,6 @@ int verificadorDeTabla(char* NOMBRE_TABLA);
 int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo);
 t_bitarray* levantarBitmap();
 off_t obtener_bit_libre();
-off_t limpiar_bit(char* bit);
 
 // DUMPEO
 void bajarAMemoria(int* fd2, char* registroParaEscribir, t_config* tmp);

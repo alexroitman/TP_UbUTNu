@@ -28,10 +28,9 @@ int cantBloques;
 // ---------------MAIN-----------------
 
 int main(void) {
-	//Creo variables
 	int errorHandler;
-
 	//Levanto config
+	//TODO: levantar una estructura global donde guardamos los datos de los config.
 	logger = iniciar_logger();
 	configLFS = config_create("../LFS.config");
 	dirMontaje = config_get_string_value(configLFS, "PUNTO_MONTAJE");
@@ -42,107 +41,141 @@ int main(void) {
 	signal(SIGINT, finalizarEjecutcion); //Comando de cierre al cortar con Ctrl+C
 
 	// ---------------Pruebas con bitmap propio-----------------
-	crearBitmapNuestro();
+	//crearBitmapNuestro();
 
 	//Levanto sockets
 	socket_sv = levantarServidor(puerto);
+	if (socket_sv < 0)
+		logeoDeErroresLFS(noLevantoServidor, logger);
 	socket_cli = aceptarCliente(socket_sv);
-	send(socket_cli,&tamanioValue,4,0);
+	errorHandler = send(socket_cli, &tamanioValue, 4, 0);
+	if (errorHandler < 0)
+		logeoDeErroresLFS(errorTamanioValue, logger);
+
+	//Inicializo memtable y verifico la recepcion de comandos
 	type header;
 	memtable = inicializarMemtable();
 	while (1) {
 		header = leerHeader(socket_cli);
-		//TODO: ver si estos paquetes no conviene crearlos en su respectivo case, desperdicio de memoria en cada while
-		tSelect* packSelect = malloc(sizeof(tSelect));
-		tInsert* packInsert = malloc(sizeof(tInsert));
-		tCreate* packCreate = malloc(sizeof(tCreate));
-		tDrop* packDrop = malloc(sizeof(tDrop));
-
 		switch (header) {
-		case SELECT:
+		case SELECT://TODO: falta handlear
 			log_debug(logger, "Comando SELECT recibido");
-			desSerializarSelect(packSelect, socket_cli);
-			packSelect->type = header;
-			registro* reg = Select(packSelect->nombre_tabla, packSelect->key);
-			log_debug(logger, "%s", reg->value);
-			tRegistroRespuesta* registro = malloc(sizeof(tRegistroRespuesta));
-			registro->tipo = REGISTRO;
-			registro->timestamp = reg->timestamp;
-			registro->value = reg->value;
-			registro->key = reg->key;
-			registro->value_long = strlen(reg->value) + 1;
-			char* registroSerializado = serializarRegistro(registro);
-			enviarPaquete(socket_cli, registroSerializado, registro->length);
-			free(registro);
+			tSelect* packSelect = malloc(sizeof(tSelect));
+			if (!packSelect)
+				logeoDeErroresLFS(errorDeMalloc, logger);
+			else {
+				desSerializarSelect(packSelect, socket_cli);
+				//TODO: handlear error de desSerializarSelect
+				packSelect->type = header;
+				registro* reg = Select(packSelect->nombre_tabla,
+						packSelect->key);
+				//TODO: handlear SELECT para que devuelva int
+				log_debug(logger, "%s", reg->value);
+				tRegistroRespuesta* registro = malloc(
+						sizeof(tRegistroRespuesta));
+				if (!registro)
+					logeoDeErroresLFS(errorDeMalloc, logger);
+				else {
+					registro->tipo = REGISTRO;
+					registro->timestamp = reg->timestamp;
+					registro->value = reg->value;
+					registro->key = reg->key;
+					registro->value_long = strlen(reg->value) + 1;
+					char* registroSerializado = serializarRegistro(registro);
+					//TODO: handlear error de serializarRegistro
+					enviarPaquete(socket_cli, registroSerializado, registro->length);
+					free(registroSerializado);
+				}
+				free(registro);
+				free(reg);
+			}
 			free(packSelect);
 			break;
 
 		case INSERT:
-			desSerializarInsert(packInsert, socket_cli);
-			packInsert->type = header;
-			printf("Comando INSERT recibido: tabla %s con key %d y value %s \n",
-					packInsert->nombre_tabla, packInsert->key,
-					packInsert->value);
-			errorHandler = insertarEnMemtable(packInsert);
-			if (errorHandler == todoJoya)
-				log_debug(logger, "se inserto bien");
+			log_debug(logger, "Comando INSERT recibido");
+			tInsert* packInsert = malloc(sizeof(tInsert));
+			if (!packInsert)
+				logeoDeErroresLFS(errorDeMalloc, logger);
+			else {
+				desSerializarInsert(packInsert, socket_cli);
+				//TODO: handlear error de desSerializarInsert
+				packInsert->type = header;
+				log_debug(logger, "Tabla %s con key %d y value %s \n",
+						packInsert->nombre_tabla, packInsert->key,
+						packInsert->value);
+				errorHandler = insertarEnMemtable(packInsert);
+			}
 			free(packInsert);
 			break;
 
-		case CREATE:
-			//TODO: Restablecer funcionamiento normal de CREATE
+		case CREATE: //TODO: falta handlear
 			log_debug(logger, "Comando CREATE recibido");
-			desSerializarCreate(packCreate, socket_cli);
-			packCreate->type = header;
-			errorHandler = Create(packCreate->nombre_tabla,
-					packCreate->consistencia, packCreate->particiones,
-					packCreate->compaction_time);
-			if (errorHandler == todoJoya)
-				log_debug(logger, "se creo bien");
+			tCreate* packCreate = malloc(sizeof(tCreate));
+			if (!packCreate)
+				logeoDeErroresLFS(errorDeMalloc, logger);
+			else {
+				desSerializarCreate(packCreate, socket_cli);
+				//TODO: handlear error de desSerializarCreate
+				packCreate->type = header;
+				errorHandler = Create(packCreate->nombre_tabla,
+						packCreate->consistencia,
+						packCreate->particiones,
+						packCreate->compaction_time);
+			}
 			free(packCreate);
 			//	dumpeoMemoria();
 			break;
 
 		case ADD:
+			log_debug(logger, "Comando ADD recibido");
 			break;
 
 		case DESCRIBE:
+			log_debug(logger, "Comando DESCRIBE recibido");
 			break;
 
 		case DROP:
-
-			log_debug(logger, "Recibi un drop");
-			desSerializarDrop(packDrop, socket_cli);
-			log_debug(logger, "Desserialice bien");
-			packDrop->type = header;
-
-			errorHandler = Drop(packDrop->nombre_tabla);
-			if (errorHandler == todoJoya)
-				log_debug(logger, "se elimino bien");
-
+			log_debug(logger, "Comando DROP recibido");
+			tDrop* packDrop = malloc(sizeof(tDrop));
+			if (!packDrop)
+				logeoDeErroresLFS(errorDeMalloc, logger);
+			else {
+				errorHandler = desSerializarDrop(packDrop, socket_cli);
+//				TODO: handlear error de desSerializarDrop
+				packDrop->type = header;
+				errorHandler = Drop(packDrop->nombre_tabla);
+			}
 			free(packDrop);
 			break;
 
 		case JOURNAL:
+			log_debug(logger, "Comando JOURNAL recibido");
 			break;
 
 		case NIL:
+			log_debug(logger, "Comando NIL recibido");
 			break;
 
 		case REGISTRO:
+			log_debug(logger, "Comando REGISTRO recibido");
 			break;
 
+		case RUN:
+			log_debug(logger, "Comando RUN recibido");
+			break;
 		}
+		logeoDeErroresLFS(errorHandler, logger);
 	}
 
 	//Rutina de cierre
-	if (errorHandler)
-		logeoDeErrores(errorHandler, logger);
 	log_destroy(logger);
 	close(socket_cli);
 	close(socket_sv);
 	config_destroy(configLFS);
 	config_destroy(configMetadata);
+	list_destroy_and_destroy_elements(memtable, free);
+	free(dirMontaje);
 	return 0;
 }
 
@@ -153,109 +186,112 @@ t_list* inicializarMemtable() {
 }
 
 int insertarEnMemtable(tInsert *packinsert) {
-	char* mi_ruta = string_new();
-	string_append(&mi_ruta, dirMontaje);
-	string_append(&mi_ruta, "Tablas/");
-	string_append(&mi_ruta, packinsert->nombre_tabla);
-	log_debug(logger, mi_ruta);
-	if (!verificadorDeTabla(mi_ruta))
+	int errorHandler;
+	errorHandler = verificadorDeTabla(packinsert->nombre_tabla);
+	// Cheque que la tabla este creada
+	if (!errorHandler)
 		return noExisteTabla;
-	if (!existe_tabla_en_memtable(packinsert->nombre_tabla)) { //chequeo si existe la tabla en la memtable
-		if (!agregar_tabla_a_memtable(packinsert->nombre_tabla)) { //si no existe la agrego
+	// Chequeo si existe la tabla en la memtable
+	errorHandler = existe_tabla_en_memtable(packinsert->nombre_tabla);
+	if (!errorHandler) {
+		errorHandler = agregar_tabla_a_memtable(packinsert->nombre_tabla);
+		// Si no existe la agrego
+		if (!errorHandler)
 			return noSeAgregoTabla;
-			log_debug(logger, "NO Existe tabla en memtable");
-		}
 	}
-	log_debug(logger, "Existe tabla en memtable");
-
 	registro* registro_insert = malloc(sizeof(registro));
+	if (!registro_insert)
+		return errorDeMalloc;
 	registro_insert->key = packinsert->key;
-	log_debug(logger, string_itoa(registro_insert->key));
-
-	registro_insert->timestamp = time(NULL); //argregar
-
-	log_debug(logger, (packinsert->value));
+//	log_debug(logger, string_itoa(registro_insert->key));
+	registro_insert->timestamp = time(NULL);
+//	log_debug(logger, (packinsert->value));
 	char* value = malloc(packinsert->value_long);
+	if (!value) {
+		free(value);
+		return errorDeMalloc;
+	}
 	strcpy(value, packinsert->value);
 	registro_insert->value = malloc(strlen(value) + 1);
+	if (!registro_insert->value) {
+		free(registro_insert->value);
+		free(value);
+		return errorDeMalloc;
+	}
 	strcpy(registro_insert->value, value);
-	free(mi_ruta);
-	return insertarRegistro(registro_insert, packinsert->nombre_tabla);
+	errorHandler = insertarRegistro(registro_insert, packinsert->nombre_tabla);
+	return errorHandler;
 }
 
 int insertarRegistro(registro* registro, char* nombre_tabla) {
-	int es_tabla(t_tabla* tabla) {
+	bool es_tabla(t_tabla* tabla) {
 		if (strcmp(tabla->nombreTabla, nombre_tabla) == 0)
-			return 1;
-		return 0;
+			return true;
+		return false;
 	}
-	//TODO: Que pasó aca? Hay una funcion arriba sin iterate, medio loco. Ver si se puede organizar sin esa funcion.
-	t_tabla* tabla = (t_tabla*) list_find(memtable, (int) &es_tabla);
-	//log_debug(logger,"Encontre esta tabla");
-	//log_debug(logger,tabla->nombreTabla);
+	t_tabla* tabla = (t_tabla*) list_find(memtable, (void*) &es_tabla);
 	list_add(tabla->registros, registro);
 	return todoJoya;
 }
 
 int agregar_tabla_a_memtable(char* tabla) {
 	t_tabla* tabla_nueva = malloc(sizeof(t_tabla));
-	tabla_nueva->nombreTabla = string_new();
-
-	strcpy(tabla_nueva->nombreTabla, tabla);
-
-	tabla_nueva->registros = list_create();
-
-	log_debug(logger, "Se Agrego la tabla");
+	if (!tabla_nueva) {
+		logeoDeErroresLFS(errorDeMalloc, logger);
+		return 0;
+	}
 	int cantidad_anterior;
+	int indice_agregado;
+	tabla_nueva->nombreTabla = string_new();
+	strcpy(tabla_nueva->nombreTabla, tabla);
+	tabla_nueva->registros = list_create();
 	cantidad_anterior = memtable->elements_count;
-	int indice_agregado = list_add(memtable, tabla_nueva);
+	indice_agregado = list_add(memtable, tabla_nueva);
 	return indice_agregado + 1 > cantidad_anterior;
-
 }
 
 int existe_tabla_en_memtable(char* posible_tabla) {
-	int es_tabla(t_tabla* UnaTabla) {
-		if (strcmp(UnaTabla->nombreTabla, posible_tabla) == 0) {
-			return 1;
-		}
-		return 0;
+	bool es_tabla(t_tabla* UnaTabla) {
+		if (strcmp(UnaTabla->nombreTabla, posible_tabla) == 0)
+			return true;
+		return false;
 	}
-	t_tabla* tabla_encontrada = (t_tabla*) list_find(memtable, (int) &es_tabla);
-	if (tabla_encontrada) {
-		log_debug(logger, "Existe  tabla en memtable");
+	t_tabla* tabla_encontrada = (t_tabla*) list_find(memtable,
+			(void*) &es_tabla);
+	if (tabla_encontrada)
 		return 1;
-	}
-	log_debug(logger, "No existe tabla en memtable");
 	return 0;
 }
 
 // ---------------APIs-----------------
 
-int Create(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES,
-		int COMPACTATION_TIME) {
+int Create(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES,int COMPACTATION_TIME) {
+	// ---- Verifico que la tabla no exista ----
+	int errorHandler = verificadorDeTabla(NOMBRE_TABLA);
+	if (errorHandler)
+		return tablaExistente;
 	char* ruta = string_new();
 	string_append(&ruta, dirMontaje);
 	string_append(&ruta, "Tablas/");
 	string_append(&ruta, NOMBRE_TABLA);
-	// ---- Verifico que la tabla no exista ----
-	if (!verificadorDeTabla(ruta) == 0)
-		return tablaExistente;
 
 	// ---- Creo directorio de la tabla ----
-	if (mkdir(ruta, 0700) == -1)
+	errorHandler = mkdir(ruta, 0700);
+	if (errorHandler < 0)
 		return carpetaNoCreada;
 
 	// ---- Creo y grabo Metadata de la tabla ----
-	if (crearMetadata(ruta, TIPO_CONSISTENCIA, NUMERO_PARTICIONES,
-			COMPACTATION_TIME))
+	errorHandler = crearMetadata(ruta, TIPO_CONSISTENCIA, NUMERO_PARTICIONES, COMPACTATION_TIME);
+	if (errorHandler)
 		return metadataNoCreada;
-	log_debug(logger, "cree metadata");
+
 	// ---- Creo los archivos binarios ----
 	crearBinarios(ruta, NUMERO_PARTICIONES);
 	free(ruta);
 	return todoJoya;
 }
 
+/* TODO: ver si esto lo borramos o lo usamos para mantener orden y formato uniformes
 int Insert(char* NOMBRE_TABLA, int KEY, char* VALUE, int Timestamp) {
 	int particiones;
 	// ---- Verifico que la tabla exista ----
@@ -275,101 +311,81 @@ int Insert(char* NOMBRE_TABLA, int KEY, char* VALUE, int Timestamp) {
 
 	return todoJoya;
 }
+*/
 
 int Drop(char* NOMBRE_TABLA) {
-	log_debug(logger, "entre al drop");
 	// ---- Verifico que la tabla exista ----
+	int errorHandler = verificadorDeTabla(NOMBRE_TABLA);
+	if (!errorHandler) {
+		return noExisteTabla;
+	}
+
 	char* ruta = string_new();
 	string_append(&ruta, dirMontaje);
 	string_append(&ruta, "Tablas/");
 	string_append(&ruta, NOMBRE_TABLA);
-	log_debug(logger, "no me fijo en %s", ruta);
-	if (!verificadorDeTabla(ruta)) {
-		log_debug(logger, "no existe la tabla en %s", ruta);
-		return noExisteTabla;
-	}
-	//eliminar de la memtable
+
+	// Eliminar de la memtable
 	char* rutametadata = string_new();
 	string_append(&rutametadata, ruta);
 	string_append(&rutametadata, "/metadata");
 	t_config* metadataTabla = config_create(rutametadata);
 	int cantParticiones = config_get_int_value(metadataTabla, "PARTITIONS");
-	log_debug(logger, "PART: %d", cantParticiones);
 	config_destroy(metadataTabla);
 	free(rutametadata);
+	t_bitarray* bitmap = levantarBitmap();
 	for (int i = 1; i <= cantParticiones; i++) {
-		log_debug(logger, "entre al for");
 		char* binario_a_limpiar = string_new();
-		string_append(&binario_a_limpiar, dirMontaje);
-		string_append(&binario_a_limpiar, "Tablas/");
-		string_append(&binario_a_limpiar, NOMBRE_TABLA);
-		string_append_with_format(&binario_a_limpiar, "/%d", i);
-		string_append(&binario_a_limpiar, ".bin");
-		log_debug(logger, "Me voy a fijar bloques en : %s", binario_a_limpiar);
+		string_append_with_format(&binario_a_limpiar, "%s/%d.bin", ruta, i);
 		t_config* binario = config_create(binario_a_limpiar);
 		char** bloques_a_limpiar = config_get_array_value(binario, "BLOCKS");
 		int i = 0;
 		while (bloques_a_limpiar[i] != NULL) {
-			log_debug(logger, "Me voy a fijar en el: %s", bloques_a_limpiar[i]);
-			limpiar_bit(bloques_a_limpiar[i]);
+			bitarray_clean_bit(bitmap, atoi(bloques_a_limpiar[i]));
 			i++;
 		}
+		free(bloques_a_limpiar);
 		free(binario_a_limpiar);
 		config_destroy(binario);
 	}
 	if (cantidadDeDumpeos > 1) {
 		for (int j = 1; j <= cantidadDeDumpeos; j++) {
-			log_debug(logger, "entre al for");
 			char* temporal_a_limpiar = string_new();
-			string_append(&temporal_a_limpiar, dirMontaje);
-			string_append(&temporal_a_limpiar, "Tablas/");
-			string_append(&temporal_a_limpiar, NOMBRE_TABLA);
-			string_append_with_format(&temporal_a_limpiar, "/%d", j);
-			string_append(&temporal_a_limpiar, ".tmp");
-			log_debug(logger, "Me voy a fijar bloques en : %s",
-					temporal_a_limpiar);
+			string_append_with_format(&temporal_a_limpiar, "%s/%d.tmp", ruta, j);
 			t_config* temporal = config_create(temporal_a_limpiar);
 			char** bloques_a_limpiar = config_get_array_value(temporal,
 					"BLOCKS");
 			int i = 0;
 			while (bloques_a_limpiar[i] != NULL) {
-				log_debug(logger, "Me voy a fijar en el: %s",
-						bloques_a_limpiar[i]);
-				limpiar_bit(bloques_a_limpiar[i]);
+				bitarray_clean_bit(bitmap, atoi(bloques_a_limpiar[i]));
 				i++;
 			}
+			free(bloques_a_limpiar);
 			free(temporal_a_limpiar);
 			config_destroy(temporal);
 		}
 	}
+	free(bitmap);
 	char* comando_a_ejecutar = string_new();
 	string_append_with_format(&comando_a_ejecutar, "rm -rf %s", ruta);
-	system(comando_a_ejecutar);
-	free(comando_a_ejecutar);
+	errorHandler = system(comando_a_ejecutar);
 
+	//TODO: que onda esto alex? Si no va borrar, junto con la funcion borrar directorio.
 	// ---- Elimino el directorio y todos los archivos ----
-	//if (borrarDirectorio(NOMBRE_TABLA) != 0)
+	//if (borrarDirectorio(tabla) != 0)
 	//	return tablaNoEliminada;
-
-	free(rutametadata);
+	if (!errorHandler)
+			return errorAlBorrarDirectorio;
+	free(comando_a_ejecutar);
+	free(ruta);
 	return todoJoya;
-}
-off_t limpiar_bit(char* bit) {
-	t_bitarray* bitmap = levantarBitmap();
-
-	log_debug(logger, "levanteBitmap y voy a setear el %s", bit);
-	bitarray_clean_bit(bitmap, atoi(bit));
-//	bitarray_clean_bit(bitmap,bit);
-
-	return bit;
 }
 
 registro* Select(char* NOMBRE_TABLA, int KEY) {
-	int es_mayor(registro* unReg, registro* otroReg) {
-		if (unReg->timestamp >= otroReg->timestamp) {
-			return 1;
-		}
-		return 0;
+	bool es_mayor(registro* unReg, registro* otroReg) {
+		if (unReg->timestamp >= otroReg->timestamp)
+			return true;
+		return false;
 	}
 	char* ruta = string_new();
 	string_append(&ruta, dirMontaje);
@@ -387,7 +403,7 @@ registro* Select(char* NOMBRE_TABLA, int KEY) {
 	list_add(registros, SelectFS(ruta, KEY));
 	log_debug(logger, "me voy a fijar a Temp");
 	list_add_all(registros, SelectTemp(ruta, KEY));
-	list_sort(registros, (int) &es_mayor);
+	list_sort(registros, (void*) &es_mayor);
 	registro_select = list_get(registros, 0);
 	log_debug(logger, registro_select->value);
 	free(ruta);
@@ -435,24 +451,24 @@ registro* Select(char* NOMBRE_TABLA, int KEY) {
 
 // ---------------AUXILIARES DE SELECT-----------------
 t_list* selectEnMemtable(uint16_t key, char* tabla) {
-	int es_tabla(t_tabla* UnaTabla) {
+	bool es_tabla(t_tabla* UnaTabla) {
 		if (strcmp(UnaTabla->nombreTabla, tabla) == 0)
-			return 1;
-		return 0;
+			return true;
+		return false;
 	}
 
-	int es_registro(registro* unregistro) {
+	bool es_registro(registro* unregistro) {
 		if (unregistro->key == key)
-			return 1;
-		return 0;
+			return true;
+		return false;
 	}
 
 	t_tabla* tablaSelect;
 	t_list* list_reg = list_create();
-	tablaSelect = list_find(memtable, (int) &es_tabla);
+	tablaSelect = list_find(memtable, (void*) &es_tabla);
 	if (tablaSelect != NULL)
 		list_add_all(list_reg,
-				list_filter(tablaSelect->registros, (int) &es_registro));
+				list_filter(tablaSelect->registros, (void*) &es_registro));
 //	log_debug(logger, reg->value);
 //	free(tabla);
 	return list_reg; //devuelvo valor del select
@@ -629,19 +645,23 @@ int crearBinarios(char* NOMBRE_TABLA, int NUMERO_PARTICIONES) {
 	return todoJoya;
 }
 
-int verificadorDeTabla(char* NOMBRE_TABLA) {
+int verificadorDeTabla(char* tabla) {
+	char* ruta = string_new();
+	string_append(&ruta, dirMontaje);
+	string_append(&ruta, "Tablas/");
+	string_append(&ruta, tabla);
 	int status = 1;
 	DIR *dirp;
-	dirp = opendir(NOMBRE_TABLA);
+	dirp = opendir(ruta);
 	if (dirp == NULL) {
 		status = 0;
 	}
 	closedir(dirp);
+	free(ruta);
 	return status;
 }
 
 int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo) {
-
 	char* ruta = string_new();
 	string_append(&ruta, NOMBRE_TABLA);
 	string_append(&ruta, "/metadata");
@@ -859,14 +879,16 @@ int borrarDirectorio(char *dir) {
 // ---------------CIERRE-----------------
 
 void finalizarEjecutcion() {
-	printf("------------------------\n");
-	printf("¿chau chau adios?\n");
-	printf("------------------------\n");
+	log_debug(logger, "------------------------");
+	log_debug(logger, "¿chau chau adios?");
+	log_debug(logger, "------------------------");
+
 	log_destroy(logger);
 	close(socket_cli);
 	close(socket_sv);
-	list_iterate(memtable, free);
 	config_destroy(configLFS);
 	config_destroy(configMetadata);
+	list_destroy_and_destroy_elements(memtable, free);
+	free(dirMontaje);
 	raise(SIGTERM);
 }
