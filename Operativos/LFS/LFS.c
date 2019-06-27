@@ -110,6 +110,7 @@ int main(void) {
 			break;
 
 		case DROP:
+			log_debug(logger, "Llego un DROP, PONGANSE A LABURAR FORROS");
 			break;
 
 		case JOURNAL:
