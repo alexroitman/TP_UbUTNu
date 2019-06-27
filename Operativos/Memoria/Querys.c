@@ -150,7 +150,8 @@ void ejecutarConsulta(void* memoria) {
 		packJournal = malloc(sizeof(tJournal));
 		cargarPackJournal(packJournal, leyoConsola, paramsConsola->consulta);
 		log_debug(logger, "LLEGO JOURNAL WACHIN");
-		//ejecutarJournal();
+		ejecutarJournal();
+		log_debug(logger, "Termino JOURNAL");
 		break;
 	case NIL:
 		log_error(logger, "No entendi la consulta");

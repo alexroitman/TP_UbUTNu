@@ -72,3 +72,142 @@
 [DEBUG] 15:05:44:578 Memoria.c/(11023:11040): lei de consola
 [DEBUG] 15:05:50:600 Memoria.c/(11023:11040): compara piola
 [ERROR] 15:05:56:900 Memoria.c/(11023:11023): No entendi la consulta
+[INFO] 16:38:36:627 Memoria.c/(20530:20530): Por favor ingrese el path de su archivo de configuracion (Memoria.config): 
+[DEBUG] 16:38:47:115 Memoria.c/(20530:20530): Levanta archivo de config
+[DEBUG] 16:38:47:116 Memoria.c/(20530:20530): Tamanio Memoria: 8000
+[DEBUG] 16:38:47:116 Memoria.c/(20530:20530): Levanta conexion con kernel
+[DEBUG] 16:38:47:117 Memoria.c/(20530:20530): Handshake con LFS realizado. Tamanio max del value: 8
+[DEBUG] 16:39:10:248 Memoria.c/(20530:20566): No encontro el segmento en tabla de segmentos
+[DEBUG] 16:39:10:248 Memoria.c/(20530:20566): Segmento cargado en tabla
+[DEBUG] 16:39:10:248 Memoria.c/(20530:20566): cant paginas max: 571
+[DEBUG] 16:39:10:248 Memoria.c/(20530:20566): offset: 0
+[DEBUG] 16:39:10:248 Memoria.c/(20530:20566): Pagina cargada en memoria.
+[DEBUG] 16:39:18:17 Memoria.c/(20530:20566): Encontre segmento A 
+[DEBUG] 16:39:18:17 Memoria.c/(20530:20566): no encontro la pagina
+[DEBUG] 16:39:18:17 Memoria.c/(20530:20566): Encontro el segmento en tabla pero no tiene la pagina en memoria
+[DEBUG] 16:39:18:17 Memoria.c/(20530:20566): cant paginas max: 571
+[DEBUG] 16:39:18:17 Memoria.c/(20530:20566): offset: 14
+[DEBUG] 16:39:18:17 Memoria.c/(20530:20566): Pagina cargada en memoria.
+[DEBUG] 16:39:32:637 Memoria.c/(20530:20566): No encontro el segmento en tabla de segmentos
+[DEBUG] 16:39:32:637 Memoria.c/(20530:20566): Segmento cargado en tabla
+[DEBUG] 16:39:32:637 Memoria.c/(20530:20566): cant paginas max: 571
+[DEBUG] 16:39:32:637 Memoria.c/(20530:20566): offset: 28
+[DEBUG] 16:39:32:637 Memoria.c/(20530:20566): Pagina cargada en memoria.
+[INFO] 16:40:52:804 Memoria.c/(20610:20610): Por favor ingrese el path de su archivo de configuracion (Memoria.config): 
+[DEBUG] 16:40:59:978 Memoria.c/(20610:20610): Levanta archivo de config
+[DEBUG] 16:40:59:978 Memoria.c/(20610:20610): Tamanio Memoria: 8000
+[DEBUG] 16:40:59:978 Memoria.c/(20610:20610): Levanta conexion con kernel
+[DEBUG] 16:40:59:979 Memoria.c/(20610:20610): Handshake con LFS realizado. Tamanio max del value: 8
+[DEBUG] 16:41:09:680 Memoria.c/(20610:20627): No encontro el segmento en tabla de segmentos
+[DEBUG] 16:41:09:680 Memoria.c/(20610:20627): Segmento cargado en tabla
+[DEBUG] 16:41:09:680 Memoria.c/(20610:20627): cant paginas max: 571
+[DEBUG] 16:41:09:680 Memoria.c/(20610:20627): offset: 0
+[DEBUG] 16:41:09:680 Memoria.c/(20610:20627): Pagina cargada en memoria.
+[DEBUG] 16:41:14:602 Memoria.c/(20610:20627): Encontre segmento A 
+[DEBUG] 16:41:14:603 Memoria.c/(20610:20627): no encontro la pagina
+[DEBUG] 16:41:14:603 Memoria.c/(20610:20627): Encontro el segmento en tabla pero no tiene la pagina en memoria
+[DEBUG] 16:41:14:603 Memoria.c/(20610:20627): cant paginas max: 571
+[DEBUG] 16:41:14:603 Memoria.c/(20610:20627): offset: 14
+[DEBUG] 16:41:14:603 Memoria.c/(20610:20627): Pagina cargada en memoria.
+[DEBUG] 16:41:18:923 Memoria.c/(20610:20627): No encontro el segmento en tabla de segmentos
+[DEBUG] 16:41:18:923 Memoria.c/(20610:20627): Segmento cargado en tabla
+[DEBUG] 16:41:18:923 Memoria.c/(20610:20627): cant paginas max: 571
+[DEBUG] 16:41:18:923 Memoria.c/(20610:20627): offset: 28
+[DEBUG] 16:41:18:923 Memoria.c/(20610:20627): Pagina cargada en memoria.
+[DEBUG] 16:41:22:826 Memoria.c/(20610:20627): LLEGO JOURNAL WACHIN
+[INFO] 16:46:26:211 Memoria.c/(20937:20937): Por favor ingrese el path de su archivo de configuracion (Memoria.config): 
+[DEBUG] 16:46:31:947 Memoria.c/(20937:20937): Levanta archivo de config
+[DEBUG] 16:46:31:948 Memoria.c/(20937:20937): Tamanio Memoria: 8000
+[DEBUG] 16:46:31:950 Memoria.c/(20937:20937): Levanta conexion con kernel
+[DEBUG] 16:46:31:950 Memoria.c/(20937:20937): Handshake con LFS realizado. Tamanio max del value: 8
+[DEBUG] 16:46:39:846 Memoria.c/(20937:20950): No encontro el segmento en tabla de segmentos
+[DEBUG] 16:46:39:846 Memoria.c/(20937:20950): Segmento cargado en tabla
+[DEBUG] 16:46:39:846 Memoria.c/(20937:20950): cant paginas max: 571
+[DEBUG] 16:46:39:846 Memoria.c/(20937:20950): offset: 0
+[DEBUG] 16:46:39:846 Memoria.c/(20937:20950): Pagina cargada en memoria.
+[DEBUG] 16:46:43:706 Memoria.c/(20937:20950): Encontre segmento A 
+[DEBUG] 16:46:43:706 Memoria.c/(20937:20950): no encontro la pagina
+[DEBUG] 16:46:43:706 Memoria.c/(20937:20950): Encontro el segmento en tabla pero no tiene la pagina en memoria
+[DEBUG] 16:46:43:706 Memoria.c/(20937:20950): cant paginas max: 571
+[DEBUG] 16:46:43:706 Memoria.c/(20937:20950): offset: 14
+[DEBUG] 16:46:43:715 Memoria.c/(20937:20950): Pagina cargada en memoria.
+[DEBUG] 16:46:48:130 Memoria.c/(20937:20950): No encontro el segmento en tabla de segmentos
+[DEBUG] 16:46:48:130 Memoria.c/(20937:20950): Segmento cargado en tabla
+[DEBUG] 16:46:48:130 Memoria.c/(20937:20950): cant paginas max: 571
+[DEBUG] 16:46:48:130 Memoria.c/(20937:20950): offset: 28
+[DEBUG] 16:46:48:130 Memoria.c/(20937:20950): Pagina cargada en memoria.
+[DEBUG] 16:46:54:128 Memoria.c/(20937:20950): LLEGO JOURNAL WACHIN
+[INFO] 17:03:23:419 Memoria.c/(21585:21585): Por favor ingrese el path de su archivo de configuracion (Memoria.config): 
+[DEBUG] 17:03:28:37 Memoria.c/(21585:21585): Levanta archivo de config
+[DEBUG] 17:03:28:37 Memoria.c/(21585:21585): Tamanio Memoria: 8000
+[DEBUG] 17:03:28:41 Memoria.c/(21585:21585): Levanta conexion con kernel
+[DEBUG] 17:03:28:42 Memoria.c/(21585:21585): Handshake con LFS realizado. Tamanio max del value: 8
+[INFO] 17:04:00:156 Memoria.c/(21653:21653): Por favor ingrese el path de su archivo de configuracion (Memoria.config): 
+[DEBUG] 17:04:05:791 Memoria.c/(21653:21653): Levanta archivo de config
+[DEBUG] 17:04:05:792 Memoria.c/(21653:21653): Tamanio Memoria: 8000
+[DEBUG] 17:04:05:795 Memoria.c/(21653:21653): Levanta conexion con kernel
+[INFO] 17:04:39:351 Memoria.c/(21700:21700): Por favor ingrese el path de su archivo de configuracion (Memoria.config): 
+[DEBUG] 17:04:44:728 Memoria.c/(21700:21700): Levanta archivo de config
+[DEBUG] 17:04:44:729 Memoria.c/(21700:21700): Tamanio Memoria: 8000
+[DEBUG] 17:04:44:733 Memoria.c/(21700:21700): Levanta conexion con kernel
+[DEBUG] 17:04:44:733 Memoria.c/(21700:21700): Handshake con LFS realizado. Tamanio max del value: 8
+[DEBUG] 17:05:04:32 Memoria.c/(21700:21714): No encontro el segmento en tabla de segmentos
+[DEBUG] 17:05:04:32 Memoria.c/(21700:21714): Segmento cargado en tabla
+[DEBUG] 17:05:04:32 Memoria.c/(21700:21714): cant paginas max: 571
+[DEBUG] 17:05:04:32 Memoria.c/(21700:21714): offset: 0
+[DEBUG] 17:05:04:32 Memoria.c/(21700:21714): Pagina cargada en memoria.
+[DEBUG] 17:05:10:275 Memoria.c/(21700:21714): Encontre segmento A 
+[DEBUG] 17:05:10:275 Memoria.c/(21700:21714): no encontro la pagina
+[DEBUG] 17:05:10:275 Memoria.c/(21700:21714): Encontro el segmento en tabla pero no tiene la pagina en memoria
+[DEBUG] 17:05:10:275 Memoria.c/(21700:21714): cant paginas max: 571
+[DEBUG] 17:05:10:275 Memoria.c/(21700:21714): offset: 14
+[DEBUG] 17:05:10:275 Memoria.c/(21700:21714): Pagina cargada en memoria.
+[DEBUG] 17:05:16:171 Memoria.c/(21700:21714): No encontro el segmento en tabla de segmentos
+[DEBUG] 17:05:16:171 Memoria.c/(21700:21714): Segmento cargado en tabla
+[DEBUG] 17:05:16:171 Memoria.c/(21700:21714): cant paginas max: 571
+[DEBUG] 17:05:16:171 Memoria.c/(21700:21714): offset: 28
+[DEBUG] 17:05:16:171 Memoria.c/(21700:21714): Pagina cargada en memoria.
+[INFO] 17:06:56:648 Memoria.c/(21771:21771): Por favor ingrese el path de su archivo de configuracion (Memoria.config): 
+[DEBUG] 17:07:00:694 Memoria.c/(21771:21771): Levanta archivo de config
+[DEBUG] 17:07:00:698 Memoria.c/(21771:21771): Tamanio Memoria: 8000
+[DEBUG] 17:07:00:700 Memoria.c/(21771:21771): Levanta conexion con kernel
+[DEBUG] 17:07:00:701 Memoria.c/(21771:21771): Handshake con LFS realizado. Tamanio max del value: 8
+[DEBUG] 17:07:08:810 Memoria.c/(21771:21878): No encontro el segmento en tabla de segmentos
+[DEBUG] 17:07:08:810 Memoria.c/(21771:21878): Segmento cargado en tabla
+[DEBUG] 17:07:08:810 Memoria.c/(21771:21878): cant paginas max: 571
+[DEBUG] 17:07:08:810 Memoria.c/(21771:21878): offset: 0
+[DEBUG] 17:07:08:810 Memoria.c/(21771:21878): Pagina cargada en memoria.
+[DEBUG] 17:07:14:543 Memoria.c/(21771:21878): Encontre segmento A 
+[DEBUG] 17:07:14:545 Memoria.c/(21771:21878): no encontro la pagina
+[DEBUG] 17:07:14:545 Memoria.c/(21771:21878): Encontro el segmento en tabla pero no tiene la pagina en memoria
+[DEBUG] 17:07:14:545 Memoria.c/(21771:21878): cant paginas max: 571
+[DEBUG] 17:07:14:545 Memoria.c/(21771:21878): offset: 14
+[DEBUG] 17:07:14:545 Memoria.c/(21771:21878): Pagina cargada en memoria.
+[DEBUG] 17:07:18:257 Memoria.c/(21771:21878): No encontro el segmento en tabla de segmentos
+[DEBUG] 17:07:18:257 Memoria.c/(21771:21878): Segmento cargado en tabla
+[DEBUG] 17:07:18:257 Memoria.c/(21771:21878): cant paginas max: 571
+[DEBUG] 17:07:18:257 Memoria.c/(21771:21878): offset: 28
+[DEBUG] 17:07:18:257 Memoria.c/(21771:21878): Pagina cargada en memoria.
+[DEBUG] 17:07:20:257 Memoria.c/(21771:21878): LLEGO JOURNAL WACHIN
+[INFO] 17:17:24:565 Memoria.c/(22381:22381): Por favor ingrese el path de su archivo de configuracion (Memoria.config): 
+[DEBUG] 17:17:30:768 Memoria.c/(22381:22381): Levanta archivo de config
+[DEBUG] 17:17:30:768 Memoria.c/(22381:22381): Tamanio Memoria: 8000
+[DEBUG] 17:17:30:769 Memoria.c/(22381:22381): Levanta conexion con kernel
+[DEBUG] 17:17:30:769 Memoria.c/(22381:22381): Handshake con LFS realizado. Tamanio max del value: 8
+[DEBUG] 17:17:45:49 Memoria.c/(22381:22397): No encontro el segmento en tabla de segmentos
+[DEBUG] 17:17:45:49 Memoria.c/(22381:22397): Segmento cargado en tabla
+[DEBUG] 17:17:45:49 Memoria.c/(22381:22397): cant paginas max: 571
+[DEBUG] 17:17:45:49 Memoria.c/(22381:22397): offset: 0
+[DEBUG] 17:17:45:49 Memoria.c/(22381:22397): Pagina cargada en memoria.
+[DEBUG] 17:17:50:40 Memoria.c/(22381:22397): Encontre segmento A 
+[DEBUG] 17:17:50:40 Memoria.c/(22381:22397): no encontro la pagina
+[DEBUG] 17:17:50:40 Memoria.c/(22381:22397): Encontro el segmento en tabla pero no tiene la pagina en memoria
+[DEBUG] 17:17:50:40 Memoria.c/(22381:22397): cant paginas max: 571
+[DEBUG] 17:17:50:40 Memoria.c/(22381:22397): offset: 14
+[DEBUG] 17:17:50:40 Memoria.c/(22381:22397): Pagina cargada en memoria.
+[DEBUG] 17:17:53:704 Memoria.c/(22381:22397): No encontro el segmento en tabla de segmentos
+[DEBUG] 17:17:53:704 Memoria.c/(22381:22397): Segmento cargado en tabla
+[DEBUG] 17:17:53:704 Memoria.c/(22381:22397): cant paginas max: 571
+[DEBUG] 17:17:53:704 Memoria.c/(22381:22397): offset: 28
+[DEBUG] 17:17:53:704 Memoria.c/(22381:22397): Pagina cargada en memoria.
+[DEBUG] 17:17:55:704 Memoria.c/(22381:22397): LLEGO JOURNAL WACHIN

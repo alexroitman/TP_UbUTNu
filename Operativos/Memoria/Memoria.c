@@ -207,6 +207,17 @@ int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla,tPa
 
 }
 
+bool filtrarFlagModificado (void* pag){
+	elem_tabla_pag* pagina = (elem_tabla_pag*) pag;
+	return !(pagina->modificado);
+}
+
+bool fueModificado(void* pag){
+	elem_tabla_pag* pagina = (elem_tabla_pag*) pag;
+	return pagina->modificado;
+}
+
+
 int ejecutarLRU(){
 	t_list* LRUPaginaPorSegmento;
 	LRUPaginaPorSegmento = list_create();
@@ -218,10 +229,7 @@ int ejecutarLRU(){
 		return pagina1->ultimoTime < pagina2->ultimoTime;
 	}
 
-	bool filtrarFlagModificado (void* pag){
-		elem_tabla_pag* pagina = (elem_tabla_pag*) pag;
-		return !(pagina->modificado);
-	}
+
 
 	void paginaMenorTimePorSeg(void* seg){
 		tSegmento* miSeg = (tSegmento*) seg;
@@ -248,6 +256,7 @@ int ejecutarLRU(){
 	log_debug(logger,"voy a borrar la pagina: %d",pagBorrar->offsetMemoria);
 	tSegmento* segmento = obtenerSegmentoDeTabla(tablaSegmentos,indexMin);
 	list_remove(segmento->tablaPaginas,pagBorrar->index);
+	actualizarIndexLista(segmento->tablaPaginas);
 	eliminarDeMemoria(pagBorrar);
 	return 1;
 }
@@ -270,47 +279,73 @@ int listMinTimestamp(t_list* listaPaginas,elem_tabla_pag* pagina){
 	return indexMin;
 }
 
-bool estaModificada(void* elemento){
-	elem_tabla_pag* miPagina = (elem_tabla_pag*) elemento;
-	return miPagina->modificado;
-}
 
-int ejecutarJournal(){
+
+void ejecutarJournal(){
 	int index = 0;
-	int errorMandarInserts = 0;
-	int errorBorrasPaginas = 0;
 	tSegmento* miSegmento = list_get(tablaSegmentos, 0);
 
 	while(miSegmento != NULL){
-		t_list* tablaPaginasMiSegmento = miSegmento->tablaPaginas;
 		t_list* paginasModificadas = list_create();
-		paginasModificadas = list_filter(tablaPaginasMiSegmento, estaModificada);
-		errorMandarInserts = mandarInsertDePaginasModificadas(paginasModificadas, socket_lfs);
-		errorBorrasPaginas = borrarPaginasModificadas(paginasModificadas, tablaPaginasMiSegmento);
-		miSegmento = list_get(tablaSegmentos, index++);
+		paginasModificadas = list_filter(miSegmento->tablaPaginas, fueModificado);
+		mandarInsertDePaginasModificadas(paginasModificadas,miSegmento->path, socket_lfs);
+		borrarPaginasModificadas(paginasModificadas, miSegmento->tablaPaginas);
+		index++;
+		miSegmento = list_get(tablaSegmentos, index);
 	}
-	return errorBorrasPaginas || errorMandarInserts;
 }
 
-int mandarInsertDePaginasModificadas(t_list* paginasModificadas, int socket_lfs){
-	int error = 0;
+void mandarInsertDePaginasModificadas(t_list* paginasModificadas,char* nombreTabla, int socket_lfs){
+
 	int index = 0;
-	while(paginasModificadas != NULL){
-		//como verga le mando el insert a lfs, ahora veo
+	tInsert* miInsert = malloc(sizeof(tInsert));
+	miInsert->type = INSERT;
+	miInsert->nombre_tabla = malloc(strlen(nombreTabla) + 1);
+	miInsert->nombre_tabla_long = strlen(nombreTabla) + 1;
+	miInsert->value = malloc(tamanioMaxValue);
+	strcpy(miInsert->nombre_tabla, nombreTabla);
+
+	elem_tabla_pag* miPagina = (elem_tabla_pag*)list_get(paginasModificadas, index);
+	while(miPagina != NULL){
+		memcpy(miInsert->value, (memoria + miPagina->offsetMemoria + 6), tamanioMaxValue);
+		memcpy(&(miInsert->key), (memoria + miPagina->offsetMemoria), 2);
+
+		miInsert->value_long = strlen(miInsert->value) + 1;
+		miInsert->length = sizeof(miInsert->type) + sizeof(miInsert->nombre_tabla_long)
+						+ miInsert->nombre_tabla_long + sizeof(miInsert->key)
+						+ sizeof(miInsert->value_long) + miInsert->value_long;
+		char* serializado = serializarInsert(miInsert);
+		enviarPaquete(socket_lfs, serializado, miInsert->length);
+		index++;
+		miPagina = (elem_tabla_pag*)list_get(paginasModificadas, index);
 	}
-	return error;
+	free(miInsert->value);
+	free(miInsert->nombre_tabla);
+	free(miInsert);
 }
 
-int borrarPaginasModificadas(t_list* paginasModificadas, t_list* tablaPaginasMiSegmento){
-	int error = 0;
+void borrarPaginasModificadas(t_list* paginasModificadas, t_list* tablaPaginasMiSegmento){
 	int index = 0;
-	while(paginasModificadas != NULL){
-		elem_tabla_pag* pagABorrar = (elem_tabla_pag*) list_get(paginasModificadas, index);
+	elem_tabla_pag* pagABorrar = (elem_tabla_pag*) list_get(paginasModificadas, 0);
+	while(pagABorrar != NULL){
 		list_remove(tablaPaginasMiSegmento, pagABorrar->index); //BORRO DE LA TABLA DE PAGINAS
+		actualizarIndexLista(tablaPaginasMiSegmento);
 		eliminarDeMemoria(pagABorrar);							//BORRO DE LA MEMORIA
 		index++;
+		pagABorrar = (elem_tabla_pag*) list_get(paginasModificadas, index);
 	}
-	return error;
+}
+
+void actualizarIndexLista(t_list* lista){
+	int index = 0;
+
+	void cambiarIndice(void* elemento){
+		elem_tabla_pag* pagina = (elem_tabla_pag*) elemento;
+		pagina->index = index;
+		index++;
+	}
+
+	list_iterate(lista, cambiarIndice);
 }
 
 t_miConfig* cargarConfig() {
