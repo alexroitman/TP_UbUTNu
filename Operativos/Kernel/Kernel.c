@@ -90,7 +90,7 @@ type validarSegunHeader(char* header) {
 	if (!strcmp(header, "DESCRIBE")) {
 					return DESCRIBE;
 			}
-	if (!strcmp(header, "JOURNAL")){
+	if (!strcmp(header, "JOURNAL\n")){
 					return JOURNAL;
 			}
 	return NIL;
@@ -111,6 +111,7 @@ int despacharQuery(char* consulta, int socket_memoria) {
 	char* serializado = "";
 	int consultaOk = 0;
 	tempSplit = string_n_split(consulta, 2, " ");
+	log_debug(logger, "header %s", tempSplit[0]);
 	script *unScript;
 	if (strcmp(tempSplit[0], "")) {
 		typeHeader = validarSegunHeader(tempSplit[0]);
@@ -200,6 +201,7 @@ int despacharQuery(char* consulta, int socket_memoria) {
 			sem_wait(&mutexSocket);
 			enviarPaquete(socket_memoria, serializado, paqueteJournal->length);
 			sem_post(&mutexSocket);
+			consultaOk = 1;
 			break;
 		default:
 			printf("Operacion no valida por el momento \n");

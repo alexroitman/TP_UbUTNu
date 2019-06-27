@@ -7,6 +7,9 @@
 
 
 int main() {
+
+
+
 	tamanioMaxValue = 10;
 	signal(SIGINT, finalizarEjecucion);
 	logger = log_create("Memoria.log", "Memoria.c", 1, LOG_LEVEL_DEBUG);

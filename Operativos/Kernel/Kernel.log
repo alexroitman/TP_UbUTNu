@@ -158,3 +158,10 @@
 [DEBUG] 20:13:43:362 Kernel.c/(22112:22112): Sockets inicializados con exito
 [DEBUG] 20:13:43:362 Kernel.c/(22112:22112): Se tendra un nivel de multiprocesamiento de: 3 cpus
 [ERROR] 20:14:39:207 Kernel.c/(22112:22112): Se ingreso una consulta no valida
+[DEBUG] 15:58:03:157 Kernel.c/(18882:18882): Cargando configuracion
+[DEBUG] 15:58:03:259 Kernel.c/(18882:18882): Configuracion cargada con exito
+[DEBUG] 15:58:03:260 Kernel.c/(18882:18882): Inicializando semaforos
+[DEBUG] 15:58:03:261 Kernel.c/(18882:18882): Semaforos incializados con exito
+[DEBUG] 15:58:03:261 Kernel.c/(18882:18882): Inicializando sockets
+[DEBUG] 15:58:03:262 Kernel.c/(18882:18882): Sockets inicializados con exito
+[DEBUG] 15:58:03:263 Kernel.c/(18882:18882): Se tendra un nivel de multiprocesamiento de: 3 cpus
