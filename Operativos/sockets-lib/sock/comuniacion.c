@@ -1,6 +1,5 @@
 #include "comunicacion.h"
 
-
 int enviarPaquete(int clienteSocket, char* payload, uint32_t size) {
 
 	return send(clienteSocket, payload, size, 0);
@@ -16,9 +15,9 @@ void cargarPaqueteSelect(tSelect *pack, char* cons) {
 	char** spliteado;
 	spliteado = string_n_split(cons, 3, " ");
 	if (strcmp(spliteado[1], "") && strcmp(spliteado[2], "")) {
-		pack->nombre_tabla = malloc(strlen(spliteado[1])+1);
+		pack->nombre_tabla = malloc(strlen(spliteado[1]) + 1);
 		pack->type = SELECT;
-		strcpy(pack->nombre_tabla,spliteado[1]);
+		strcpy(pack->nombre_tabla, spliteado[1]);
 		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
 		pack->key = atoi(spliteado[2]);
 		pack->length = sizeof(pack->type) + sizeof(pack->nombre_tabla_long)
@@ -32,7 +31,7 @@ void cargarPaqueteSelect(tSelect *pack, char* cons) {
 
 void cargarPaqueteInsert(tInsert *pack, char* cons) {
 	char** spliteado;
-	char** value = string_split(cons,"\"");
+	char** value = string_split(cons, "\"");
 	spliteado = string_n_split(cons, 4, " ");
 	if (strcmp(spliteado[1], "") && strcmp(spliteado[2], "")
 			&& strcmp(spliteado[3], "")) {
@@ -42,8 +41,8 @@ void cargarPaqueteInsert(tInsert *pack, char* cons) {
 		strcpy(pack->nombre_tabla,spliteado[1]);
 		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
 		pack->key = atoi(spliteado[2]);
-		strcpy(pack->value,value[1]);
-		pack->value_long = strlen(value[1])+1;
+		strcpy(pack->value, value[1]);
+		pack->value_long = strlen(value[1]) + 1;
 		pack->length = sizeof(pack->type) + sizeof(pack->nombre_tabla_long)
 				+ pack->nombre_tabla_long + sizeof(pack->key)
 				+ sizeof(pack->value_long) + pack->value_long;
@@ -70,12 +69,9 @@ void cargarPaqueteCreate(tCreate *pack, char* cons) {
 		pack->consistencia_long = strlen(spliteado[2]) + 1;
 		pack->particiones = atoi(spliteado[3]);
 		pack->compaction_time = atoi(spliteado[4]);
-		pack->length = sizeof(pack->type)
-				+ sizeof(pack->nombre_tabla_long)
-				+ pack->nombre_tabla_long
-				+ sizeof(pack->consistencia_long)
-				+ pack->consistencia_long
-				+ sizeof(pack->particiones)
+		pack->length = sizeof(pack->type) + sizeof(pack->nombre_tabla_long)
+				+ pack->nombre_tabla_long + sizeof(pack->consistencia_long)
+				+ pack->consistencia_long + sizeof(pack->particiones)
 				+ sizeof(pack->compaction_time);
 	} else {
 		printf("no entendi tu consulta\n");
@@ -97,7 +93,6 @@ void cargarPaqueteDescribe(tDescribe *pack, char* cons) {
 	free(spliteado);
 }
 
-
 void cargarPaqueteDrop(tDrop*pack, char* cons) {
 	char** spliteado;
 	spliteado = string_n_split(cons, 2, " ");
@@ -111,8 +106,6 @@ void cargarPaqueteDrop(tDrop*pack, char* cons) {
 	string_iterate_lines(spliteado,free);
 	free(spliteado);
 }
-
-
 
 char* serializarSelect(tSelect* packageSelect) {
 	packageSelect->length = sizeof(packageSelect->type)
@@ -303,41 +296,43 @@ char* serializarCreate(tCreate* packageCreate) {
 int desSerializarCreate(tCreate* packageCreate, int socket) {
 
 	int status;
-		int buffer_size;
-		char *buffer = malloc(buffer_size = sizeof(uint32_t));
+	int buffer_size;
+	char *buffer = malloc(buffer_size = sizeof(uint32_t));
 
-		uint32_t nombrelong;
-		status = recv(socket, buffer, sizeof((packageCreate->nombre_tabla_long)),
-				0); //recibo la longitud
-		memcpy(&(packageCreate->nombre_tabla_long), buffer, buffer_size);
-		if (!status)
-			return 0;
-		packageCreate->nombre_tabla = malloc(packageCreate->nombre_tabla_long);
+	uint32_t nombrelong;
+	status = recv(socket, buffer, sizeof((packageCreate->nombre_tabla_long)),
+			0); //recibo la longitud
+	memcpy(&(packageCreate->nombre_tabla_long), buffer, buffer_size);
+	if (!status)
+		return 0;
+	packageCreate->nombre_tabla = malloc(packageCreate->nombre_tabla_long);
 
-		status = recv(socket, packageCreate->nombre_tabla,
-				packageCreate->nombre_tabla_long, 0); //recibo el nombre de la tabla
+	status = recv(socket, packageCreate->nombre_tabla,
+			packageCreate->nombre_tabla_long, 0); //recibo el nombre de la tabla
 
-		status = recv(socket, buffer, sizeof((packageCreate->consistencia_long)),
-					0); //recibo la longitud
-			memcpy(&(packageCreate->consistencia_long), buffer, buffer_size);
-			if (!status)
-				return 0;
-			packageCreate->consistencia = malloc(packageCreate->consistencia_long);
+	status = recv(socket, buffer, sizeof((packageCreate->consistencia_long)),
+			0); //recibo la longitud
+	memcpy(&(packageCreate->consistencia_long), buffer, buffer_size);
+	if (!status)
+		return 0;
+	packageCreate->consistencia = malloc(packageCreate->consistencia_long);
 
-			status = recv(socket, packageCreate->consistencia,
-					packageCreate->consistencia_long, 0); //recibo el nombre de la tabla
+	status = recv(socket, packageCreate->consistencia,
+			packageCreate->consistencia_long, 0); //recibo el nombre de la tabla
 
 	if (!status)
-			return 0;
+		return 0;
 	packageCreate->particiones = malloc(sizeof(int));
-		status = recv(socket, &packageCreate->particiones, sizeof(packageCreate->particiones), 0); //recibo particiones
-		if (!status)
-			return 0;
+	status = recv(socket, &packageCreate->particiones,
+			sizeof(packageCreate->particiones), 0); //recibo particiones
+	if (!status)
+		return 0;
 
-		packageCreate->compaction_time = malloc(sizeof(int));
-				status = recv(socket, &packageCreate->compaction_time, sizeof(packageCreate->compaction_time), 0); //recibo particiones
-				if (!status)
-					return 0;
+	packageCreate->compaction_time = malloc(sizeof(int));
+	status = recv(socket, &packageCreate->compaction_time,
+			sizeof(packageCreate->compaction_time), 0); //recibo particiones
+	if (!status)
+		return 0;
 
 	free(buffer);
 	packageCreate->length = sizeof(packageCreate->type)
@@ -394,14 +389,52 @@ int desSerializarDescribe(tDescribe* packageDescribe, int socket) {
 			packageDescribe->nombre_tabla_long, 0); //recibo el nombre de la tabla
 	free(buffer);
 	packageDescribe->length = sizeof(packageDescribe->type)
-					+ sizeof(packageDescribe->nombre_tabla_long)
-					+ packageDescribe->nombre_tabla_long;
+			+ sizeof(packageDescribe->nombre_tabla_long)
+			+ packageDescribe->nombre_tabla_long;
 	packageDescribe->type = DESCRIBE;
 	return status;
 
 }
 
-char* serializarDrop(tDrop* packageDrop){
+char* serializarDescribe_Response(t_describe *package) {
+
+	char *serializedPackage = malloc(
+			sizeof(package->cant_tablas)
+					+ package->cant_tablas * sizeof(t_metadata));
+
+	int offset = 0;
+	int size_to_send;
+
+	size_to_send = sizeof(package->cant_tablas);
+	memcpy(serializedPackage + offset, &(package->cant_tablas), size_to_send);
+	offset += size_to_send;
+
+	for (int x = 0; x < package->cant_tablas; x++) {
+		size_to_send = sizeof(t_metadata);
+		memcpy(serializedPackage + offset, &(package->tablas[x]), size_to_send);
+		offset += size_to_send;
+
+	}
+
+	return serializedPackage;
+}
+
+int desserializarDescribe_Response(t_describe* package, int socket) {
+
+	package->cant_tablas=malloc(sizeof(uint16_t));
+	int status = recv(socket, &(package->cant_tablas), sizeof(package->cant_tablas), 0); //recibo el nombre de la key
+
+	if (!status)
+		return 0;
+
+	package->tablas = malloc(package->cant_tablas * sizeof(t_metadata));
+	for (int x = 0; x < package->cant_tablas; x++) {
+		status = recv(socket, &package->tablas[x], sizeof(t_metadata), 0);
+	}
+	return status;
+}
+
+char* serializarDrop(tDrop* packageDrop) {
 	char* serializedPackage = malloc(packageDrop->length);
 	int offset = 0;
 	int size_to_send = 0;
@@ -424,13 +457,13 @@ char* serializarDrop(tDrop* packageDrop){
 	return serializedPackage;
 }
 
-int desSerializarDrop(tDrop* packageDrop, int socket){
+int desSerializarDrop(tDrop* packageDrop, int socket) {
 	int status;
 	int buffer_size;
 	char *buffer = malloc(buffer_size = sizeof(uint32_t));
 
 	uint32_t nombrelong;
-	status = recv(socket, buffer, sizeof((packageDrop->nombre_tabla_long)),0); //recibo la longitud
+	status = recv(socket, buffer, sizeof((packageDrop->nombre_tabla_long)), 0); //recibo la longitud
 	memcpy(&(packageDrop->nombre_tabla_long), buffer, buffer_size);
 	if (!status)
 		return 0;
@@ -440,42 +473,41 @@ int desSerializarDrop(tDrop* packageDrop, int socket){
 			packageDrop->nombre_tabla_long, 0); //recibo el nombre de la tabla
 	free(buffer);
 	packageDrop->length = sizeof(packageDrop->type)
-					+ sizeof(packageDrop->nombre_tabla_long)
-					+ packageDrop->nombre_tabla_long;
+			+ sizeof(packageDrop->nombre_tabla_long)
+			+ packageDrop->nombre_tabla_long;
 	packageDrop->type = DROP;
 	return status;
 }
 
-char* serializarRegistro(tRegistroRespuesta* reg){
-		reg->length = sizeof(reg->tipo) + sizeof(reg->value_long) + reg->value_long + sizeof(int) + sizeof(uint16_t);
+char* serializarRegistro(tRegistroRespuesta* reg) {
+	reg->length = sizeof(reg->tipo) + sizeof(reg->value_long) + reg->value_long
+			+ sizeof(int) + sizeof(uint16_t);
 
-		char *serializedPackage = malloc(reg->length);
-		int offset = 0;
-		int size_to_send;
+	char *serializedPackage = malloc(reg->length);
+	int offset = 0;
+	int size_to_send;
 
-		size_to_send = sizeof(reg->tipo);
-		memcpy(serializedPackage + offset, &(reg->tipo), size_to_send); //sizeof(int8_t)
-		offset += size_to_send;
+	size_to_send = sizeof(reg->tipo);
+	memcpy(serializedPackage + offset, &(reg->tipo), size_to_send); //sizeof(int8_t)
+	offset += size_to_send;
 
-		size_to_send = sizeof(reg->key);
-		memcpy(serializedPackage + offset, &(reg->key), size_to_send); //sizeof(int8_t)
-		offset += size_to_send;
+	size_to_send = sizeof(reg->key);
+	memcpy(serializedPackage + offset, &(reg->key), size_to_send); //sizeof(int8_t)
+	offset += size_to_send;
 
-		size_to_send = sizeof(reg->value_long);
-		memcpy(serializedPackage + offset, &(reg->value_long),
-				size_to_send);
-		offset += size_to_send;
+	size_to_send = sizeof(reg->value_long);
+	memcpy(serializedPackage + offset, &(reg->value_long), size_to_send);
+	offset += size_to_send;
 
-		size_to_send = reg->value_long;
+	size_to_send = reg->value_long;
 
-		memcpy(serializedPackage + offset, (reg->value),
-				size_to_send);
-		offset += size_to_send;
+	memcpy(serializedPackage + offset, (reg->value), size_to_send);
+	offset += size_to_send;
 
-		size_to_send = sizeof(int);
-		memcpy(serializedPackage + offset, &reg->timestamp, size_to_send);
+	size_to_send = sizeof(int);
+	memcpy(serializedPackage + offset, &reg->timestamp, size_to_send);
 
-		return serializedPackage;
+	return serializedPackage;
 }
 
 int desSerializarRegistro(tRegistroRespuesta* reg, int socket) {

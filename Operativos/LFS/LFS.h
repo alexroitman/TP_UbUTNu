@@ -40,9 +40,10 @@
 // Estructuras
 typedef struct {
 	int particiones;
-	int consistencia;
+	int consistency;
 	int tiempo_compactacion;
-} metadata;
+	char nombre_tabla[12];
+} Metadata;
 
 typedef struct{
 	char* nombreTabla;
@@ -52,6 +53,9 @@ typedef struct{
 typedef struct{
 	t_tabla tabla;
 }t_memtable ;
+
+
+
 
 
 // MEMTABLE
@@ -66,8 +70,10 @@ int Create(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, 
 int Insert (char* NOMBRE_TABLA, int KEY, char* VALUE, int Timestamp);
 int Drop(char* NOMBRE_TABLA);
 registro* Select(char* NOMBRE_TABLA, int KEY);
-metadata Describe(char* NOMBRE_TABLA);
 
+t_list* lfs_describe();
+int consistency_to_int(char* cons);
+Metadata* obtener_metadata(char* ruta);
 // AUXILIARES DE SELECT
 registro* SelectFS(char* NOMBRE_TABLA, int KEY);
 t_list* selectEnMemtable( uint16_t key, char* tabla);

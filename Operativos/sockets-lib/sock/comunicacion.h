@@ -95,6 +95,15 @@ int nombre_tabla_long;
 int length;
 } tDescribe;
 
+
+typedef struct {
+    char nombre_tabla[12];
+    uint8_t consistencia;
+} t_metadata;
+typedef struct {
+    uint16_t cant_tablas;
+    t_metadata* tablas;
+} t_describe;
 typedef struct {
 	type type;
 char* nombre_tabla;
@@ -139,6 +148,8 @@ int desSerializarCreate(tCreate* packageCreate, int socket) ;
 char* serializarDescribe(tDescribe* packageDescribe);
 int desSerializarDescribe(tDescribe* paqueteSerializado, int socket);
 
+char* serializarDescribe_Response(t_describe *package);
+int desserializarDescribe_Response(t_describe* package, int socket);
 char* serializarDrop(tDrop* packageDrop);
 int desSerializarDrop(tDrop* packageDrop, int socket);
 
