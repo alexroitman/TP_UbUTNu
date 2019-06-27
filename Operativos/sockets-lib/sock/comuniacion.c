@@ -108,6 +108,14 @@ void cargarPaqueteDrop(tDrop *pack, char* cons){
 		free(spliteado);
 }
 
+void cargarPaqueteJournal(tJournal* pack, char* cons){
+	char** spliteado;
+	spliteado = string_n_split(cons, 0, " ");
+		pack->type = JOURNAL;
+		pack->length = sizeof(pack->type);
+		free(spliteado);
+}
+
 
 char* serializarSelect(tSelect* packageSelect) {
 	packageSelect->length = sizeof(packageSelect->type)
@@ -438,6 +446,28 @@ int desSerializarDrop(tDrop* packageDrop, int socket){
 					+ sizeof(packageDrop->nombre_tabla_long)
 					+ packageDrop->nombre_tabla_long;
 	packageDrop->type = DROP;
+	return status;
+}
+
+char* serializarJournal(tJournal* packageJournal){
+	char* serializedPackage = malloc(packageJournal->length);
+	int offset = 0;
+	int size_to_send = 0;
+
+	size_to_send = sizeof(packageJournal->type);
+	memcpy(serializedPackage + offset, &(packageJournal->type), size_to_send); //sizeof(int8_t)
+	offset += size_to_send;
+
+	return serializedPackage;
+}
+
+int desSerializarJournal(tJournal* packageJournal, int socket){
+	int status;
+	int buffer_size;
+	char *buffer = malloc(buffer_size = sizeof(uint32_t));
+	free(buffer);
+	packageJournal->length = sizeof(packageJournal->type);
+	packageJournal->type = JOURNAL;
 	return status;
 }
 

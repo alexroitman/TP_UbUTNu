@@ -90,6 +90,9 @@ type validarSegunHeader(char* header) {
 	if (!strcmp(header, "DESCRIBE")) {
 					return DESCRIBE;
 			}
+	if (!strcmp(header, "JOURNAL")){
+					return JOURNAL;
+			}
 	return NIL;
 }
 
@@ -103,6 +106,7 @@ int despacharQuery(char* consulta, int socket_memoria) {
 	tSelect* paqueteSelect=malloc(sizeof(tSelect));
 	tInsert* paqueteInsert=malloc(sizeof(tInsert));
 	tCreate* paqueteCreate = malloc(sizeof(tCreate));
+	tJournal* paqueteJournal = malloc(sizeof(tJournal));
 	type typeHeader;
 	char* serializado = "";
 	int consultaOk = 0;
@@ -187,6 +191,15 @@ int despacharQuery(char* consulta, int socket_memoria) {
 		case DESCRIBE:
 			log_debug(logger,"Se recibio un DESCRIBE");
 			consultaOk = 1;
+			break;
+		case JOURNAL:
+			log_debug(logger,"Se recibio un JOURNAL");
+			cargarPaqueteJournal(paqueteJournal,
+					string_substring_until(consulta,string_length(consulta)-1 ) );
+			serializado = serializarJournal(paqueteJournal);
+			sem_wait(&mutexSocket);
+			enviarPaquete(socket_memoria, serializado, paqueteJournal->length);
+			sem_post(&mutexSocket);
 			break;
 		default:
 			printf("Operacion no valida por el momento \n");

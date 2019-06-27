@@ -103,7 +103,8 @@ uint32_t length;							//DROP
 } tDrop;
 
 typedef struct {
-							//JOURNAL   (QUE CARAJO PONGO ACA)
+type type;
+uint32_t length;						//JOURNAL
 } tJournal;
 
 typedef struct {
@@ -119,6 +120,7 @@ void cargarPaqueteInsert(tInsert *pack, char* cons);
 void cargarPaqueteCreate(tCreate *pack, char* cons);
 void cargarPaqueteDescribe(tDescribe *pack, char* cons);
 void cargarPaqueteDrop(tDrop *pack, char* cons);
+void cargarPaqueteJournal(tJournal* pack, char* cons);
 
 int desSerializarRegistro(tRegistroRespuesta* reg, int socket);
 char* serializarRegistro(tRegistroRespuesta* reg);
@@ -139,8 +141,8 @@ int desSerializarDescribe(tDescribe* paqueteSerializado, int socket);
 char* serializarDrop(tDrop* packageDrop);
 int desSerializarDrop(tDrop* packageDrop, int socket);
 
-int serializarJournal(tJournal packageJournal, tPaquete* paqueteSerializado);
-int desSerializarJournal(tPaquete* paqueteSerializado, tJournal* packageJournal);
+char* serializarJournal(tJournal* packageJournal);
+int desSerializarJournal(tJournal* paqueteSerializado, int socket);
 
 int serializarAdd(tAdd packageAdd, tPaquete* paqueteSerializado);
 int desSerializarAdd(tPaquete* paqueteSerializado, tAdd* packageAdd);

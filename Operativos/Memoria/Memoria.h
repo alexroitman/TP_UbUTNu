@@ -29,6 +29,7 @@ tSelect* packSelect;
 tInsert* packInsert;
 tCreate* packCreate;
 tDrop* packDrop;
+tJournal* packJournal;
 type* header;
 t_list* tablaSegmentos;
 
@@ -82,7 +83,7 @@ void crearHilosRecepcion(type* header, pthread_t hiloSocket,
 		pthread_t hiloConsola,tHiloConsola* paramsConsola);
 int ejecutarLRU();
 int listMinTimestamp(t_list* listaPaginas,elem_tabla_pag* pagina);
-
+int ejecutarJournal();
 int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla,tPagina* pagina);
 int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina);
 void cargarSegmentoEnTabla(char* path,t_list* listaSeg);
@@ -96,6 +97,8 @@ void* recibirHeader(void* arg);
 int handshakeLFS(int socket_lfs);
 void eliminarDeMemoria(void* elemento);
 void liberarPaginasDelSegmento(tSegmento* miSegmento, t_list* tablaSegmentos);
+int mandarInsertDePaginasModificadas(t_list* paginasModificadas, int socket_lfs);
+int borrarPaginasModificadas(t_list* paginasModificadas, t_list* tablaPaginasMiSegmento);
 
 void finalizarEjecucion();
 void enviarMensajeAKernel();

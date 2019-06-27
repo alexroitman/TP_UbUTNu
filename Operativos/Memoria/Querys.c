@@ -146,6 +146,12 @@ void ejecutarConsulta(void* memoria) {
 		}
 
 		break;
+	case JOURNAL:
+		packJournal = malloc(sizeof(tJournal));
+		cargarPackJournal(packJournal, leyoConsola, paramsConsola->consulta);
+		log_debug(logger, "LLEGO JOURNAL WACHIN");
+		//ejecutarJournal();
+		break;
 	case NIL:
 		log_error(logger, "No entendi la consulta");
 		break;
@@ -199,6 +205,9 @@ void* leerQuery(void* params) {
 		if(!strcmp(tempSplit[0], "DROP")){
 			*(parametros->header) = DROP;
 		}
+		if(!strcmp(tempSplit[0], "JOURNAL")){
+			*(parametros->header) = JOURNAL;
+		}
 		leyoConsola = true;
 		free(tempSplit[0]);
 		free(tempSplit[1]);
@@ -243,6 +252,14 @@ void cargarPackDrop(tDrop* packDrop, bool leyoConsola, char consulta[]){
 	}
 }
 
+
+void cargarPackJournal(tJournal* packJournal, bool leyoConsola, char consulta[]){
+	if(leyoConsola){
+		cargarPaqueteJournal(packJournal, consulta);
+	} else {
+		desSerializarJournal(packJournal, socket_kernel);
+	}
+}
 int handshakeLFS(int socket_lfs){
 	int buffer;
 	recv(socket_lfs,&buffer,4,MSG_WAITALL);
