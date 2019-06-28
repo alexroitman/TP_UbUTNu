@@ -23,11 +23,14 @@
 #define noLevantoServidor -11
 #define errorTamanioValue -12
 #define errorDeMalloc -13
+#define errorDeConsistencia -14
+#define noExisteKey -15
+#define particionesInvalidas -16
+#define noAbreBIN -17
 
 
 #include <commons/log.h>
 #include "comunicacion.h"
-
 
 t_log* iniciar_logger(void);
 void imprimir_registro(registro* unreg);

@@ -72,6 +72,18 @@ void logeoDeErroresLFS(int errorHandler, t_log* logger) {
 		log_info(logger, "No se pudo alocar la memoria solicitada");
 		break;
 
+	case noExisteKey:
+		log_info(logger, "La Key solicitada no pudo ser seleccionada, es inexistente");
+		break;
+
+	case particionesInvalidas:
+		log_info(logger, "Las particiones en el archivo de configuracion debe tener un valor mayor a 0");
+		break;
+
+	case noAbreBIN:
+		log_info(logger, "El archivo .bin no pudo ser accedido");
+		break;
+
 	default:
 		break;
 	}
