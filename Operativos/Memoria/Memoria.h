@@ -28,15 +28,21 @@ bool recibioSocket;
 tSelect* packSelect;
 tInsert* packInsert;
 tCreate* packCreate;
+tDrop* packDrop;
+tJournal* packJournal;
 type* header;
 t_list* tablaSegmentos;
 
+int tamanioMaxValue;
 int socket_lfs;
 int socket_kernel;
 int socket_sv;
 int encontroSeg;
 int indexPag;
 void* memoria;
+int cantPagsMax;
+pthread_t hiloConsola;
+pthread_t hiloSocket;
 
 typedef struct{
 	type* header;
@@ -49,6 +55,7 @@ typedef struct {
 	int offsetMemoria;
 	bool modificado;
 	int index;
+	int ultimoTime;
 }elem_tabla_pag;
 
 typedef struct {
@@ -57,34 +64,43 @@ typedef struct {
 }tSegmento;
 
 typedef struct {
+	int timestamp;
+	u_int16_t key;
+	char* value;
+} tPagina;
+
+typedef struct {
 	int puerto_kernel;
 	int puerto_fs;
 	char* ip_fs;
 	int tam_mem ;
 } t_miConfig;
-
+t_miConfig* miConfig;
 char package[PACKAGESIZE];
 struct addrinfo hints;
 struct addrinfo *serverInfo;
 
 void crearHilosRecepcion(type* header, pthread_t hiloSocket,
 		pthread_t hiloConsola,tHiloConsola* paramsConsola);
-
-void cargarPackCreate(tCreate* packCreate,bool leyoConsola,char consulta[]);
-void cargarPackSelect(tSelect* packSelect,bool leyoConsola,char* consulta);
-void cargarPackInsert(tInsert* packInsert, bool leyoConsola, char consulta[]);
-
-
-int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla);
-int agregarPaginaAMemoria(tSegmento* seg,u_int16_t key, int time, char value[20]);
+int ejecutarLRU();
+int listMinTimestamp(t_list* listaPaginas,elem_tabla_pag* pagina);
+void ejecutarJournal();
+void actualizarIndexLista(t_list* lista);
+int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla,tPagina* pagina);
+int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina);
 void cargarSegmentoEnTabla(char* path,t_list* listaSeg);
 tSegmento* obtenerSegmentoDeTabla(t_list* tablaSeg,int index);
 int buscarSegmentoEnTabla(char* nombreTabla, tSegmento* segmento, t_list* listaSegmentos);
-void actualizarPaginaEnMemoria(tSegmento* segmento,int index, u_int16_t key, char value[20]);
+void actualizarPaginaEnMemoria(tSegmento* segmento,int index, char* newValue);
 tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg);
 void recibirMensajeDeKernel();
 char* separarNombrePath(char* path);
 void* recibirHeader(void* arg);
+int handshakeLFS(int socket_lfs);
+void eliminarDeMemoria(void* elemento);
+void liberarPaginasDelSegmento(tSegmento* miSegmento, t_list* tablaSegmentos);
+void mandarInsertDePaginasModificadas(t_list* paginasModificadas,char* nombreTabla, int socket_lfs);
+void borrarPaginasModificadas(t_list* paginasModificadas, t_list* tablaPaginasMiSegmento);
 
 void finalizarEjecucion();
 void enviarMensajeAKernel();

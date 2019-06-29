@@ -28,8 +28,8 @@ t_log *loggerWarning;
 t_queue *colaReady;
 t_queue *colaNew;
 t_list *listaMemsSC;
-t_list *listaMemsSHC;
 t_list *listaMemsEC;
+t_list *listaMemsSHC;
 configKernel *miConfig;
 t_config* config;
 int contScript;
@@ -41,6 +41,9 @@ int main(){
 	signal(SIGINT, finalizarEjecucion);
 	inicializarTodo();
 	socket_memoria = levantarCliente(miConfig->puerto_mem, miConfig->ip_mem);
+	listaMemsSC = list_create();
+	listaMemsEC = list_create();
+	listaMemsSHC = list_create();
 	log_debug(logger,"Sockets inicializados con exito");
 	log_debug(logger,"Se tendra un nivel de multiprocesamiento de: %d cpus", miConfig->MULT_PROC);
 	pthread_t cpus[miConfig->MULT_PROC];
@@ -89,6 +92,15 @@ type validarSegunHeader(char* header) {
 	if (!strcmp(header, "DESCRIBE") || !strcmp(header, "DESCRIBE\n") ) {
 					return DESCRIBE;
 			}
+	if (!strcmp(header, "DESCRIBE\n")) {
+					return DESCRIBE;
+			}
+	if (!strcmp(header, "JOURNAL\n")){
+					return JOURNAL;
+			}
+	if (!strcmp(header, "DROP")){
+						return DROP;
+				}
 	return NIL;
 }
 
@@ -102,10 +114,14 @@ int despacharQuery(char* consulta, int socket_memoria) {
 	tSelect* paqueteSelect=malloc(sizeof(tSelect));
 	tInsert* paqueteInsert=malloc(sizeof(tInsert));
 	tCreate* paqueteCreate = malloc(sizeof(tCreate));
+	tJournal* paqueteJournal = malloc(sizeof(tJournal));
+	tDrop* paqueteDrop = malloc(sizeof(tDrop));
+	tDescribe* paqueteDescribe = malloc(sizeof(tDescribe));
 	type typeHeader;
 	char* serializado = "";
 	int consultaOk = 0;
 	tempSplit = string_n_split(consulta, 2, " ");
+	log_debug(logger, "header %s", tempSplit[0]);
 	script *unScript;
 	if (strcmp(tempSplit[0], "")) {
 		typeHeader = validarSegunHeader(tempSplit[0]);
@@ -123,6 +139,10 @@ int despacharQuery(char* consulta, int socket_memoria) {
 				log_debug(logger,"Value: %s",reg->value);
 				sem_post(&mutexSocket);
 				consultaOk = 1;
+				free(paqueteSelect->nombre_tabla);
+				free(reg->value);
+				free(reg);
+				free(serializado);
 			}else{
 				log_error(loggerError,"Se ingreso una consulta no valida");
 				consultaOk = 2;
@@ -131,14 +151,18 @@ int despacharQuery(char* consulta, int socket_memoria) {
 		case INSERT:
 			if(validarInsert(consulta)){
 				log_debug(logger,"Se recibio un INSERT");
-				cargarPaqueteInsert(paqueteInsert,
-						string_substring_until(consulta,string_length(consulta)-1 ) );
+				char* sinFin = string_substring_until(consulta,string_length(consulta)-1 );
+				cargarPaqueteInsert(paqueteInsert, sinFin);
 				serializado = serializarInsert(paqueteInsert);
 				log_debug(logger,"%s",paqueteInsert->value);
 				sem_wait(&mutexSocket);
 				enviarPaquete(socket_memoria, serializado, paqueteInsert->length);
 				sem_post(&mutexSocket);
 				consultaOk = 1;
+				free(serializado);
+				free(paqueteInsert->nombre_tabla);
+				free(paqueteInsert->value);
+				free(sinFin);
 			}else{
 				log_error(loggerError,"Se ingreso una consulta no valida");
 				consultaOk = 2;
@@ -147,13 +171,17 @@ int despacharQuery(char* consulta, int socket_memoria) {
 		case CREATE:
 			if(validarCreate(consulta)){
 				log_debug(logger,"Se recibio un CREATE");
-				cargarPaqueteCreate(paqueteCreate,
-						string_substring_until(consulta,string_length(consulta)-1 ) );
+				char* sinFin = string_substring_until(consulta,string_length(consulta)-1 );
+				cargarPaqueteCreate(paqueteCreate,sinFin);
 				serializado = serializarCreate(paqueteCreate);
 				sem_wait(&mutexSocket);
 				enviarPaquete(socket_memoria, serializado, paqueteCreate->length);
 				sem_post(&mutexSocket);
 				consultaOk = 1;
+				free(serializado);
+				free(paqueteCreate->consistencia);
+				free(paqueteCreate->nombre_tabla);
+				free(sinFin);
 			}else{
 				log_error(loggerError,"Se ingreso una consulta no valida");
 				consultaOk = 2;
@@ -161,9 +189,9 @@ int despacharQuery(char* consulta, int socket_memoria) {
 			break;
 		case RUN:
 			log_debug(logger,"Se recibio un RUN con la siguiente path: %s", tempSplit[1]);
+			char* sinFin = string_substring_until(tempSplit[1],string_length(tempSplit[1])-1 );
 			unScript = malloc(sizeof(script));
-			unScript->path = string_substring_until(tempSplit[1],
-					string_length(tempSplit[1])-1);
+			unScript->path = sinFin;
 			unScript->pos = 0;
 			unScript->estado = new;
 			unScript->id = contScript;
@@ -178,21 +206,46 @@ int despacharQuery(char* consulta, int socket_memoria) {
 		case ADD:
 			if(validarAdd(consulta)){
 				log_debug(logger,"Se recibio un ADD");
-				int id = ejecutarAdd
-						(string_substring_until
-								(consulta,string_length(consulta)-1 ));
-				consultaOk = 1;
-			}else{
-				log_error(loggerError,"Se ingreso una consulta no valida");
-				consultaOk = 2;
+				ejecutarAdd(consulta);
+				//log_debug(logger,"Se agrego el criterio a: %d ", ((t_infoMem*) list_get(listaMems, 0))->id);
 			}
 			break;
 		case DESCRIBE:
 			log_debug(logger,"Se recibio un DESCRIBE");
+			cargarPaqueteDescribe(paqueteDescribe,
+					string_substring_until(consulta,string_length(consulta)-1  ) );
+			serializado = serializarDescribe(paqueteDescribe);
+			/*enviarPaquete(socket_memoria,serializado,paqueteDescribe->length);
+			 * type header = leerHeader(socket_memoria);
+			 * t_describe.....
+			*/
+			free(serializado);
+			free(paqueteDescribe->nombre_tabla);
 			consultaOk = 1;
 			break;
-		case NIL:
-			log_error(loggerError,"Se ingreso una consulta no valida");
+		case JOURNAL:
+			log_debug(logger,"Se recibio un JOURNAL");
+			cargarPaqueteJournal(paqueteJournal,
+					string_substring_until(consulta,string_length(consulta)-1  ) );
+			serializado = serializarJournal(paqueteJournal);
+			sem_wait(&mutexSocket);
+			enviarPaquete(socket_memoria, serializado, paqueteJournal->length);
+			sem_post(&mutexSocket);
+			free(serializado);
+			consultaOk = 1;
+			break;
+		case DROP:
+			log_debug(logger, "Se recibio un DROP");
+			cargarPaqueteDrop(paqueteDrop,
+					string_substring_until(consulta,
+							string_length(consulta) - 1));
+			serializado = serializarDrop(paqueteDrop);
+			sem_wait(&mutexSocket);
+			enviarPaquete(socket_memoria, serializado, paqueteJournal->length);
+			sem_post(&mutexSocket);
+			consultaOk = 1;
+			free(serializado);
+			free(paqueteDrop->nombre_tabla);
 			break;
 		default:
 			log_error(loggerError,"Se ingreso una consulta no disponible por el momento");
@@ -203,10 +256,26 @@ int despacharQuery(char* consulta, int socket_memoria) {
 	free(paqueteCreate);
 	free(paqueteInsert);
 	free(paqueteSelect);
+	free(paqueteDescribe);
+	free(paqueteDrop);
+	free(paqueteJournal);
+	string_iterate_lines(tempSplit,free);
+	free(tempSplit);
 	return consultaOk;
 }
 
 void CPU(int socket_memoria){
+	/*
+	 * QUERIDOS CHOLO Y FELIPE
+	 * SEGUN VI EN VARIOS POST DE STACK OVERFLOW
+	 * NO HABRIA PROBLEMA SI ME CONECTO AL MISMO PUERTO
+	 * (CUANDO TENGAMOS MAS MEMORIAS MEPA QUE VA A HABER QUE USAR UN PUERTO DIF PARA
+	 * CADA UNA)
+	 * SI ESTO NO VA TENEMOS QUE VER DE HACER UN HANDSHAKE Y QUE EN BASE AL MULTIPROCESAMIENTO
+	 * USTEDES ME DEVUELVAN UN ARRAY DE PUERTOS.
+	 * CON AMOR... UNTER.
+	 * socket_memoria = levantarCliente(miConfig->puerto_mem,miConfig->ip_mem);
+	 */
 	while(1){
 		script *unScript;
 		char* consulta = malloc(256);
@@ -226,6 +295,7 @@ void CPU(int socket_memoria){
 				unScript->estado = exit_;
 				log_error(loggerError,"El script rompio en la linea: %d",
 						unScript->pos);
+				free(unScript->path);
 				free(unScript);
 				break;
 			case 1:
@@ -236,6 +306,7 @@ void CPU(int socket_memoria){
 					unScript->estado = exit_;
 					log_error(loggerError,"El script rompio en la linea: %d",
 							unScript->pos);
+					free(unScript->path);
 					free(unScript);
 				}
 				break;
@@ -246,6 +317,7 @@ void CPU(int socket_memoria){
 						unScript->id,
 						unScript->pos);
 				i = miConfig->quantum;
+				free(unScript->path);
 				free(unScript);
 			}
 		}
@@ -323,6 +395,7 @@ int validarSelect(char* consulta){
 		i++;
 	}
 	string_iterate_lines(split,free);
+	free(split);
 	return 3 == i;
 }
 int validarInsert(char* consulta){
@@ -337,7 +410,9 @@ int validarInsert(char* consulta){
 			j++;
 		}
 	string_iterate_lines(split,free);
-	string_iterate_lines(value,free);;
+	free(split);
+	string_iterate_lines(value,free);
+	free(value);
 	return ((3 == i) && (3 == j)) ;
 }
 int validarCreate(char* consulta){
@@ -347,6 +422,7 @@ int validarCreate(char* consulta){
 		i++;
 	}
 	string_iterate_lines(split,free);
+	free(split);
 	return 5 == i;
 }
 
@@ -355,6 +431,7 @@ int validarAdd(char* consulta){
 	bool sintaxis = true;
 	int i = 0;
 	while(split[i] != NULL && sintaxis){
+		string_to_upper(split[i]);
 		switch (i){
 		case 1:
 			if(strcmp(split[i],"MEMORY")){
@@ -370,61 +447,54 @@ int validarAdd(char* consulta){
 		i++;
 	}
 	string_iterate_lines(split,free);
+	free(split);
 	return ((5 == i) && sintaxis);
 }
 
-int ejecutarAdd(char* consulta){
+void ejecutarAdd(char* consulta){
 	char** split = string_split(consulta," ");
 	t_infoMem* memAdd = generarMem(consulta);
-	consistencias cons = obtCons(split[4]);
 	bool mismoId(void* elemento) {
-				t_infoMem* mem = malloc(sizeof(t_infoMem));
-				mem = (t_infoMem*) elemento;
-				int id = mem->id;
-				return (atoi(split[2]) == id);
-			}
+			t_infoMem* mem = malloc(sizeof(t_infoMem));
+			mem = (t_infoMem*) elemento;
+			int id = mem->id;
+			return (atoi(split[2]) == id);
+		}
+	consistencias cons = obtCons(split[4]);
 	switch (cons){
 	case sc:
+		sem_wait(&mutexSC);
 		if(list_is_empty(list_filter(listaMemsSC, mismoId))){
-			sem_wait(&mutexSC);
-			list_add_in_index(listaMemsSC,memAdd->id - 1, memAdd);
-			sem_post(&mutexSC);
-			log_debug(logger,"Se agrego el criterio a: %d ",
-									((t_infoMem*) list_get(listaMemsSC, memAdd->id-1 ))->id);
-		}
-		else{
-			log_warning(loggerWarning,"Ya existe la memoria al criterio especificado");
-		}
+				list_add(listaMemsSC, memAdd);
+				log_debug(logger,"La memoria %d se asoció al criterio %s",memAdd->id,split[4]);
+			}else{
+				log_error(loggerError,"Ya se encuentra asociada la memoria %d al criterio",memAdd->id);
+			}
+		sem_post(&mutexSC);
 		break;
 	case shc:
-			if(list_is_empty(list_filter(listaMemsSHC, mismoId))){
-				sem_wait(&mutexSHC);
-				list_add_in_index(listaMemsSHC,memAdd->id-1 , memAdd);
-				sem_post(&mutexSHC);
-				log_debug(logger,"Se agrego el criterio a: %d ",
-										((t_infoMem*) list_get(listaMemsSHC, memAdd->id-1 ))->id);
-			}
-			else{
-				log_warning(loggerWarning,"Ya existe la memoria al criterio especificado");
-			}
-			break;
+		sem_wait(&mutexSHC);
+		if(list_is_empty(list_filter(listaMemsSHC, mismoId))){
+						list_add(listaMemsSHC, memAdd);
+						log_debug(logger,"La memoria %d se asoció al criterio %s",memAdd->id,split[4]);
+					}else{
+						log_error(loggerError,"Ya se encuentra asociada la memoria %d al criterio",memAdd->id);
+					}
+		sem_post(&mutexSHC);
+		break;
 	case ec:
-			if(list_is_empty(list_filter(listaMemsEC, mismoId))){
-				sem_wait(&mutexEC);
-				list_add_in_index(listaMemsEC,memAdd->id-1 , memAdd);
-				sem_post(&mutexEC);
-				log_debug(logger,"Se agrego el criterio a: %d ",
-										((t_infoMem*) list_get(listaMemsEC, memAdd->id-1 ))->id);
-			}
-			else{
-				log_warning(loggerWarning,"Ya existe la memoria al criterio especificado");
-			}
-			break;
+		sem_wait(&mutexEC);
+		if(list_is_empty(list_filter(listaMemsEC, mismoId))){
+						list_add(listaMemsEC, memAdd);
+						log_debug(logger,"La memoria %d se asoció al criterio %s",memAdd->id,split[4]);
+					}else{
+						log_error(loggerError,"Ya se encuentra asociada la memoria %d al criterio",memAdd->id);
+					}
+		sem_post(&mutexEC);
+		break;
 	}
-	/*
-	}*/
 	string_iterate_lines(split,free);
-	return 0;
+	free(split);
 }
 
 t_infoMem* generarMem(char* consulta){
@@ -438,13 +508,13 @@ t_infoMem* generarMem(char* consulta){
 
 consistencias obtCons(char* criterio){
 	string_to_upper(criterio);
-	if(!strcmp(criterio,"SC")){
+	if(!strcmp(criterio,"SC\n")){
 		return sc;
 	}
-	if(!strcmp(criterio,"SHC")){
+	if(!strcmp(criterio,"SHC\n")){
 			return shc;
 		}
-	if(!strcmp(criterio,"EC")){
+	if(!strcmp(criterio,"EC\n")){
 			return ec;
 		}
 }
@@ -473,9 +543,9 @@ void inicializarTodo(){
 	sem_init(&mutexNew,0,1);
 	sem_init(&mutexReady,0,1);
 	sem_init(&mutexSocket,0,1);
+	sem_init(&mutexEC,0,1);
 	sem_init(&mutexSC,0,1);
 	sem_init(&mutexSHC,0,1);
-	sem_init(&mutexEC,0,1);
 	log_debug(logger,"Semaforos incializados con exito");
 	log_debug(logger,"Inicializando sockets");
 	listaMemsEC = list_create();
@@ -489,7 +559,6 @@ void finalizarEjecucion() {
 	printf("------------------------\n");
 	log_destroy(logger);
 	log_destroy(loggerError);
-	log_destroy(loggerWarning);
 	list_iterate(listaMemsEC,free);
 	list_iterate(listaMemsSC,free);
 	list_iterate(listaMemsSHC,free);
@@ -503,6 +572,9 @@ void finalizarEjecucion() {
 	sem_destroy(&mutexEC);
 	queue_destroy_and_destroy_elements(colaNew,free);
 	queue_destroy_and_destroy_elements(colaReady,free);
+	list_iterate(listaMemsSC,free);
+	list_iterate(listaMemsEC,free);
+	list_iterate(listaMemsSHC,free);
 	close(socket_memoria);
 	raise(SIGTERM);
 }

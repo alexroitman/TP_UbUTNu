@@ -13,24 +13,12 @@
 #define SHC 2 //Strong Hash Consistency
 #define EC 3 // Eventual Consistency
 
-// TIPOS DE ERRORES PARA LOGGER
-#define todoJoya 0
-#define tablaExistente -1
-#define carpetaNoCreada -2
-#define metadataNoCreada -3
-#define BINNoCreado -4
-#define tablaNoEliminada -6
-#define noAbreMetadata -7
-#define noExisteParametro -8
-#define noExisteTabla -9
-#define noSeAgregoTabla -9
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <commons/log.h>
 #include <commons/string.h>
 #include <commons/bitarray.h>
 #include <commons/config.h>
@@ -42,17 +30,21 @@
 #include <dirent.h>
 #include <sock/sockets-lib.h>
 #include <sock/comunicacion.h>
+#include <sock/logger.h>
 #include <sys/socket.h>
 #include <stdbool.h>
 #include <dirent.h>
 #include <errno.h>
 #include <signal.h>
+
 // Estructuras
 typedef struct {
 	int particiones;
-	int consistencia;
+	int consistency;
 	int tiempo_compactacion;
-} metadata;
+	char nombre_tabla[12];
+} Metadata;
+
 typedef struct{
 	char* nombreTabla;
 	t_list* registros;
@@ -64,34 +56,49 @@ typedef struct{
 
 
 
-// APIs
-registro* SelectFS(char* NOMBRE_TABLA, int KEY);
-int Insert (char* NOMBRE_TABLA, int KEY, char* VALUE, int Timestamp);
-int Create(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME);
-metadata Describe(char* NOMBRE_TABLA);
-int Drop(char* NOMBRE_TABLA);
 
-// Funciones de tabla
-int crearMetadata(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME);
-int crearBinarios(char* NOMBRE_TABLA, int NUMERO_PARTICIONES);
-int verificadorDeTabla(char* NOMBRE_TABLA);
-int borrarDirectorio(const char* directorio);
-int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo);
-int dumpeoMemoria();
 
-registro* Select(char* NOMBRE_TABLA, int KEY);
-t_list* SelectTemp(char* ruta, int KEY);
-void imprimir_registro(registro* unreg);
+// MEMTABLE
 t_list* inicializarMemtable();
 int insertarEnMemtable(tInsert* packinsert);
-t_list* selectEnMemtable( uint16_t key, char* tabla);
 int insertarRegistro(registro* registro, char* nombre_tabla);
 int agregar_tabla_a_memtable(char* tabla);
-off_t obtener_bit_libre();
-char* mapearBloque(int fd2, size_t textsize);
+int existe_tabla_en_memtable(char* posible_tabla);
 
-// Funciones de logger
-t_log* iniciar_logger(void);
-void logeoDeErrores(int errorHandler, t_log* logger);
+// APIs
+int Create(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME);
+int Insert (char* NOMBRE_TABLA, int KEY, char* VALUE, int Timestamp);
+int Drop(char* NOMBRE_TABLA);
+int Select(registro* reg, char* NOMBRE_TABLA, int KEY);
+
+t_list* lfs_describe();
+int consistency_to_int(char* cons);
+Metadata* obtener_metadata(char* ruta);
+// AUXILIARES DE SELECT
+int SelectFS(char* NOMBRE_TABLA, int KEY, registro* registro);
+t_list* selectEnMemtable( uint16_t key, char* tabla);
+t_list* SelectTemp(char* ruta, int KEY);
+
+// TABLAS
+int crearMetadata(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME);
+void crearBinarios(char* NOMBRE_TABLA, int NUMERO_PARTICIONES);
+int verificadorDeTabla(char* NOMBRE_TABLA);
+int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo);
+t_bitarray* levantarBitmap();
+off_t obtener_bit_libre();
+
+// DUMPEO
+void bajarAMemoria(int* fd2, char* registroParaEscribir, t_config* tmp);
+void dumpearTabla(t_tabla* UnaTabla);
+int dumpeoMemoria();
+char* mapearBloque(int fd2, size_t textsize);
+void actualizarBloquesEnTemporal(t_config* tmp, off_t bloque);
+
+// OTROS
+char* direccionarTabla(char* tabla);
+void crearBitmapNuestro(); // Solo lo usamos para pruebas
+int borrarDirectorio(char* directorio);
+
+// CIERRE
 void finalizarEjecutcion();
 #endif /* LFS_H_ */

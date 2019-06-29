@@ -48,7 +48,6 @@ typedef struct{
 	uint16_t key;
 	char* value;
 	int timestamp;
-
 } registro;
 
 typedef struct{
@@ -58,7 +57,6 @@ typedef struct{
 	char* value;
 	int timestamp;
 	int length;
-
 } tRegistroRespuesta;
 
 typedef struct {
@@ -94,15 +92,28 @@ typedef struct {
 	type type;
 char* nombre_tabla;							//DESCRIBE
 int nombre_tabla_long;
-int length
+int length;
 } tDescribe;
 
+
 typedef struct {
-char* nombre_tabla;							//DROP
+    char nombre_tabla[12];
+    uint8_t consistencia;
+} t_metadata;
+typedef struct {
+    uint16_t cant_tablas;
+    t_metadata* tablas;
+} t_describe;
+typedef struct {
+	type type;
+char* nombre_tabla;
+int nombre_tabla_long;
+int length;										//DROP
 } tDrop;
 
 typedef struct {
-							//JOURNAL   (QUE CARAJO PONGO ACA)
+type type;
+uint32_t length;						//JOURNAL
 } tJournal;
 
 typedef struct {
@@ -118,14 +129,17 @@ void cargarPaqueteInsert(tInsert *pack, char* cons);
 void cargarPaqueteCreate(tCreate *pack, char* cons);
 void cargarPaqueteDescribe(tDescribe *pack, char* cons);
 
+
+
+void cargarPaqueteDrop(tDrop *pack, char* cons);
+void cargarPaqueteJournal(tJournal* pack, char* cons);
+
+
 int desSerializarRegistro(tRegistroRespuesta* reg, int socket);
 char* serializarRegistro(tRegistroRespuesta* reg);
 
 int desSerializarInsert(tInsert* packageInsert, int socket);
 char* serializarInsert(tInsert* packageInsert);
-
-int serializarDrop(tDrop packageDrop, tPaquete* paqueteSerializado);
-int desSerializarDrop(tPaquete* paqueteSerializado, tDrop* packageDrop);
 
 char* serializarSelect(tSelect* packageSelect);
 int desSerializarSelect(tSelect* packageSelect,int socket);
@@ -136,8 +150,13 @@ int desSerializarCreate(tCreate* packageCreate, int socket) ;
 char* serializarDescribe(tDescribe* packageDescribe);
 int desSerializarDescribe(tDescribe* paqueteSerializado, int socket);
 
-int serializarJournal(tJournal packageJournal, tPaquete* paqueteSerializado);
-int desSerializarJournal(tPaquete* paqueteSerializado, tJournal* packageJournal);
+char* serializarDescribe_Response(t_describe *package);
+int desserializarDescribe_Response(t_describe* package, int socket);
+char* serializarDrop(tDrop* packageDrop);
+int desSerializarDrop(tDrop* packageDrop, int socket);
+
+char* serializarJournal(tJournal* packageJournal);
+int desSerializarJournal(tJournal* paqueteSerializado, int socket);
 
 int serializarAdd(tAdd packageAdd, tPaquete* paqueteSerializado);
 int desSerializarAdd(tPaquete* paqueteSerializado, tAdd* packageAdd);
