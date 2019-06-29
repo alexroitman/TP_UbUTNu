@@ -28,6 +28,8 @@ bool recibioSocket;
 tSelect* packSelect;
 tInsert* packInsert;
 tCreate* packCreate;
+tDescribe* packDescribe;
+t_describe* packDescResp;
 tDrop* packDrop;
 tJournal* packJournal;
 type* header;
