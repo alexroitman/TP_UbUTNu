@@ -49,7 +49,7 @@ typedef struct{
 
 typedef struct{
 	int id;
-	consistencias* cons;
+	int puerto;
 }t_infoMem;
 
 typedef struct{
@@ -81,7 +81,7 @@ int validarAdd(char* consulta);
 t_infoMem* generarMem(char* consulta);
 int levantarCpus(int socket_memoria, pthread_t* cpus);
 void cargarConfig(t_config* config);
-void* obtCons( char* criterio);
+consistencias obtCons(char* criterio);
 void inicializarTodo();
 void finalizarEjecucion();
 

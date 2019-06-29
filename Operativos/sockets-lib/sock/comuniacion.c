@@ -83,9 +83,15 @@ void cargarPaqueteDescribe(tDescribe *pack, char* cons) {
 	char** spliteado;
 	spliteado = string_n_split(cons, 2, " ");
 		pack->type = DESCRIBE;
-		pack->nombre_tabla = malloc(strlen(spliteado[1]));
-		strcpy(pack->nombre_tabla, spliteado[1]);
-		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
+		if(spliteado[1] != NULL){
+			pack->nombre_tabla = malloc(strlen(spliteado[1]));
+			strcpy(pack->nombre_tabla, spliteado[1]);
+			pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
+		}else{
+			pack->nombre_tabla = malloc(strlen(" "));
+			strcpy(pack->nombre_tabla, " ");
+			pack->nombre_tabla_long = strlen(" ") + 1;
+		}
 		pack->length = sizeof(pack->type)
 				+ sizeof(pack->nombre_tabla_long)
 				+ pack->nombre_tabla_long;

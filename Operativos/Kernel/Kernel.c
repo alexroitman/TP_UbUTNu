@@ -18,12 +18,17 @@ sem_t semReady;
 sem_t mutexReady;
 sem_t mutexNew;
 sem_t semNew;
+sem_t mutexSC;
+sem_t mutexSHC;
+sem_t mutexEC;
 pthread_t planificador_t;
 t_log *logger;
 t_log *loggerError;
 t_queue *colaReady;
 t_queue *colaNew;
-t_list *listaMems;
+t_list *listaMemsSC;
+t_list *listaMemsEC;
+t_list *listaMemsSHC;
 configKernel *miConfig;
 t_config* config;
 int contScript;
@@ -35,7 +40,9 @@ int main(){
 	signal(SIGINT, finalizarEjecucion);
 	inicializarTodo();
 	socket_memoria = levantarCliente(miConfig->puerto_mem, miConfig->ip_mem);
-	listaMems = list_create();
+	listaMemsSC = list_create();
+	listaMemsEC = list_create();
+	listaMemsSHC = list_create();
 	log_debug(logger,"Sockets inicializados con exito");
 	log_debug(logger,"Se tendra un nivel de multiprocesamiento de: %d cpus", miConfig->MULT_PROC);
 	pthread_t cpus[miConfig->MULT_PROC];
@@ -90,6 +97,9 @@ type validarSegunHeader(char* header) {
 	if (!strcmp(header, "DESCRIBE")) {
 					return DESCRIBE;
 			}
+	if (!strcmp(header, "DESCRIBE\n")) {
+					return DESCRIBE;
+			}
 	if (!strcmp(header, "JOURNAL\n")){
 					return JOURNAL;
 			}
@@ -111,6 +121,7 @@ int despacharQuery(char* consulta, int socket_memoria) {
 	tCreate* paqueteCreate = malloc(sizeof(tCreate));
 	tJournal* paqueteJournal = malloc(sizeof(tJournal));
 	tDrop* paqueteDrop = malloc(sizeof(tDrop));
+	tDescribe* paqueteDescribe = malloc(sizeof(tDescribe));
 	type typeHeader;
 	char* serializado = "";
 	int consultaOk = 0;
@@ -200,13 +211,22 @@ int despacharQuery(char* consulta, int socket_memoria) {
 		case ADD:
 			if(validarAdd(consulta)){
 				log_debug(logger,"Se recibio un ADD");
-				int id = ejecutarAdd(consulta);
-				log_debug(logger,"Se agrego el criterio a: %d ", ((t_infoMem*) list_get(listaMems, 0))->id);
+				ejecutarAdd(consulta);
+				//log_debug(logger,"Se agrego el criterio a: %d ", ((t_infoMem*) list_get(listaMems, 0))->id);
 			}
 			consultaOk = 1;
 			break;
 		case DESCRIBE:
 			log_debug(logger,"Se recibio un DESCRIBE");
+			cargarPaqueteDescribe(paqueteDescribe,
+					string_substring_until(consulta,string_length(consulta)-1  ) );
+			serializado = serializarDescribe(paqueteDescribe);
+			/*enviarPaquete(socket_memoria,serializado,paqueteDescribe->length);
+			 * type header = leerHeader(socket_memoria);
+			 * t_describe.....
+			*/
+			free(serializado);
+			free(paqueteDescribe->nombre_tabla);
 			consultaOk = 1;
 			break;
 		case JOURNAL:
@@ -217,6 +237,7 @@ int despacharQuery(char* consulta, int socket_memoria) {
 			sem_wait(&mutexSocket);
 			enviarPaquete(socket_memoria, serializado, paqueteJournal->length);
 			sem_post(&mutexSocket);
+			free(serializado);
 			consultaOk = 1;
 			break;
 		case DROP:
@@ -229,6 +250,8 @@ int despacharQuery(char* consulta, int socket_memoria) {
 			enviarPaquete(socket_memoria, serializado, paqueteJournal->length);
 			sem_post(&mutexSocket);
 			consultaOk = 1;
+			free(serializado);
+			free(paqueteDrop->nombre_tabla);
 			break;
 		default:
 			printf("Operacion no valida por el momento \n");
@@ -239,12 +262,26 @@ int despacharQuery(char* consulta, int socket_memoria) {
 	free(paqueteCreate);
 	free(paqueteInsert);
 	free(paqueteSelect);
+	free(paqueteDescribe);
+	free(paqueteDrop);
+	free(paqueteJournal);
 	string_iterate_lines(tempSplit,free);
 	free(tempSplit);
 	return consultaOk;
 }
 
 void CPU(int socket_memoria){
+	/*
+	 * QUERIDOS CHOLO Y FELIPE
+	 * SEGUN VI EN VARIOS POST DE STACK OVERFLOW
+	 * NO HABRIA PROBLEMA SI ME CONECTO AL MISMO PUERTO
+	 * (CUANDO TENGAMOS MAS MEMORIAS MEPA QUE VA A HABER QUE USAR UN PUERTO DIF PARA
+	 * CADA UNA)
+	 * SI ESTO NO VA TENEMOS QUE VER DE HACER UN HANDSHAKE Y QUE EN BASE AL MULTIPROCESAMIENTO
+	 * USTEDES ME DEVUELVAN UN ARRAY DE PUERTOS.
+	 * CON AMOR... UNTER.
+	 * socket_memoria = levantarCliente(miConfig->puerto_mem,miConfig->ip_mem);
+	 */
 	while(1){
 		script *unScript;
 		char* consulta = malloc(256);
@@ -401,6 +438,7 @@ int validarAdd(char* consulta){
 	bool sintaxis = true;
 	int i = 0;
 	while(split[i] != NULL && sintaxis){
+		string_to_upper(split[i]);
 		switch (i){
 		case 1:
 			if(strcmp(split[i],"MEMORY")){
@@ -420,40 +458,68 @@ int validarAdd(char* consulta){
 	return ((5 == i) && sintaxis);
 }
 
-int ejecutarAdd(char* consulta){
+void ejecutarAdd(char* consulta){
 	char** split = string_split(consulta," ");
 	t_infoMem* memAdd = generarMem(consulta);
-	/*bool mismoId(void* elemento) {
+	bool mismoId(void* elemento) {
 			t_infoMem* mem = malloc(sizeof(t_infoMem));
 			mem = (t_infoMem*) elemento;
 			int id = mem->id;
 			return (atoi(split[2]) == id);
 		}
-	if(list_is_empty(list_filter(listaMems, mismoId))){
-		list_add(listaMems, memAdd);
-	}*/
-	list_add(listaMems, memAdd);
+	consistencias cons = obtCons(split[4]);
+	switch (cons){
+	case sc:
+		sem_wait(&mutexSC);
+		if(list_is_empty(list_filter(listaMemsSC, mismoId))){
+				list_add(listaMemsSC, memAdd);
+				log_debug(logger,"La memoria %d se asoció al criterio %s",memAdd->id,split[4]);
+			}else{
+				log_error(loggerError,"Ya se encuentra asociada la memoria %d al criterio",memAdd->id);
+			}
+		sem_post(&mutexSC);
+		break;
+	case shc:
+		sem_wait(&mutexSHC);
+		if(list_is_empty(list_filter(listaMemsSHC, mismoId))){
+						list_add(listaMemsSHC, memAdd);
+						log_debug(logger,"La memoria %d se asoció al criterio %s",memAdd->id,split[4]);
+					}else{
+						log_error(loggerError,"Ya se encuentra asociada la memoria %d al criterio",memAdd->id);
+					}
+		sem_post(&mutexSHC);
+		break;
+	case ec:
+		sem_wait(&mutexEC);
+		if(list_is_empty(list_filter(listaMemsEC, mismoId))){
+						list_add(listaMemsEC, memAdd);
+						log_debug(logger,"La memoria %d se asoció al criterio %s",memAdd->id,split[4]);
+					}else{
+						log_error(loggerError,"Ya se encuentra asociada la memoria %d al criterio",memAdd->id);
+					}
+		sem_post(&mutexEC);
+		break;
+	}
+	string_iterate_lines(split,free);
 	free(split);
-	return 0;
 }
 
 t_infoMem* generarMem(char* consulta){
 	char** split = string_split(consulta," ");
 	t_infoMem* mem = malloc(sizeof(t_infoMem));
 	mem->id = atoi(split[2]);
-	mem->cons = (consistencias *)obtCons(split[4]);
 	return mem;
 }
 
-void* obtCons(char* criterio){
+consistencias obtCons(char* criterio){
 	string_to_upper(criterio);
-	if(!strcmp(criterio,"SC")){
+	if(!strcmp(criterio,"SC\n")){
 		return sc;
 	}
-	if(!strcmp(criterio,"SHC")){
+	if(!strcmp(criterio,"SHC\n")){
 			return shc;
 		}
-	if(!strcmp(criterio,"EC")){
+	if(!strcmp(criterio,"EC\n")){
 			return ec;
 		}
 }
@@ -481,6 +547,9 @@ void inicializarTodo(){
 	sem_init(&mutexNew,0,1);
 	sem_init(&mutexReady,0,1);
 	sem_init(&mutexSocket,0,1);
+	sem_init(&mutexEC,0,1);
+	sem_init(&mutexSC,0,1);
+	sem_init(&mutexSHC,0,1);
 	log_debug(logger,"Semaforos incializados con exito");
 	log_debug(logger,"Inicializando sockets");
 }
@@ -491,7 +560,9 @@ void finalizarEjecucion() {
 	printf("------------------------\n");
 	log_destroy(logger);
 	log_destroy(loggerError);
-	list_iterate(listaMems,free);
+	list_iterate(listaMemsSC,free);
+	list_iterate(listaMemsEC,free);
+	list_iterate(listaMemsSHC,free);
 	close(socket_memoria);
 	raise(SIGTERM);
 }
