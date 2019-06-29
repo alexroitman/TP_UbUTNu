@@ -16,4 +16,5 @@ void cargarPackCreate(tCreate* packCreate,bool leyoConsola,char consulta[]);
 void cargarPackSelect(tSelect* packSelect,bool leyoConsola,char* consulta);
 void cargarPackInsert(tInsert* packInsert, bool leyoConsola, char consulta[]);
 void cargarPackDrop(tDrop* packDrop, bool leyoConsola, char consulta[]);
+void cargarPackJournal(tJournal* packJournal, bool leyoConsola, char consulta[]);
 #endif /* QUERYS_H_ */

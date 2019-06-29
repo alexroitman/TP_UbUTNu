@@ -90,8 +90,10 @@ type validarSegunHeader(char* header) {
 	if (!strcmp(header, "DESCRIBE")) {
 					return DESCRIBE;
 			}
-
-	if (!strcmp(header, "DROP")) {
+	if (!strcmp(header, "JOURNAL\n")){
+					return JOURNAL;
+			}
+	if (!strcmp(header, "DROP")){
 						return DROP;
 				}
 	return NIL;
@@ -107,10 +109,13 @@ int despacharQuery(char* consulta, int socket_memoria) {
 	tSelect* paqueteSelect=malloc(sizeof(tSelect));
 	tInsert* paqueteInsert=malloc(sizeof(tInsert));
 	tCreate* paqueteCreate = malloc(sizeof(tCreate));
+	tJournal* paqueteJournal = malloc(sizeof(tJournal));
+	tDrop* paqueteDrop = malloc(sizeof(tDrop));
 	type typeHeader;
 	char* serializado = "";
 	int consultaOk = 0;
 	tempSplit = string_n_split(consulta, 2, " ");
+	log_debug(logger, "header %s", tempSplit[0]);
 	script *unScript;
 	if (strcmp(tempSplit[0], "")) {
 		typeHeader = validarSegunHeader(tempSplit[0]);
@@ -204,8 +209,25 @@ int despacharQuery(char* consulta, int socket_memoria) {
 			log_debug(logger,"Se recibio un DESCRIBE");
 			consultaOk = 1;
 			break;
+		case JOURNAL:
+			log_debug(logger,"Se recibio un JOURNAL");
+			cargarPaqueteJournal(paqueteJournal,
+					string_substring_until(consulta,string_length(consulta)-1  ) );
+			serializado = serializarJournal(paqueteJournal);
+			sem_wait(&mutexSocket);
+			enviarPaquete(socket_memoria, serializado, paqueteJournal->length);
+			sem_post(&mutexSocket);
+			consultaOk = 1;
+			break;
 		case DROP:
-			log_debug(logger,"Se recibio un DROP");
+			log_debug(logger, "Se recibio un DROP");
+			cargarPaqueteDrop(paqueteDrop,
+					string_substring_until(consulta,
+							string_length(consulta) - 1));
+			serializado = serializarDrop(paqueteDrop);
+			sem_wait(&mutexSocket);
+			enviarPaquete(socket_memoria, serializado, paqueteJournal->length);
+			sem_post(&mutexSocket);
 			consultaOk = 1;
 			break;
 		default:

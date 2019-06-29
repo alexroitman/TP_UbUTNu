@@ -134,17 +134,28 @@ void ejecutarConsulta() {
 	case DROP:
 		packDrop = malloc(sizeof(tDrop));
 		cargarPackDrop(packDrop, leyoConsola, paramsConsola->consulta);
+		packDrop->type = DROP;
+		log_debug(logger, "LLEGO UN DROP");
 		log_debug(logger, "Drop Tabla: %s", packDrop->nombre_tabla);
 		encontroSeg = buscarSegmentoEnTabla(packDrop->nombre_tabla, miSegmento, tablaSegmentos);
 		if(encontroSeg == 1){
 			log_debug(logger, "Encontre segmento: %s", packDrop->nombre_tabla);
 			liberarPaginasDelSegmento(miSegmento, tablaSegmentos);
-			log_debug(logger, "Se elimino el segmento.");
-
+			log_debug(logger, "Segmento eliminado");
+			char* serializado = serializarDrop(packDrop);
+			enviarPaquete(socket_lfs, serializado, packDrop->length);
+			log_debug(logger, "Envio DROP a LFS");
 		} else {
 			log_error(logger, "No se encontro el segmento");
 		}
 
+		break;
+	case JOURNAL:
+		packJournal = malloc(sizeof(tJournal));
+		cargarPackJournal(packJournal, leyoConsola, paramsConsola->consulta);
+		log_debug(logger, "LLEGO JOURNAL WACHIN");
+		ejecutarJournal();
+		log_debug(logger, "Termino JOURNAL");
 		break;
 	case NIL:
 		log_error(logger, "No entendi la consulta");
@@ -199,6 +210,9 @@ void* leerQuery(void* params) {
 		if(!strcmp(tempSplit[0], "DROP")){
 			*(parametros->header) = DROP;
 		}
+		if(!strcmp(tempSplit[0], "JOURNAL")){
+			*(parametros->header) = JOURNAL;
+		}
 		leyoConsola = true;
 		free(tempSplit[0]);
 		free(tempSplit[1]);
@@ -243,6 +257,14 @@ void cargarPackDrop(tDrop* packDrop, bool leyoConsola, char consulta[]){
 	}
 }
 
+
+void cargarPackJournal(tJournal* packJournal, bool leyoConsola, char consulta[]){
+	if(leyoConsola){
+		cargarPaqueteJournal(packJournal, consulta);
+	} else {
+		desSerializarJournal(packJournal, socket_kernel);
+	}
+}
 int handshakeLFS(int socket_lfs){
 	int buffer;
 	recv(socket_lfs,&buffer,4,MSG_WAITALL);

@@ -36,7 +36,7 @@
 [DEBUG] 19:26:10:662 Kernel.c/(11156:11156): Se recibio un RUN
 [DEBUG] 19:26:10:662 Kernel.c/(11156:11156): Se cargo a la cola el run: /home/utnso/Prueba.LQL
 
-[DEBUG] 19:26:10:662 Kernel.c/(11156:11172): Se cargo a la cola de ready el run: h“
+[DEBUG] 19:26:10:662 Kernel.c/(11156:11172): Se cargo a la cola de ready el run: h√í
 [DEBUG] 19:29:38:524 Kernel.c/(11279:11279): Cargando configuracion
 [DEBUG] 19:29:41:68 Kernel.c/(11279:11279): Configuracion cargada con exito
 [DEBUG] 19:29:41:68 Kernel.c/(11279:11279): Inicializando semaforos
