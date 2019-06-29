@@ -1,19 +1,6 @@
-14:57:14 **** Build of configuration Default for project Kernel ****
+12:29:04 **** Incremental Build of configuration Default for project Kernel ****
 make all 
-Building file: ../Kernel.c
-Invoking: GCC C Compiler
-gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"Kernel.d" -MT"Kernel.o" -o "Kernel.o" "../Kernel.c"
-../Kernel.c: In function ‘main’:
-../Kernel.c:27:3: warning: ignoring return value of ‘fgets’, declared with attribute warn_unused_result [-Wunused-result]
-   fgets(consulta, 256, stdin);
-   ^
-Finished building: ../Kernel.c
- 
-Building target: Kernel
-Invoking: GCC C Linker
-gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Kernel"  ./Kernel.o   -lsockets-lib -lcommons -lpthread
-Finished building target: Kernel
- 
+make: Nothing to be done for 'all'.
 
-14:57:15 Build Finished (took 859ms)
+12:29:06 Build Finished (took 2s.63ms)
 

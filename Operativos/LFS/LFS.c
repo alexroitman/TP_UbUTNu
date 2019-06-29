@@ -9,7 +9,6 @@
 
 #define PUERTOLFS "7879"
 
-
 // ---------------VARIABLES GLOBALES-----------------
 
 int socket_sv;
@@ -50,8 +49,9 @@ int main(void) {
 		logeoDeErroresLFS(errorTamanioValue, logger);
 
 	//Inicializo memtable y verifico la recepcion de comandos
+	//TODO: VER COMO ACOMODAR DESCRIBE Y METER EN EL CASE CORRESPONDIENTE
 	send(socket_cli, &tamanioValue, 4, 0);
-	t_list* metadatas = (t_list*) lfs_describe();
+	t_list* metadatas = (t_list*) Describe();
 	if (metadatas != NULL) {
 		t_describe* describe = malloc(sizeof(t_describe));
 		if (!describe)
@@ -72,7 +72,9 @@ int main(void) {
 		log_debug(logger, serializedPackage);
 		log_debug(logger, cantidad_de_tablas_string);
 		free(cantidad_de_tablas_string);
-		int b = send(socket_cli, serializedPackage, cantidad_de_tablas * sizeof(t_metadata) + sizeof(describe->cant_tablas), 0);
+		int b = send(socket_cli, serializedPackage,
+				cantidad_de_tablas * sizeof(t_metadata)
+						+ sizeof(describe->cant_tablas), 0);
 		log_debug(logger, "envie %d bytes", b);
 		dispose_package(&serializedPackage);
 		free(describe->tablas);
@@ -96,7 +98,8 @@ int main(void) {
 		describe->tablas[0] = meta;
 		char* serializedPackage;
 		serializedPackage = serializarDescribe_Response(describe);
-		send(socket_cli, serializedPackage,	sizeof(t_metadata) + sizeof(describe->cant_tablas), 0);
+		send(socket_cli, serializedPackage,
+				sizeof(t_metadata) + sizeof(describe->cant_tablas), 0);
 		dispose_package(&serializedPackage);
 		//list_destroy(metadatas);
 	}
@@ -119,10 +122,13 @@ int main(void) {
 				registro* reg = malloc(sizeof(registro));
 				if (!reg)
 					logeoDeErroresLFS(errorDeMalloc, logger);
-				errorHandler = Select(reg, packSelect->nombre_tabla, packSelect->key);
-				tRegistroRespuesta* registro = malloc(sizeof(tRegistroRespuesta));
+				//TODO: handlear error de Y hacer failfast
+				errorHandler = Select(reg, packSelect->nombre_tabla,
+						packSelect->key);
+				tRegistroRespuesta* registro = malloc(
+						sizeof(tRegistroRespuesta));
 				if (!registro)
-					logeoDeErroresLFS(errorDeMalloc, logger);
+					errorHandler = errorDeMalloc;
 				else {
 					registro->tipo = REGISTRO;
 					registro->timestamp = reg->timestamp;
@@ -131,7 +137,8 @@ int main(void) {
 					registro->value_long = strlen(reg->value) + 1;
 					char* registroSerializado = serializarRegistro(registro);
 					//TODO: handlear error de serializarRegistro
-					enviarPaquete(socket_cli, registroSerializado,registro->length);
+					enviarPaquete(socket_cli, registroSerializado,
+							registro->length);
 					//TODO: handlear error de enviarPaquete
 					free(registroSerializado);
 				}
@@ -161,16 +168,16 @@ int main(void) {
 		case CREATE:
 			log_debug(logger, "Comando CREATE recibido");
 			tCreate* packCreate = malloc(sizeof(tCreate));
-			if (!packCreate)
-				logeoDeErroresLFS(errorDeMalloc, logger);
-			else {
-				desSerializarCreate(packCreate, socket_cli);
-				//TODO: handlear error de desSerializarCreate
-				packCreate->type = header;
-				errorHandler = Create(packCreate->nombre_tabla,
-						packCreate->consistencia, packCreate->particiones,
-						packCreate->compaction_time);
+			if (!packCreate) {
+				errorHandler = errorDeMalloc;
+				break;
 			}
+			desSerializarCreate(packCreate, socket_cli);
+			//TODO: handlear error de desSerializarCreate
+			packCreate->type = header;
+			errorHandler = Create(packCreate->nombre_tabla,
+					packCreate->consistencia, packCreate->particiones,
+					packCreate->compaction_time);
 			free(packCreate);
 			break;
 
@@ -180,21 +187,33 @@ int main(void) {
 
 		case DESCRIBE:
 			log_debug(logger, "Comando DESCRIBE recibido");
-			break;
-
+			tDescribe* packDescribe = malloc(sizeof(tDescribe));
+			t_metadata* metadata = malloc(sizeof(t_metadata));
+			if (!packCreate || !metadata)
+				logeoDeErroresLFS(errorDeMalloc, logger);
+			/*			else {
+			 desSerializarDescribe(packDescribe, socket_cli);
+			 if (string_equals_ignore_case(packDescribe->nombre_tabla, " "))
+			 errorHandler = DESCRIBEmultiple(metadata);
+			 else
+			 errorHandler = DESCRIBEespecifico(packDescribe->nombre_tabla, metadata);
+			 }*/
+			free(packDescribe);
+			free(metadata);
 			break;
 
 		case DROP:
 			log_debug(logger, "Comando DROP recibido");
 			tDrop* packDrop = malloc(sizeof(tDrop));
-			if (!packDrop)
-				logeoDeErroresLFS(errorDeMalloc, logger);
-			else {
-				errorHandler = desSerializarDrop(packDrop, socket_cli);
-//				TODO: handlear error de desSerializarDrop
-				packDrop->type = header;
-				errorHandler = Drop(packDrop->nombre_tabla);
+			if (!packDrop) {
+				errorHandler = errorDeMalloc;
+				break;
 			}
+			errorHandler = desSerializarDrop(packDrop, socket_cli);
+			if (errorHandler)
+
+			packDrop->type = header;
+			errorHandler = Drop(packDrop->nombre_tabla);
 			free(packDrop);
 			break;
 
@@ -217,7 +236,7 @@ int main(void) {
 		logeoDeErroresLFS(errorHandler, logger);
 	}
 
-	//Rutina de cierre
+//Rutina de cierre
 	log_destroy(logger);
 	close(socket_cli);
 	close(socket_sv);
@@ -314,7 +333,8 @@ int existe_tabla_en_memtable(char* posible_tabla) {
 
 // ---------------APIs-----------------
 
-int Create(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME) {
+int Create(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES,
+		int COMPACTATION_TIME) {
 // ---- Verifico que la tabla no exista ----
 	int errorHandler = verificadorDeTabla(NOMBRE_TABLA);
 	if (errorHandler)
@@ -323,13 +343,14 @@ int Create(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, 
 
 // ---- Creo directorio de la tabla ----
 	errorHandler = mkdir(ruta, 0700);
-	if (errorHandler < 0){
+	if (errorHandler < 0) {
 		free(ruta);
 		return carpetaNoCreada;
 	}
 // ---- Creo y grabo Metadata de la tabla ----
-	errorHandler = crearMetadata(ruta, TIPO_CONSISTENCIA, NUMERO_PARTICIONES, COMPACTATION_TIME);
-	if (errorHandler){
+	errorHandler = crearMetadata(ruta, TIPO_CONSISTENCIA, NUMERO_PARTICIONES,
+			COMPACTATION_TIME);
+	if (errorHandler) {
 		free(ruta);
 		return metadataNoCreada;
 	}
@@ -438,7 +459,7 @@ int Select(registro* reg, char* NOMBRE_TABLA, int KEY) {
 //	log_debug(logger, "me voy a fijar a FS");
 	registro* registro = malloc(sizeof(registro));
 	if (!registro)
-			return errorDeMalloc;
+		return errorDeMalloc;
 	errorHandler = SelectFS(ruta, KEY, registro);
 	if (errorHandler)
 		return errorHandler;
@@ -448,31 +469,32 @@ int Select(registro* reg, char* NOMBRE_TABLA, int KEY) {
 	list_sort(registros, (void*) &es_mayor);
 	reg = list_get(registros, 0);
 	free(ruta);
-	if(!reg)
+	if (!reg)
 		return noExisteKey;
 	return todoJoya;
 }
-
 /*
- int DESCRIBE (char* NOMBRE_TABLA,metadata *myMetadata){
-
+ int DESCRIBEespecifico(char* NOMBRE_TABLA, t_metadata* metadata) {
 
  // ---- Verifico que la tabla exista ----
  if (verificadorDeTabla(NOMBRE_TABLA) != 0)
  return noExisteTabla;
 
  // ---- Obtengo la metadata ----
- myMetadata->particiones = buscarEnMetadata(NOMBRE_TABLA, "PARTITIONS");
- myMetadata->consistencia = buscarEnMetadata(NOMBRE_TABLA, "CONSISTENCY");
- myMetadata->tiempo_compactacion= buscarEnMetadata(NOMBRE_TABLA, "COMPACTION_TIME");
-
- if (myMetadata->particiones  < 0)
- return myMetadata->particiones;
+ metadata->particiones = buscarEnMetadata(NOMBRE_TABLA, "PARTITIONS");
+ if (metadata->particiones <= 0)
+ return particionesInvalidas;
+ metadata->consistencia = buscarEnMetadata(NOMBRE_TABLA, "CONSISTENCY");
+ if (metadata->consistencia < 1 || metadata->consistencia > 3)
+ return particionesInvalidas;
+ metadata->tiempo_compactacion = buscarEnMetadata(NOMBRE_TABLA, "COMPACTION_TIME");
+ if (metadata->tiempo_compactacion <= 0)
+ return particionesInvalidas;
 
  return 1;
  }
 
- int DESCRIBE(){
+ int DESCRIBEmultiple(t_metadata* metadata) {
  struct dirent *dp;
  DIR *dir = opendir("tables");
 
@@ -488,10 +510,9 @@ int Select(registro* reg, char* NOMBRE_TABLA, int KEY) {
  closedir(dir);
 
  return todoJoya;
- }
- */
+ }*/
 
-t_list* lfs_describe() {
+t_list* Describe() {
 	t_list* metadatas = list_create();
 	DIR *tables_directory;
 	struct dirent *a_directory;
@@ -615,7 +636,7 @@ int SelectFS(char* ruta, int KEY, registro* registro) {
 				registro->key = atoi(datos_registro[1]);
 				registro->value = malloc(strlen(datos_registro[2]) + 1);
 				if (!registro->value)
-							return errorDeMalloc;
+					return errorDeMalloc;
 				strcpy(registro->value, datos_registro[2]);
 			}
 			string_iterate_lines(datos_registro, (void*) free);
@@ -903,7 +924,7 @@ void actualizarBloquesEnTemporal(t_config* tmp, off_t bloque) {
 
 // ---------------OTROS-----------------
 
-char* direccionarTabla(char* tabla){
+char* direccionarTabla(char* tabla) {
 	char* ruta = string_new();
 	string_append(&ruta, dirMontaje);
 	string_append(&ruta, "Tablas/");

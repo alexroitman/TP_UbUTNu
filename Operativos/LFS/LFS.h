@@ -36,6 +36,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <signal.h>
+#include <stdarg.h>
 
 // Estructuras
 typedef struct {
@@ -70,8 +71,9 @@ int Create(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, 
 int Insert (char* NOMBRE_TABLA, int KEY, char* VALUE, int Timestamp);
 int Drop(char* NOMBRE_TABLA);
 int Select(registro* reg, char* NOMBRE_TABLA, int KEY);
+t_list* Describe();
 
-t_list* lfs_describe();
+
 int consistency_to_int(char* cons);
 Metadata* obtener_metadata(char* ruta);
 // AUXILIARES DE SELECT

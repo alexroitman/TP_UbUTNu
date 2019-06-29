@@ -1,31 +1,6 @@
-18:42:38 **** Incremental Build of configuration Debug for project Memoria ****
+12:28:53 **** Incremental Build of configuration Debug for project Memoria ****
 make all 
-Building file: ../Memoria.c
-Invoking: GCC C Compiler
-gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"Memoria.d" -MT"Memoria.o" -o "Memoria.o" "../Memoria.c"
-../Memoria.c: In function ‘main’:
-../Memoria.c:34:12: warning: implicit declaration of function ‘agregarPaginaAMemoria’ [-Wimplicit-function-declaration]
-  int cod = agregarPaginaAMemoria(seg,pagina,memoria);
-            ^
-../Memoria.c:50:9: warning: too many arguments for format [-Wformat-extra-args]
-  printf("PRIMER SEGMENTO, PRIMERA PAG\n", a->key);
-         ^
-../Memoria.c:55:9: warning: too many arguments for format [-Wformat-extra-args]
-  printf("PRIMER SEGMENTO, SEGUNDA PAG\n", a->key);
-         ^
-../Memoria.c:60:9: warning: too many arguments for format [-Wformat-extra-args]
-  printf("SEGUNDO SEGMENTO, PRIMERA PAG\n", a->key);
-         ^
-../Memoria.c:34:6: warning: variable ‘cod’ set but not used [-Wunused-but-set-variable]
-  int cod = agregarPaginaAMemoria(seg,pagina,memoria);
-      ^
-Finished building: ../Memoria.c
- 
-Building target: Memoria
-Invoking: GCC C Linker
-gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Memoria"  ./Memoria.o   -lsockets-lib -lcommons -lpthread
-Finished building target: Memoria
- 
+make: Nothing to be done for 'all'.
 
-18:42:39 Build Finished (took 699ms)
+12:28:56 Build Finished (took 3s.24ms)
 
