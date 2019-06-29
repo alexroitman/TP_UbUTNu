@@ -36,7 +36,7 @@
 [DEBUG] 19:26:10:662 Kernel.c/(11156:11156): Se recibio un RUN
 [DEBUG] 19:26:10:662 Kernel.c/(11156:11156): Se cargo a la cola el run: /home/utnso/Prueba.LQL
 
-[DEBUG] 19:26:10:662 Kernel.c/(11156:11172): Se cargo a la cola de ready el run: h“
+[DEBUG] 19:26:10:662 Kernel.c/(11156:11172): Se cargo a la cola de ready el run: h√í
 [DEBUG] 19:29:38:524 Kernel.c/(11279:11279): Cargando configuracion
 [DEBUG] 19:29:41:68 Kernel.c/(11279:11279): Configuracion cargada con exito
 [DEBUG] 19:29:41:68 Kernel.c/(11279:11279): Inicializando semaforos
@@ -158,10 +158,58 @@
 [DEBUG] 20:13:43:362 Kernel.c/(22112:22112): Sockets inicializados con exito
 [DEBUG] 20:13:43:362 Kernel.c/(22112:22112): Se tendra un nivel de multiprocesamiento de: 3 cpus
 [ERROR] 20:14:39:207 Kernel.c/(22112:22112): Se ingreso una consulta no valida
-[DEBUG] 15:58:03:157 Kernel.c/(18882:18882): Cargando configuracion
-[DEBUG] 15:58:03:259 Kernel.c/(18882:18882): Configuracion cargada con exito
-[DEBUG] 15:58:03:260 Kernel.c/(18882:18882): Inicializando semaforos
-[DEBUG] 15:58:03:261 Kernel.c/(18882:18882): Semaforos incializados con exito
-[DEBUG] 15:58:03:261 Kernel.c/(18882:18882): Inicializando sockets
-[DEBUG] 15:58:03:262 Kernel.c/(18882:18882): Sockets inicializados con exito
-[DEBUG] 15:58:03:263 Kernel.c/(18882:18882): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 15:12:08:557 Kernel.c/(7293:7293): Cargando configuracion
+[DEBUG] 15:12:08:557 Kernel.c/(7293:7293): Configuracion cargada con exito
+[DEBUG] 15:12:08:557 Kernel.c/(7293:7293): Inicializando semaforos
+[DEBUG] 15:12:08:557 Kernel.c/(7293:7293): Semaforos incializados con exito
+[DEBUG] 15:12:08:557 Kernel.c/(7293:7293): Inicializando sockets
+[DEBUG] 15:12:08:558 Kernel.c/(7293:7293): Sockets inicializados con exito
+[DEBUG] 15:12:08:558 Kernel.c/(7293:7293): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 15:12:17:278 Kernel.c/(7293:7293): Se recibio un RUN con la siguiente path: /home/utnso/workspace/1C2019-Scripts-lql-checkpoint/animales.lql
+
+[DEBUG] 15:12:17:278 Kernel.c/(7293:7293): Se cargo a la cola de new el script id: 1
+[DEBUG] 15:13:22:585 Kernel.c/(7357:7357): Cargando configuracion
+[DEBUG] 15:13:22:585 Kernel.c/(7357:7357): Configuracion cargada con exito
+[DEBUG] 15:13:22:585 Kernel.c/(7357:7357): Inicializando semaforos
+[DEBUG] 15:13:22:585 Kernel.c/(7357:7357): Semaforos incializados con exito
+[DEBUG] 15:13:22:585 Kernel.c/(7357:7357): Inicializando sockets
+[DEBUG] 15:14:10:900 Kernel.c/(7404:7404): Cargando configuracion
+[DEBUG] 15:14:10:900 Kernel.c/(7404:7404): Configuracion cargada con exito
+[DEBUG] 15:14:10:901 Kernel.c/(7404:7404): Inicializando semaforos
+[DEBUG] 15:14:10:901 Kernel.c/(7404:7404): Semaforos incializados con exito
+[DEBUG] 15:14:10:901 Kernel.c/(7404:7404): Inicializando sockets
+[DEBUG] 15:15:02:836 Kernel.c/(7444:7444): Cargando configuracion
+[DEBUG] 15:15:02:837 Kernel.c/(7444:7444): Configuracion cargada con exito
+[DEBUG] 15:15:02:837 Kernel.c/(7444:7444): Inicializando semaforos
+[DEBUG] 15:15:02:837 Kernel.c/(7444:7444): Semaforos incializados con exito
+[DEBUG] 15:15:02:837 Kernel.c/(7444:7444): Inicializando sockets
+[DEBUG] 15:15:29:949 Kernel.c/(7483:7483): Cargando configuracion
+[DEBUG] 15:15:29:949 Kernel.c/(7483:7483): Configuracion cargada con exito
+[DEBUG] 15:15:29:949 Kernel.c/(7483:7483): Inicializando semaforos
+[DEBUG] 15:15:29:949 Kernel.c/(7483:7483): Semaforos incializados con exito
+[DEBUG] 15:15:29:949 Kernel.c/(7483:7483): Inicializando sockets
+[DEBUG] 15:15:29:950 Kernel.c/(7483:7483): Sockets inicializados con exito
+[DEBUG] 15:15:29:950 Kernel.c/(7483:7483): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 15:15:42:506 Kernel.c/(7483:7483): Se recibio un RUN con la siguiente path: /home/utnso/workspace/1C2019-Scripts-lql-checkpoint/animales.lql
+
+[DEBUG] 15:15:59:311 Kernel.c/(7483:7483): Se cargo a la cola de new el script id: 1
+[DEBUG] 15:16:02:538 Kernel.c/(7483:7500): Se cargo a la cola de ready el run con id: 1
+[DEBUG] 15:16:02:538 Kernel.c/(7483:7496): Se esta corriendo el script: 1
+[DEBUG] 15:16:02:538 Kernel.c/(7483:7496): /home/utnso/workspace/1C2019-Scripts-lql-checkpoint/animales.lql
+[DEBUG] 15:16:02:538 Kernel.c/(7483:7496): Enviando linea 0
+[DEBUG] 15:16:02:538 Kernel.c/(7483:7496): Se recibio un CREATE
+[DEBUG] 15:17:45:109 Kernel.c/(7578:7578): Cargando configuracion
+[DEBUG] 15:17:45:109 Kernel.c/(7578:7578): Configuracion cargada con exito
+[DEBUG] 15:17:45:110 Kernel.c/(7578:7578): Inicializando semaforos
+[DEBUG] 15:17:45:110 Kernel.c/(7578:7578): Semaforos incializados con exito
+[DEBUG] 15:17:45:110 Kernel.c/(7578:7578): Inicializando sockets
+[DEBUG] 15:17:45:110 Kernel.c/(7578:7578): Sockets inicializados con exito
+[DEBUG] 15:17:45:110 Kernel.c/(7578:7578): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 15:17:53:366 Kernel.c/(7578:7578): Se recibio un RUN con la siguiente path: /home/utnso/workspace/1C2019-Scripts-lql-checkpoint/animales.lql
+
+[DEBUG] 15:17:53:366 Kernel.c/(7578:7578): Se cargo a la cola de new el script id: 1
+[DEBUG] 15:17:53:366 Kernel.c/(7578:7595): Se cargo a la cola de ready el run con id: 1
+[DEBUG] 15:19:35:7 Kernel.c/(7578:7591): Se esta corriendo el script: 1
+[DEBUG] 15:19:35:7 Kernel.c/(7578:7591): /home/utnso/workspace/1C2019-Scripts-lql-checkpoint/animales.lql
+[DEBUG] 15:19:35:7 Kernel.c/(7578:7591): Enviando linea 0
+[DEBUG] 15:19:35:7 Kernel.c/(7578:7591): Se recibio un CREATE

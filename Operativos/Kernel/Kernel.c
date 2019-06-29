@@ -132,6 +132,10 @@ int despacharQuery(char* consulta, int socket_memoria) {
 				desSerializarRegistro(reg,socket_memoria);
 				log_debug(logger,"Value: %s",reg->value);
 				sem_post(&mutexSocket);
+				free(paqueteSelect->nombre_tabla);
+				free(reg->value);
+				free(reg);
+				free(serializado);
 			}else{
 				printf("Por favor ingrese la consulta en formato correcto \n");
 				log_error(loggerError,"Se ingreso una consulta no valida");
@@ -141,13 +145,17 @@ int despacharQuery(char* consulta, int socket_memoria) {
 		case INSERT:
 			if(validarInsert(consulta)){
 				log_debug(logger,"Se recibio un INSERT");
-				cargarPaqueteInsert(paqueteInsert,
-						string_substring_until(consulta,string_length(consulta)-1 ) );
+				char* sinFin = string_substring_until(consulta,string_length(consulta)-1 );
+				cargarPaqueteInsert(paqueteInsert, sinFin);
 				serializado = serializarInsert(paqueteInsert);
 				log_debug(logger,"%s",paqueteInsert->value);
 				sem_wait(&mutexSocket);
 				enviarPaquete(socket_memoria, serializado, paqueteInsert->length);
 				sem_post(&mutexSocket);
+				free(serializado);
+				free(paqueteInsert->nombre_tabla);
+				free(paqueteInsert->value);
+				free(sinFin);
 			}else{
 				printf("Por favor ingrese la consulta en formato correcto \n");
 				log_error(loggerError,"Se ingreso una consulta no valida");
@@ -157,12 +165,16 @@ int despacharQuery(char* consulta, int socket_memoria) {
 		case CREATE:
 			if(validarCreate(consulta)){
 				log_debug(logger,"Se recibio un CREATE");
-				cargarPaqueteCreate(paqueteCreate,
-						string_substring_until(consulta,string_length(consulta)-1 ) );
+				char* sinFin = string_substring_until(consulta,string_length(consulta)-1 );
+				cargarPaqueteCreate(paqueteCreate,sinFin);
 				serializado = serializarCreate(paqueteCreate);
 				sem_wait(&mutexSocket);
 				enviarPaquete(socket_memoria, serializado, paqueteCreate->length);
 				sem_post(&mutexSocket);
+				free(serializado);
+				free(paqueteCreate->consistencia);
+				free(paqueteCreate->nombre_tabla);
+				free(sinFin);
 			}else{
 				printf("Por favor ingrese la consulta en formato correcto \n");
 				log_error(loggerError,"Se ingreso una consulta no valida");
@@ -171,9 +183,9 @@ int despacharQuery(char* consulta, int socket_memoria) {
 			break;
 		case RUN:
 			log_debug(logger,"Se recibio un RUN con la siguiente path: %s", tempSplit[1]);
+			char* sinFin = string_substring_until(tempSplit[1],string_length(tempSplit[1])-1 );
 			unScript = malloc(sizeof(script));
-			unScript->path = string_substring_until(tempSplit[1],
-					string_length(tempSplit[1])-1);
+			unScript->path = sinFin;
 			unScript->pos = 0;
 			unScript->estado = new;
 			unScript->id = contScript;
@@ -218,7 +230,6 @@ int despacharQuery(char* consulta, int socket_memoria) {
 			sem_post(&mutexSocket);
 			consultaOk = 1;
 			break;
-
 		default:
 			printf("Operacion no valida por el momento \n");
 			break;
@@ -228,6 +239,8 @@ int despacharQuery(char* consulta, int socket_memoria) {
 	free(paqueteCreate);
 	free(paqueteInsert);
 	free(paqueteSelect);
+	string_iterate_lines(tempSplit,free);
+	free(tempSplit);
 	return consultaOk;
 }
 
@@ -250,6 +263,7 @@ void CPU(int socket_memoria){
 				unScript->estado = exit_;
 				log_error(loggerError,"El script rompio en la linea: %d",
 						unScript->pos);
+				free(unScript->path);
 				free(unScript);
 				break;
 			case 1:
@@ -260,6 +274,7 @@ void CPU(int socket_memoria){
 					unScript->estado = exit_;
 					log_error(loggerError,"El script rompio en la linea: %d",
 							unScript->pos);
+					free(unScript->path);
 					free(unScript);
 				}else{
 					unScript->pos++;
@@ -272,6 +287,7 @@ void CPU(int socket_memoria){
 						unScript->id,
 						unScript->pos);
 				i = miConfig->quantum;
+				free(unScript->path);
 				free(unScript);
 			}
 		}
@@ -348,6 +364,7 @@ int validarSelect(char* consulta){
 	while(split[i] != NULL){
 		i++;
 	}
+	string_iterate_lines(split,free);
 	free(split);
 	return 3 == i;
 }
@@ -362,7 +379,9 @@ int validarInsert(char* consulta){
 	while(value[j] != NULL){
 			j++;
 		}
+	string_iterate_lines(split,free);
 	free(split);
+	string_iterate_lines(value,free);
 	free(value);
 	return ((3 == i) && (3 == j)) ;
 }
@@ -372,6 +391,7 @@ int validarCreate(char* consulta){
 	while(split[i] != NULL){
 		i++;
 	}
+	string_iterate_lines(split,free);
 	free(split);
 	return 5 == i;
 }
@@ -395,6 +415,7 @@ int validarAdd(char* consulta){
 		}
 		i++;
 	}
+	string_iterate_lines(split,free);
 	free(split);
 	return ((5 == i) && sintaxis);
 }

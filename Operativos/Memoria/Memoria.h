@@ -40,6 +40,7 @@ int socket_sv;
 int encontroSeg;
 int indexPag;
 void* memoria;
+int cantPagsMax;
 pthread_t hiloConsola;
 pthread_t hiloSocket;
 

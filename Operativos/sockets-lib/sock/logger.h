@@ -8,7 +8,7 @@
 #ifndef SOCK_LOGGER_H_
 #define SOCK_LOGGER_H_
 
-// TIPOS DE ERRORES PARA LOGGER
+// TIPOS DE ERRORES PARA LOGGER DEL LFS
 #define todoJoya 0
 #define tablaExistente -1
 #define carpetaNoCreada -2
@@ -20,11 +20,17 @@
 #define noExisteParametro -8
 #define noExisteTabla -9
 #define noSeAgregoTabla -10
+#define noLevantoServidor -11
+#define errorTamanioValue -12
+#define errorDeMalloc -13
+#define errorDeConsistencia -14
+#define noExisteKey -15
+#define particionesInvalidas -16
+#define noAbreBIN -17
 
 
 #include <commons/log.h>
 #include "comunicacion.h"
-
 
 t_log* iniciar_logger(void);
 void imprimir_registro(registro* unreg);

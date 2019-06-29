@@ -17,7 +17,7 @@ void imprimir_registro(registro* unreg) {
 	printf("Encontre un %s", unreg->value);
 }
 
-void logeoDeErrores(int errorHandler, t_log* logger) {
+void logeoDeErroresLFS(int errorHandler, t_log* logger) {
 	//Optimizacion: ver si hay una forma mejor de manejar los errores
 	switch (errorHandler) {
 	case tablaExistente:
@@ -58,6 +58,33 @@ void logeoDeErrores(int errorHandler, t_log* logger) {
 
 	case noSeAgregoTabla:
 		log_info(logger, "La tabla no pudo ser agregada");
+		break;
+
+	case noLevantoServidor:
+		log_info(logger, "No se pudo levantar el servidor, verifique que el puerto configurado sea correcto");
+		break;
+
+	case errorTamanioValue:
+		log_info(logger, "Ha ocurrido un error al enviar el TAMANIO_VALUE al cliente");
+		break;
+
+	case errorDeMalloc:
+		log_info(logger, "No se pudo alocar la memoria solicitada");
+		break;
+
+	case noExisteKey:
+		log_info(logger, "La Key solicitada no pudo ser seleccionada, es inexistente");
+		break;
+
+	case particionesInvalidas:
+		log_info(logger, "Las particiones en el archivo de configuracion debe tener un valor mayor a 0");
+		break;
+
+	case noAbreBIN:
+		log_info(logger, "El archivo .bin no pudo ser accedido");
+		break;
+
+	default:
 		break;
 	}
 }

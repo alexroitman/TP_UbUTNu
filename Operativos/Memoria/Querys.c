@@ -9,7 +9,7 @@
 
 
 
-void ejecutarConsulta(void* memoria) {
+void ejecutarConsulta() {
 	encontroSeg = -1;
 	indexPag = -1;
 	tPagina* pagina = malloc(sizeof(tPagina));
@@ -30,12 +30,13 @@ void ejecutarConsulta(void* memoria) {
 			indexPag = buscarPaginaEnMemoria(packSelect->key,miSegmento ,pagTabla,pagina);
 		}
 		tRegistroRespuesta* reg = malloc(sizeof(tRegistroRespuesta));
+		reg->value = malloc(tamanioMaxValue);
 		if (indexPag >= 0) {
 			log_debug(logger, "Encontre pagina buscada");
 			//*pagina = *(tPagina*) (memoria + pagTabla->offsetMemoria);
 			reg->tipo = REGISTRO;
 			reg->timestamp = pagina->timestamp;
-			reg->value = pagina->value;
+			strcpy(reg->value,pagina->value);
 			reg->key = pagina->key;
 			reg->value_long = strlen(pagina->value) + 1;
 			enviarRegistroAKernel(reg, socket_kernel, leyoConsola);
@@ -59,10 +60,10 @@ void ejecutarConsulta(void* memoria) {
 			//SI NO LO ENCONTRO IGUALMENTE SE LO MANDO A KERNEL PARA QUE TAMBIEN MANEJE EL ERROR
 			enviarRegistroAKernel(reg, socket_kernel, leyoConsola);
 
-			free(reg);
 
 		}
-
+		free(reg->value);
+		free(reg);
 		free(packSelect);
 		break;
 	case INSERT:
@@ -144,7 +145,6 @@ void ejecutarConsulta(void* memoria) {
 			char* serializado = serializarDrop(packDrop);
 			enviarPaquete(socket_lfs, serializado, packDrop->length);
 			log_debug(logger, "Envio DROP a LFS");
-
 		} else {
 			log_error(logger, "No se encontro el segmento");
 		}
@@ -217,7 +217,7 @@ void* leerQuery(void* params) {
 		free(tempSplit[0]);
 		free(tempSplit[1]);
 		free(tempSplit);
-		ejecutarConsulta(memoria);
+		ejecutarConsulta();
 
 	}
 }
