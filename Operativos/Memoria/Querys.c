@@ -52,8 +52,8 @@ void ejecutarConsulta() {
 							tablaSegmentos);
 					miSegmento = obtenerUltimoSegmentoDeTabla(tablaSegmentos);
 				}
-				agregarPaginaAMemoria(miSegmento, pagina);
-
+				int error = agregarPaginaAMemoria(miSegmento, pagina);
+				send(socket_kernel, &error, sizeof(error), 0);
 			}else{
 				log_error(logger,"No existe el registro");
 			}
@@ -68,7 +68,7 @@ void ejecutarConsulta() {
 		break;
 	case INSERT:
 		packInsert = malloc(sizeof(tInsert));
-		int error;
+		int error = 1;
 		cargarPackInsert(packInsert, leyoConsola, paramsConsola->consulta);
 		encontroSeg = buscarSegmentoEnTabla(packInsert->nombre_tabla,
 				miSegmento, tablaSegmentos);
@@ -84,6 +84,7 @@ void ejecutarConsulta() {
 						packInsert->nombre_tabla);
 				actualizarPaginaEnMemoria(miSegmento, indexPag, packInsert->value);
 
+
 			} else {
 				log_debug(logger,
 						"Encontro el segmento en tabla pero no tiene la pagina en memoria");
@@ -91,6 +92,7 @@ void ejecutarConsulta() {
 				pagina->timestamp = (int) time (NULL);
 				strcpy(pagina->value,packInsert->value);
 				error = agregarPaginaAMemoria(miSegmento,pagina);
+
 			}
 
 		} else {
@@ -102,18 +104,19 @@ void ejecutarConsulta() {
 			cargarSegmentoEnTabla(packInsert->nombre_tabla, tablaSegmentos);
 			miSegmento = obtenerUltimoSegmentoDeTabla(tablaSegmentos);
 			error = agregarPaginaAMemoria(miSegmento,pagina);
+
 		}
 
+		send(socket_kernel, &error, sizeof(error), 0); //Aviso a Kernel que onda con el insert
+															//1 salio todo joya
+															//-1 hubo error
 		if (error == -1) {
 			int errorLRU;
 			errorLRU = ejecutarLRU();
 			if (errorLRU == 1) {
 				agregarPaginaAMemoria(miSegmento, pagina);
-			} else {
-				log_error(logger, "Hacer Journal");
 			}
-
-			//EJECUTAR LRU
+		}
 
 		}
 		free(packInsert);
