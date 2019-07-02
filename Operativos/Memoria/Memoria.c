@@ -75,7 +75,7 @@ tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg) {
 	return seg;
 }
 
-int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina) {
+int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina,bool modificado ) {
 	int cantPags = 0;
 	int timeAux;
 	memcpy(&timeAux,memoria + 2,4);
@@ -97,7 +97,7 @@ int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina) {
 	memcpy((memoria + offset + 6),pagina->value,tamanioMaxValue);
 
 	elem_tabla_pag* pagTabla = malloc(sizeof(elem_tabla_pag));
-	pagTabla->modificado = true;//PARA PROBARRRRRRRRRRRR!!! TIENE QUE SERTRUE
+	pagTabla->modificado = modificado;//PARA PROBARRRRRRRRRRRR!!! TIENE QUE SERTRUE
 	pagTabla->offsetMemoria = offset;
 	pagTabla->index = list_size(seg->tablaPaginas);
 	pagTabla->ultimoTime = (int) time (NULL);

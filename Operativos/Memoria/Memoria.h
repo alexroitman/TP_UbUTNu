@@ -89,7 +89,7 @@ int listMinTimestamp(t_list* listaPaginas,elem_tabla_pag* pagina);
 void ejecutarJournal();
 void actualizarIndexLista(t_list* lista);
 int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla,tPagina* pagina);
-int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina);
+int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina, bool modificado);
 void cargarSegmentoEnTabla(char* path,t_list* listaSeg);
 tSegmento* obtenerSegmentoDeTabla(t_list* tablaSeg,int index);
 int buscarSegmentoEnTabla(char* nombreTabla, tSegmento* segmento, t_list* listaSegmentos);
