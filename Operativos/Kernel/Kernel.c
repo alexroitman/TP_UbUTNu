@@ -46,6 +46,8 @@ int main(){
 	listaMemsSHC = list_create();
 	log_debug(logger,"Sockets inicializados con exito");
 	log_debug(logger,"Se tendra un nivel de multiprocesamiento de: %d cpus", miConfig->MULT_PROC);
+	log_debug(logger, "Realizando describe general");
+	despacharQuery("describe\n",socket_memoria);
 	pthread_t cpus[miConfig->MULT_PROC];
 	if(levantarCpus(socket_memoria,cpus)){
 		for(int i = 0; i < miConfig->MULT_PROC; i++){
@@ -239,10 +241,11 @@ int despacharQuery(char* consulta, int socket_memoria) {
 			cargarPaqueteDescribe(paqueteDescribe,
 					string_substring_until(consulta,string_length(consulta)-1  ) );
 			serializado = serializarDescribe(paqueteDescribe);
-			/*enviarPaquete(socket_memoria,serializado,paqueteDescribe->length);
-			 * type header = leerHeader(socket_memoria);
-			 * t_describe.....
-			*/
+			enviarPaquete(socket_memoria,serializado,paqueteDescribe->length);
+			type header = leerHeader(socket_memoria);
+			t_describe* response = malloc(sizeof(t_describe));
+			desserializarDescribe_Response(response,socket_memoria);
+			log_debug(logger,"Cant tablas: %d", response->cant_tablas);
 			free(serializado);
 			free(paqueteDescribe->nombre_tabla);
 			consultaOk = 1;

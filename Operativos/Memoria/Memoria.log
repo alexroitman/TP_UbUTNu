@@ -211,3 +211,42 @@
 [DEBUG] 17:17:53:704 Memoria.c/(22381:22397): offset: 28
 [DEBUG] 17:17:53:704 Memoria.c/(22381:22397): Pagina cargada en memoria.
 [DEBUG] 17:17:55:704 Memoria.c/(22381:22397): LLEGO JOURNAL WACHIN
+[INFO] 15:31:46:683 Memoria.c/(14676:14676): Por favor ingrese el path de su archivo de configuracion (Memoria.config): 
+[DEBUG] 15:31:52:355 Memoria.c/(14676:14676): Levanta archivo de config
+[DEBUG] 15:31:52:356 Memoria.c/(14676:14676): Tamanio Memoria: 50
+[DEBUG] 15:31:58:186 Memoria.c/(14676:14676): Levanta conexion con kernel
+[DEBUG] 15:31:58:186 Memoria.c/(14676:14676): Handshake con LFS realizado. Tamanio max del value: 8
+[DEBUG] 15:32:44:820 Memoria.c/(14676:14676): Cantidad maxima de paginas en memoria: 3
+[INFO] 15:38:35:846 Memoria.c/(14868:14868): Por favor ingrese el path de su archivo de configuracion (Memoria.config): 
+[DEBUG] 15:38:42:462 Memoria.c/(14868:14868): Levanta archivo de config
+[DEBUG] 15:38:42:462 Memoria.c/(14868:14868): Tamanio Memoria: 50
+[DEBUG] 15:38:46:225 Memoria.c/(14868:14868): Levanta conexion con kernel
+[DEBUG] 15:38:48:8 Memoria.c/(14868:14868): Handshake con LFS realizado. Tamanio max del value: 8
+[DEBUG] 15:39:19:62 Memoria.c/(14868:14868): Cantidad maxima de paginas en memoria: 3
+[INFO] 15:49:28:222 Memoria.c/(15203:15203): Por favor ingrese el path de su archivo de configuracion (Memoria.config): 
+[DEBUG] 15:49:38:166 Memoria.c/(15203:15203): Levanta archivo de config
+[DEBUG] 15:49:38:166 Memoria.c/(15203:15203): Tamanio Memoria: 50
+[DEBUG] 15:49:38:167 Memoria.c/(15203:15203): Levanta conexion con kernel
+[DEBUG] 15:49:38:167 Memoria.c/(15203:15203): Handshake con LFS realizado. Tamanio max del value: 8
+[DEBUG] 15:49:42:351 Memoria.c/(15203:15203): Cantidad maxima de paginas en memoria: 3
+[INFO] 15:50:02:886 Memoria.c/(15254:15254): Por favor ingrese el path de su archivo de configuracion (Memoria.config): 
+[DEBUG] 15:50:10:798 Memoria.c/(15254:15254): Levanta archivo de config
+[DEBUG] 15:50:10:798 Memoria.c/(15254:15254): Tamanio Memoria: 50
+[DEBUG] 15:50:16:731 Memoria.c/(15254:15254): Levanta conexion con kernel
+[DEBUG] 15:50:16:731 Memoria.c/(15254:15254): Handshake con LFS realizado. Tamanio max del value: 8
+[DEBUG] 15:50:19:7 Memoria.c/(15254:15254): Cantidad maxima de paginas en memoria: 3
+[INFO] 16:02:00:293 Memoria.c/(15663:15663): Por favor ingrese el path de su archivo de configuracion (Memoria.config): 
+[DEBUG] 16:02:22:794 Memoria.c/(15663:15663): Levanta archivo de config
+[DEBUG] 16:02:22:794 Memoria.c/(15663:15663): Tamanio Memoria: 50
+[DEBUG] 16:02:22:794 Memoria.c/(15663:15663): Levanta conexion con kernel
+[DEBUG] 16:02:22:795 Memoria.c/(15663:15663): Handshake con LFS realizado. Tamanio max del value: 8
+[DEBUG] 16:02:25:4 Memoria.c/(15663:15663): Cantidad maxima de paginas en memoria: 3
+[INFO] 16:20:44:172 Memoria.c/(15903:15903): Por favor ingrese el path de su archivo de configuracion (Memoria.config): 
+[DEBUG] 16:20:51:948 Memoria.c/(15903:15903): Levanta archivo de config
+[DEBUG] 16:20:51:948 Memoria.c/(15903:15903): Tamanio Memoria: 50
+[INFO] 16:21:23:908 Memoria.c/(15959:15959): Por favor ingrese el path de su archivo de configuracion (Memoria.config): 
+[DEBUG] 16:21:29:700 Memoria.c/(15959:15959): Levanta archivo de config
+[DEBUG] 16:21:29:700 Memoria.c/(15959:15959): Tamanio Memoria: 50
+[INFO] 16:22:05:4 Memoria.c/(16022:16022): Por favor ingrese el path de su archivo de configuracion (Memoria.config): 
+[DEBUG] 16:22:10:773 Memoria.c/(16022:16022): Levanta archivo de config
+[DEBUG] 16:22:10:773 Memoria.c/(16022:16022): Tamanio Memoria: 50

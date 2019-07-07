@@ -1,0 +1,80 @@
+[DEBUG] 15:19:43:229 Kernel.c/(14294:14294): Cargando configuracion
+[DEBUG] 15:19:43:230 Kernel.c/(14294:14294): Configuracion cargada con exito
+[DEBUG] 15:19:43:230 Kernel.c/(14294:14294): Inicializando semaforos
+[DEBUG] 15:19:43:230 Kernel.c/(14294:14294): Semaforos incializados con exito
+[DEBUG] 15:19:43:230 Kernel.c/(14294:14294): Inicializando sockets
+[DEBUG] 15:19:43:230 Kernel.c/(14294:14294): Sockets inicializados con exito
+[DEBUG] 15:19:43:231 Kernel.c/(14294:14294): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 15:19:54:238 Kernel.c/(14294:14294): header describe
+
+[DEBUG] 15:19:54:238 Kernel.c/(14294:14294): Se recibio un DESCRIBE
+[DEBUG] 15:20:19:606 Kernel.c/(14294:14294): header describe
+
+[DEBUG] 15:20:19:606 Kernel.c/(14294:14294): Se recibio un DESCRIBE
+[DEBUG] 15:27:48:725 Kernel.c/(14575:14575): Cargando configuracion
+[DEBUG] 15:27:48:726 Kernel.c/(14575:14575): Configuracion cargada con exito
+[DEBUG] 15:27:48:726 Kernel.c/(14575:14575): Inicializando semaforos
+[DEBUG] 15:27:48:726 Kernel.c/(14575:14575): Semaforos incializados con exito
+[DEBUG] 15:27:48:726 Kernel.c/(14575:14575): Inicializando sockets
+[DEBUG] 15:27:48:727 Kernel.c/(14575:14575): Sockets inicializados con exito
+[DEBUG] 15:27:48:727 Kernel.c/(14575:14575): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 15:27:54:781 Kernel.c/(14575:14575): header describe
+
+[DEBUG] 15:27:54:781 Kernel.c/(14575:14575): Se recibio un DESCRIBE
+[DEBUG] 15:28:21:625 Kernel.c/(14575:14575): Cant tablas: 2
+[DEBUG] 15:44:07:600 Kernel.c/(14989:14989): Cargando configuracion
+[DEBUG] 15:44:07:600 Kernel.c/(14989:14989): Configuracion cargada con exito
+[DEBUG] 15:44:07:600 Kernel.c/(14989:14989): Inicializando semaforos
+[DEBUG] 15:44:07:600 Kernel.c/(14989:14989): Semaforos incializados con exito
+[DEBUG] 15:44:07:600 Kernel.c/(14989:14989): Inicializando sockets
+[DEBUG] 15:44:07:601 Kernel.c/(14989:14989): Sockets inicializados con exito
+[DEBUG] 15:44:07:601 Kernel.c/(14989:14989): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 15:44:07:601 Kernel.c/(14989:14989): Realizando describe general
+[DEBUG] 15:44:07:601 Kernel.c/(14989:14989): header describe
+
+[DEBUG] 15:44:07:601 Kernel.c/(14989:14989): Se recibio un DESCRIBE
+[DEBUG] 15:54:50:504 Kernel.c/(15511:15511): Cargando configuracion
+[DEBUG] 15:54:50:505 Kernel.c/(15511:15511): Configuracion cargada con exito
+[DEBUG] 15:54:50:505 Kernel.c/(15511:15511): Inicializando semaforos
+[DEBUG] 15:54:50:505 Kernel.c/(15511:15511): Semaforos incializados con exito
+[DEBUG] 15:54:50:505 Kernel.c/(15511:15511): Inicializando sockets
+[DEBUG] 15:54:50:505 Kernel.c/(15511:15511): Sockets inicializados con exito
+[DEBUG] 15:54:50:505 Kernel.c/(15511:15511): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 15:54:50:505 Kernel.c/(15511:15511): Realizando describe general
+[DEBUG] 15:54:50:505 Kernel.c/(15511:15511): header describe
+
+[DEBUG] 15:54:50:505 Kernel.c/(15511:15511): Se recibio un DESCRIBE
+[DEBUG] 15:55:39:885 Kernel.c/(15555:15555): Cargando configuracion
+[DEBUG] 15:55:39:885 Kernel.c/(15555:15555): Configuracion cargada con exito
+[DEBUG] 15:55:39:885 Kernel.c/(15555:15555): Inicializando semaforos
+[DEBUG] 15:55:39:885 Kernel.c/(15555:15555): Semaforos incializados con exito
+[DEBUG] 15:55:39:885 Kernel.c/(15555:15555): Inicializando sockets
+[DEBUG] 15:55:39:886 Kernel.c/(15555:15555): Sockets inicializados con exito
+[DEBUG] 15:55:39:886 Kernel.c/(15555:15555): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 15:55:39:886 Kernel.c/(15555:15555): Realizando describe general
+[DEBUG] 15:55:39:886 Kernel.c/(15555:15555): header describe
+
+[DEBUG] 15:55:39:886 Kernel.c/(15555:15555): Se recibio un DESCRIBE
+[DEBUG] 15:57:42:115 Kernel.c/(15555:15555): Cant tablas: 2
+[DEBUG] 16:23:53:981 Kernel.c/(16086:16086): Cargando configuracion
+[DEBUG] 16:23:53:981 Kernel.c/(16086:16086): Configuracion cargada con exito
+[DEBUG] 16:23:53:982 Kernel.c/(16086:16086): Inicializando semaforos
+[DEBUG] 16:23:53:982 Kernel.c/(16086:16086): Semaforos incializados con exito
+[DEBUG] 16:23:53:982 Kernel.c/(16086:16086): Inicializando sockets
+[DEBUG] 16:23:53:982 Kernel.c/(16086:16086): Sockets inicializados con exito
+[DEBUG] 16:23:53:982 Kernel.c/(16086:16086): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 16:23:53:982 Kernel.c/(16086:16086): Realizando describe general
+[DEBUG] 16:23:53:982 Kernel.c/(16086:16086): header describe
+
+[DEBUG] 16:23:53:982 Kernel.c/(16086:16086): Se recibio un DESCRIBE
+[DEBUG] 16:27:59:702 Kernel.c/(16248:16248): Cargando configuracion
+[DEBUG] 16:27:59:714 Kernel.c/(16248:16248): Configuracion cargada con exito
+[DEBUG] 16:27:59:716 Kernel.c/(16248:16248): Inicializando semaforos
+[DEBUG] 16:27:59:717 Kernel.c/(16248:16248): Semaforos incializados con exito
+[DEBUG] 16:27:59:717 Kernel.c/(16248:16248): Inicializando sockets
+[DEBUG] 16:28:18:342 Kernel.c/(16248:16248): Sockets inicializados con exito
+[DEBUG] 16:28:18:342 Kernel.c/(16248:16248): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 16:28:18:342 Kernel.c/(16248:16248): Realizando describe general
+[DEBUG] 16:28:18:342 Kernel.c/(16248:16248): header describe
+
+[DEBUG] 16:28:18:343 Kernel.c/(16248:16248): Se recibio un DESCRIBE
