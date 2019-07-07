@@ -84,6 +84,7 @@ int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina) {
 		if (cantPags < cantPagsMax) {
 			memcpy(&timeAux,memoria + cantPags*(6 + tamanioMaxValue) + 2,4);
 		} else {
+
 			return -1;
 			//no hay mas lugar en memoria
 		}

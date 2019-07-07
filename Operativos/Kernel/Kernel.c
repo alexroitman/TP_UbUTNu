@@ -128,6 +128,7 @@ int despacharQuery(char* consulta, int socket_memoria) {
 		switch (typeHeader) {
 		case SELECT:
 			if(validarSelect(consulta)){
+				int error;
 				log_debug(logger,"Se recibio un SELECT");
 				cargarPaqueteSelect(paqueteSelect, consulta);
 				serializado = serializarSelect(paqueteSelect);
@@ -138,7 +139,17 @@ int despacharQuery(char* consulta, int socket_memoria) {
 				desSerializarRegistro(reg,socket_memoria);
 				log_debug(logger,"Value: %s",reg->value);
 				sem_post(&mutexSocket);
-				consultaOk = 1;
+				recv(socket_memoria, &error, sizeof(error), 0);
+				if(error == -1){
+					log_error(logger, "Memoria llena, hago JOURNAL");
+					cargarPaqueteJournal(paqueteJournal, "JOURNAL");
+					serializado = serializarJournal(paqueteJournal);
+					sem_wait(&mutexSocket);
+					enviarPaquete(socket_memoria, serializado,
+							paqueteJournal->length);
+					sem_post(&mutexSocket);
+					consultaOk = 1;
+				}
 				free(paqueteSelect->nombre_tabla);
 				free(reg->value);
 				free(reg);
@@ -150,6 +161,7 @@ int despacharQuery(char* consulta, int socket_memoria) {
 			break;
 		case INSERT:
 			if(validarInsert(consulta)){
+				int error = 0;
 				log_debug(logger,"Se recibio un INSERT");
 				char* sinFin = string_substring_until(consulta,string_length(consulta)-1 );
 				cargarPaqueteInsert(paqueteInsert, sinFin);
@@ -158,7 +170,19 @@ int despacharQuery(char* consulta, int socket_memoria) {
 				sem_wait(&mutexSocket);
 				enviarPaquete(socket_memoria, serializado, paqueteInsert->length);
 				sem_post(&mutexSocket);
-				consultaOk = 1;
+				recv(socket_memoria, &error, sizeof(error), 0);
+				if(error == 1){
+					log_debug(logger, "Se inserto el valor: %s", paqueteInsert->value);
+				} else {
+					log_error(logger, "Memoria llena, hago JOURNAL");
+					cargarPaqueteJournal(paqueteJournal, "JOURNAL");
+					serializado = serializarJournal(paqueteJournal);
+					sem_wait(&mutexSocket);
+					enviarPaquete(socket_memoria, serializado,
+							paqueteJournal->length);
+					sem_post(&mutexSocket);
+					consultaOk = 1;
+				}
 				free(serializado);
 				free(paqueteInsert->nombre_tabla);
 				free(paqueteInsert->value);
