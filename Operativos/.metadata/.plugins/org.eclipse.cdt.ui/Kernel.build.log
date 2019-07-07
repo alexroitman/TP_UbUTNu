@@ -1,6 +1,6 @@
-12:29:04 **** Incremental Build of configuration Default for project Kernel ****
+13:37:33 **** Incremental Build of configuration Default for project Kernel ****
 make all 
 make: Nothing to be done for 'all'.
 
-12:29:06 Build Finished (took 2s.63ms)
+13:37:34 Build Finished (took 405ms)
 

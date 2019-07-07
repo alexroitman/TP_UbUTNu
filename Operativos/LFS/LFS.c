@@ -396,11 +396,11 @@ int Drop(char* NOMBRE_TABLA) {
 	string_append(&rutametadata, ruta);
 	string_append(&rutametadata, "/metadata");
 	t_config* metadataTabla = config_create(rutametadata);
-	int cantParticiones = config_get_int_value(metadataTabla, "PARTITIONS");
+	int cantParticiones = (config_get_int_value(metadataTabla, "PARTITIONS") - 1);
 	config_destroy(metadataTabla);
 	free(rutametadata);
 	t_bitarray* bitmap = levantarBitmap();
-	for (int i = 1; i <= cantParticiones; i++) {
+	for (int i = 0; i <= cantParticiones; i++) {
 		char* binario_a_limpiar = string_new();
 		string_append_with_format(&binario_a_limpiar, "%s/%d.bin", ruta, i);
 		t_config* binario = config_create(binario_a_limpiar);
@@ -658,7 +658,7 @@ int SelectFS(char* ruta, int KEY, registro* registro) {
 t_list* SelectTemp(char* ruta, int KEY) {
 	t_list* listRegistros = list_create();
 //	Ejecuto lo siguiento por cada temporal creado (uno por dumpeo)
-	for (int aux = 0; aux < cantidadDeDumpeos; aux++) {
+	for (int aux = 1; aux <= cantidadDeDumpeos; aux++) {
 		char* rutaTemporal = string_new();
 		string_append(&rutaTemporal, ruta);
 		string_append(&rutaTemporal, ("/"));
@@ -733,7 +733,8 @@ int crearMetadata(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA,
 
 void crearBinarios(char* NOMBRE_TABLA, int NUMERO_PARTICIONES) {
 //Opitimizacion1B: Se puede hace que fp se pase por parámetro para no abrirlo en crearMetadata y crearBIN
-	while (NUMERO_PARTICIONES > 0) {
+	NUMERO_PARTICIONES--;
+	while (NUMERO_PARTICIONES >= 0) {
 		char* nuevaParticion = string_new();
 		string_append(&nuevaParticion, NOMBRE_TABLA);
 		string_append(&nuevaParticion, "/");
@@ -749,7 +750,7 @@ void crearBinarios(char* NOMBRE_TABLA, int NUMERO_PARTICIONES) {
 		config_save(particion);
 		config_destroy(particion);
 		free(bloques);
-		NUMERO_PARTICIONES -= 1;
+		NUMERO_PARTICIONES--;
 		free(nuevaParticion);
 	}
 }

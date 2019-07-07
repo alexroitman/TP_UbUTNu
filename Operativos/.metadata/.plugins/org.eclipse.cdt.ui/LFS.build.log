@@ -1,28 +1,6 @@
-12:28:57 **** Incremental Build of configuration Default for project LFS ****
+13:37:32 **** Incremental Build of configuration Default for project LFS ****
 make all 
-Building file: ../LFS.c
-Invoking: GCC C Compiler
-gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
-../LFS.c: In function ‘main’:
-../LFS.c:45:3: warning: implicit declaration of function ‘logeoDeErroresLFS’ [-Wimplicit-function-declaration]
-   logeoDeErroresLFS(noLevantoServidor, logger);
-   ^
-../LFS.c:65:22: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-    meta.consistencia = a_metadata->consistency;
-                      ^
-../LFS.c:96:21: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-   meta.consistencia = SC;
-                     ^
-../LFS.c:192:8: warning: ‘packCreate’ may be used uninitialized in this function [-Wmaybe-uninitialized]
-    if (!packCreate || !metadata)
-        ^
-Finished building: ../LFS.c
- 
-Building target: LFS
-Invoking: GCC C++ Linker
-g++ -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "LFS"  ./LFS.o   -lsockets-lib -lcommons
-Finished building target: LFS
- 
+make: Nothing to be done for 'all'.
 
-12:29:03 Build Finished (took 6s.203ms)
+13:37:33 Build Finished (took 667ms)
 
