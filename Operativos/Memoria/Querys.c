@@ -18,6 +18,7 @@ void ejecutarConsulta() {
 	elem_tabla_pag* pagTabla = malloc(sizeof(elem_tabla_pag));
 	encontroSeg = -1;
 	indexPag = -1;
+	int error;
 	switch (*header) {
 	case SELECT:
 		packSelect = malloc(sizeof(tSelect));
@@ -39,6 +40,7 @@ void ejecutarConsulta() {
 			strcpy(reg->value,pagina->value);
 			reg->key = pagina->key;
 			reg->value_long = strlen(pagina->value) + 1;
+			error = 1;
 			enviarRegistroAKernel(reg, socket_kernel, leyoConsola);
 			log_debug(logger, "El value es: %s", pagina->value);
 		} else {
@@ -52,23 +54,23 @@ void ejecutarConsulta() {
 							tablaSegmentos);
 					miSegmento = obtenerUltimoSegmentoDeTabla(tablaSegmentos);
 				}
-				int error = agregarPaginaAMemoria(miSegmento, pagina);
+				error = agregarPaginaAMemoria(miSegmento, pagina);
 				send(socket_kernel, &error, sizeof(error), 0);
 			}else{
+				error = 1;
 				log_error(logger,"No existe el registro");
 			}
 			//SI NO LO ENCONTRO IGUALMENTE SE LO MANDO A KERNEL PARA QUE TAMBIEN MANEJE EL ERROR
 			enviarRegistroAKernel(reg, socket_kernel, leyoConsola);
-
-
 		}
+		chequearMemoriaFull(leyoConsola,error , miSegmento, pagina);
 		free(reg->value);
 		free(reg);
 		free(packSelect);
 		break;
 	case INSERT:
 		packInsert = malloc(sizeof(tInsert));
-		int error = 1;
+		error = 1;
 		cargarPackInsert(packInsert, leyoConsola, paramsConsola->consulta);
 		encontroSeg = buscarSegmentoEnTabla(packInsert->nombre_tabla,
 				miSegmento, tablaSegmentos);
@@ -107,18 +109,8 @@ void ejecutarConsulta() {
 
 		}
 
-		send(socket_kernel, &error, sizeof(error), 0); //Aviso a Kernel que onda con el insert
-															//1 salio todo joya
-															//-1 hubo error
-		if (error == -1) {
-			int errorLRU;
-			errorLRU = ejecutarLRU();
-			if (errorLRU == 1) {
-				agregarPaginaAMemoria(miSegmento, pagina);
-			}
-		}
+		chequearMemoriaFull(leyoConsola,error, miSegmento, pagina);
 
-		}
 		free(packInsert);
 		free(packInsert->nombre_tabla);
 		free(packInsert->value);
@@ -230,7 +222,7 @@ void* leerQuery(void* params) {
 		if(!strcmp(tempSplit[0], "DROP")){
 			*(parametros->header) = DROP;
 		}
-		if(!strcmp(tempSplit[0], "JOURNAL")){
+		if(!strcmp(tempSplit[0], "JOURNAL\n")){
 			*(parametros->header) = JOURNAL;
 		}
 		leyoConsola = true;

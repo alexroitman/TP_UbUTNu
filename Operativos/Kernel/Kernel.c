@@ -188,6 +188,11 @@ int despacharQuery(char* consulta, int socket_memoria) {
 							paqueteJournal->length);
 					sem_post(&mutexSocket);
 					consultaOk = 1;
+					serializado = serializarInsert(paqueteInsert);
+					sem_wait(&mutexSocket);
+					enviarPaquete(socket_memoria, serializado, paqueteInsert->length);
+					sem_post(&mutexSocket);
+					recv(socket_memoria, &error, sizeof(error), 0);
 				}
 				free(serializado);
 				free(paqueteInsert->nombre_tabla);

@@ -277,6 +277,7 @@ int listMinTimestamp(t_list* listaPaginas,elem_tabla_pag* pagina){
 
 
 void ejecutarJournal(){
+	log_debug(logger,"Realizando Journal");
 	int index = 0;
 	tSegmento* miSegmento = list_get(tablaSegmentos, 0);
 
@@ -360,6 +361,29 @@ t_miConfig* cargarConfig() {
 	log_debug(logger, "Levanta archivo de config");
 	return miConfig;
 }
+
+void chequearMemoriaFull(bool leyoConsola, int error, tSegmento* miSegmento,
+		tPagina* pagina) {
+	int errorLRU;
+	if (error == -1) {
+		errorLRU = ejecutarLRU();
+		if (errorLRU == -1) {
+			if (leyoConsola) {
+				ejecutarJournal();
+				agregarPaginaAMemoria(miSegmento, pagina);
+			} else {
+				send(socket_kernel, &error, sizeof(int), 0);
+			}
+		} else {
+			agregarPaginaAMemoria(miSegmento, pagina);
+		}
+	}else{
+		if(!leyoConsola){
+			send(socket_kernel,&error,sizeof(int),0);
+		}
+	}
+}
+
 
 void finalizarEjecucion() {
 	printf("------------------------\n");
