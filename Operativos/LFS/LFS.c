@@ -202,19 +202,22 @@ int main(void) {
 			free(metadata);
 			break;
 
-		case DROP:
-			log_debug(logger, "Comando DROP recibido");
-			tDrop* packDrop = malloc(sizeof(tDrop));
-			if (!packDrop) {
-				errorHandler = errorDeMalloc;
-				break;
-			}
-			errorHandler = desSerializarDrop(packDrop, socket_cli);
-			if (errorHandler)
+		case DROP:/*
+		 log_debug(logger, "Comando DROP recibido");
+		 tDrop* packDrop = malloc(sizeof(tDrop));
+		 if (!packDrop) {
+		 errorHandler = errorDeMalloc;
+		 break;
+		 }
+		 errorHandler = desSerializarDrop(packDrop, socket_cli);
+		 if (errorHandler)
 
-				packDrop->type = header;
-			errorHandler = Drop(packDrop->nombre_tabla);
-			free(packDrop);
+		 packDrop->type = header;
+		 errorHandler = Drop(packDrop->nombre_tabla);
+		 free(packDrop);
+		 */
+			dumpeoMemoria();
+			compactacion("FELO");
 			break;
 
 		case JOURNAL:
@@ -473,7 +476,7 @@ int Select(registro* reg, char* NOMBRE_TABLA, int KEY) {
 		list_add_all(registros, temporales);
 	list_sort(registros, (void*) &es_mayor);
 	reg = list_get(registros, 0);
-	log_debug(logger, "encontre %s", reg->value );
+	log_debug(logger, "encontre %s", reg->value);
 	free(ruta);
 	if (!reg)
 		return noExisteKey;
@@ -821,6 +824,7 @@ t_bitarray* levantarBitmap() {
 			0);
 	t_bitarray* structBitarray = bitarray_create_with_mode(bitarray, size,
 			MSB_FIRST);
+
 	free(ruta);
 	return structBitarray;
 }
@@ -838,27 +842,26 @@ off_t obtener_bit_libre() {
 // ---------------DUMPEO-----------------
 
 int dumpeoMemoria() {
+	void paraDumpearTabla(t_tabla* tabla) {
+		char* tablaParaDumpeo = string_new();
+		string_append_with_format(&tablaParaDumpeo, "%sTablas/%s/%d.tmp",
+				dirMontaje, tabla->nombreTabla, cantidadDeDumpeos);
+		int fd = creat(tablaParaDumpeo, (mode_t) 0600);
+		close(fd);
+		dumpearTabla(tabla->registros, tablaParaDumpeo);
+	}
 	if (list_is_empty(memtable))
 //		TODO: poner define para memtable vacia
 		return 1;
-	list_iterate(memtable, (void*) &dumpearTabla);
+	list_iterate(memtable, (void*) &paraDumpearTabla);
 	list_clean(memtable);
 	cantidadDeDumpeos++;
 	return 0;
 }
 
-void dumpearTabla(t_tabla* UnaTabla) {
-	char* tablaParaDumpeo = string_new();
-	string_append(&tablaParaDumpeo, dirMontaje);
-	string_append(&tablaParaDumpeo, "Tablas/");
-	string_append(&tablaParaDumpeo, UnaTabla->nombreTabla);
-	string_append(&tablaParaDumpeo, "/");
-	string_append(&tablaParaDumpeo, string_itoa(cantidadDeDumpeos));
-	string_append(&tablaParaDumpeo, ".tmp");
+void dumpearTabla(t_list* registros, char* ruta) {
 	off_t bit_index = obtener_bit_libre();
-	int fd = creat(tablaParaDumpeo, (mode_t) 0600);
-	close(fd);
-	t_config* tmp = config_create(tablaParaDumpeo);
+	t_config* tmp = config_create(ruta);
 	char* bloque = string_new();
 	string_append_with_format(&bloque, "[%d]", bit_index);
 	config_set_value(tmp, "SIZE", "0");
@@ -866,10 +869,8 @@ void dumpearTabla(t_tabla* UnaTabla) {
 	config_save(tmp);
 
 	char* bloqueDumpeo = string_new();
-	string_append(&bloqueDumpeo, dirMontaje);
-	string_append(&bloqueDumpeo, "Bloques/");
-	string_append_with_format(&bloqueDumpeo, "%d", bit_index);
-	string_append(&bloqueDumpeo, ".bin");
+	string_append_with_format(&bloqueDumpeo, "%sBloques/%d.bin", dirMontaje,
+			bit_index);
 
 	int fd2 = open(bloqueDumpeo, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);
 	char* registroParaEscribir = string_new();
@@ -883,7 +884,7 @@ void dumpearTabla(t_tabla* UnaTabla) {
 		string_append(&registroParaEscribir, "\n");
 		log_debug(logger, "voy a escribir esto: %s", registroParaEscribir);
 	}
-	list_iterate(UnaTabla->registros, (void*) &dumpearRegistros);
+	list_iterate(registros, (void*) &dumpearRegistros);
 	bajarAMemoria(&fd2, registroParaEscribir, tmp);
 	close(fd2);
 	config_destroy(tmp);
@@ -950,135 +951,209 @@ void actualizarBloquesEnTemporal(t_config* tmp, off_t bloque) {
 	free(bloques);
 }
 
-
-
-
-
 //
 
-int compactacion(char* nombre_tabla){
-	char* temporales;
-	char* binarios;
-t_list* lista_bin=list_create();
-t_list* lista_Temp=list_create();
-	int error= obtener_temporales(nombre_tabla,temporales);
-	int errorbinario= levantarbinarios(nombre_tabla,binarios);
-	crearListaRegistros(temporales,lista_Temp);
-	crearListaRegistros(binarios,lista_bin);
+int compactacion(char* nombre_tabla) {
+//TODO: RENOMBRAR TODOS//SEMAFOROS!!!!!!!!!
+	char* temporales = string_new();
+	char* binarios = string_new();
+	t_list* lista_bin = list_create();
+	t_list* lista_Temp = list_create();
 
+	log_debug(logger, "voy a buscar los tmp");
+	int error = obtener_temporales(nombre_tabla, temporales);
+	log_debug(logger, "voy a buscar los %s", temporales);
+	log_debug(logger, "voy a buscar los bin");
+	int errorbinario = levantarbinarios(nombre_tabla, binarios);
+	log_debug(logger, "voy a buscar los %s", binarios);
+	log_debug(logger, "creolistas");
+	crearListaRegistros(temporales, lista_Temp);
+	crearListaRegistros(binarios, lista_bin);
+	log_debug(logger, "%d", lista_Temp->elements_count);
+	log_debug(logger, "%d", lista_bin->elements_count);
+	free(temporales);
+	free(binarios);
+	log_debug(logger, "voy a compactar");
+	void compactar(registro reg) {
+		bool esta_registro(registro registroBin) {
+			if (reg.key == registroBin.key)
+				return true;
+			return false;
+		}
 
+		registro* encontrado = list_find(lista_bin, &esta_registro);
+
+		if (encontrado != NULL) { //replace
+			if (encontrado->timestamp < reg.timestamp) {
+				encontrado = &reg;
+			}
+		} else {
+			list_add(lista_bin, &reg);
+		}
+
+	}
+
+	list_iterate(lista_Temp, &compactar);
+	log_debug(logger, "compacto");
+	char* tabla = string_new();
+	string_append_with_format(&tabla, "%sTablas/%s/metadata", dirMontaje,
+			nombre_tabla);
+	t_config* t = config_create(tabla);
+	int part = config_get_int_value(t, "PARTITIONS");
+	log_debug(logger, "voy a guardar en disco, %d", part);
+	guardar_en_disco(lista_bin, part, nombre_tabla);
+	log_debug(logger, "guarde en disco");
 	return 0;
 }
+void guardar_en_disco(t_list* binarios, int cantParticiones, char* nombre_tabla) {
+	t_list* duplicada = list_create();
+	for (int i = 0; i < cantParticiones; i++) {
+		bool filtrarPorParticion(registro reg) {
+			if ((reg.key % cantParticiones) == i)
+				return true;
+			return false;
+		}
 
-void crearListaRegistros(char* string,t_list* lista){
-	int j=0;
-	char** registros = string_split(string, "\n");
+		list_add_all(duplicada, binarios);
+		t_list* listaParticionada = list_filter(duplicada,
+				&filtrarPorParticion);
+		char* tablaParaDumpeo = string_new();
+		string_append_with_format(&tablaParaDumpeo, "%sTablas/%s/%d.bin",
+				dirMontaje, nombre_tabla, i);
+		log_debug(logger, tablaParaDumpeo);
+		log_debug(logger, "%d", binarios->elements_count);
+		log_debug(logger, "%d", listaParticionada->elements_count);
+		dumpearTabla(listaParticionada, tablaParaDumpeo);
+
+	}
+	list_destroy_and_destroy_elements(binarios, free);
+}
+void crearListaRegistros(char* string, t_list* lista) {
+	int j = 0;
+	if (string != '\0') {
+		char** registros = string_split(string, "\n");
+		char** datos_registro;
 //		Recorro y divido los datos unificado del archivos temporal, almacenando solo las keys que coincidan con la solicitada
-			while (registros[j] != NULL) {
-				registro registro ;
-				char** datos_registro = string_split(registros[j], ";");
-					registro.timestamp = atoi(datos_registro[0]);
-					registro.key = atoi(datos_registro[1]);
-					registro.value = malloc(strlen(datos_registro[2]) + 1);
-					strcpy(registro.value, datos_registro[2]);
-					list_add(lista, registro);
-				}
-			string_iterate_lines(datos_registro, (void*) free);
-				free(datos_registro);
-
-
-
+		while (registros[j] != NULL) {
+			registro registro;
+			datos_registro = string_split(registros[j], ";");
+			registro.timestamp = atoi(datos_registro[0]);
+			registro.key = atoi(datos_registro[1]);
+			registro.value = malloc(strlen(datos_registro[2]) + 1);
+			strcpy(registro.value, datos_registro[2]);
+			list_add(lista, &registro);
+		}
+		string_iterate_lines(datos_registro, (void*) free);
+		free(datos_registro);
+	}
 }
 
-int levantarbinarios(char* nombre_tabla, char* bloquesUnificados){
+int levantarbinarios(char* nombre_tabla, char* bloquesUnificados) {
 
 	char* rutametadata = string_new();
-		string_append(&rutametadata, dirMontaje);
-		string_append(&rutametadata, "Tablas/");
-		string_append(&rutametadata, nombre_tabla);
-		string_append(&rutametadata, "/metadata");
-		t_config* metadataTabla = config_create(rutametadata);
-		int cantParticiones =
-				(config_get_int_value(metadataTabla, "PARTITIONS") - 1);
+	string_append(&rutametadata, dirMontaje);
+	string_append(&rutametadata, "Tablas/");
+	string_append(&rutametadata, nombre_tabla);
+	string_append(&rutametadata, "/metadata");
+	t_config* metadataTabla = config_create(rutametadata);
+	int cantParticiones =
+			(config_get_int_value(metadataTabla, "PARTITIONS") - 1);
 
 	for (int aux = 0; aux < cantParticiones; aux++) {
-			char* rutabBinario = string_new();
-			string_append(&rutabBinario, dirMontaje);
-			string_append(&rutabBinario, "Tablas/");
-			string_append(&rutabBinario, nombre_tabla);
-			string_append(&rutabBinario, ("/"));
-			string_append_with_format(&rutabBinario, "%d", aux);
-			string_append(&rutabBinario, ".bin");
-			t_config* particion = config_create(rutabBinario);
-			int size = config_get_int_value(particion, "SIZE");
-			char** bloquesABuscar = config_get_array_value(particion, "BLOCKS");
-			int i = 0;
-	//		Unifico la informacion de todos los bloques en los que esta dividido el archivo .tmp
-			char* bloquesUnificados = string_new();
-			while (bloquesABuscar[i] != NULL) {
-				char* bloque = string_new();
-				string_append(&bloque, dirMontaje);
-				string_append(&bloque, "Bloques/");
-				string_append(&bloque, bloquesABuscar[i]);
-				string_append(&bloque, ".bin");
-				int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
-				struct stat s;
-				fstat(fd, &s);
-				size = s.st_size;
-				char* f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
-				string_append(&bloquesUnificados, f);
-				close(fd);
-				free(bloque);
-				i++;
-			}
-			free(rutabBinario);
-			free(bloquesABuscar);
-			config_destroy(particion);
+		char* rutabBinario = string_new();
+		string_append(&rutabBinario, dirMontaje);
+		string_append(&rutabBinario, "Tablas/");
+		string_append(&rutabBinario, nombre_tabla);
+		string_append(&rutabBinario, ("/"));
+		string_append_with_format(&rutabBinario, "%d", aux);
+		string_append(&rutabBinario, ".bin");
+		t_config* particion = config_create(rutabBinario);
+		int size = config_get_int_value(particion, "SIZE");
+		char** bloquesABuscar = config_get_array_value(particion, "BLOCKS");
+		int i = 0;
+		//		Unifico la informavcion de todos los bloques en los que esta dividido el archivo .tmp
+		while (bloquesABuscar[i] != NULL) {
+			char* bloque = string_new();
+			string_append(&bloque, dirMontaje);
+			string_append(&bloque, "Bloques/");
+			string_append(&bloque, bloquesABuscar[i]);
+			string_append(&bloque, ".bin");
+			int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
+			struct stat s;
+			fstat(fd, &s);
+			size = s.st_size;
+			char* f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+			log_debug(logger, "en binarios levante: %s", f);
+			string_append(&bloquesUnificados, f);
+
+			t_bitarray* bitmap = levantarBitmap();
+			bitarray_clean_bit(bitmap, atoi(bloquesABuscar[i]));
+			char* bloque_a_limpiar = string_new();
+			string_append_with_format(&bloque_a_limpiar, "rm %sBloques/%d.bin",
+					dirMontaje, bloquesABuscar[i]);
+			system(bloque_a_limpiar);
+			free(bloque_a_limpiar);
+
+			close(fd);
+			free(bloque);
+			i++;
 		}
-return todoJoya;
+		free(rutabBinario);
+		free(bloquesABuscar);
+		config_destroy(particion);
+	}
+	return todoJoya;
 }
 
-int obtener_temporales(char* nombre_tabla, char* bloquesUnificados){
+int obtener_temporales(char* nombre_tabla, char* bloquesUnificados) {
 
 	for (int aux = 1; aux <= cantidadDeDumpeos; aux++) {
-			char* rutaTemporal = string_new();
-			string_append(&rutaTemporal, dirMontaje);
-			string_append(&rutaTemporal, "Tablas/");
-			string_append(&rutaTemporal, nombre_tabla);
-			string_append(&rutaTemporal, ("/"));
-			string_append_with_format(&rutaTemporal, "%d", aux);
-			string_append(&rutaTemporal, ".tmp");
-			t_config* particion = config_create(rutaTemporal);
-			int size = config_get_int_value(particion, "SIZE");
-			char** bloquesABuscar = config_get_array_value(particion, "BLOCKS");
-			int i = 0;
-	//		Unifico la informacion de todos los bloques en los que esta dividido el archivo .tmp
-			char* bloquesUnificados = string_new();
-			while (bloquesABuscar[i] != NULL) {
-				char* bloque = string_new();
-				string_append(&bloque, dirMontaje);
-				string_append(&bloque, "Bloques/");
-				string_append(&bloque, bloquesABuscar[i]);
-				string_append(&bloque, ".bin");
-				int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
-				struct stat s;
-				fstat(fd, &s);
-				size = s.st_size;
-				char* f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
-				string_append(&bloquesUnificados, f);
-				close(fd);
-				free(bloque);
-				i++;
-			}
-			free(rutaTemporal);
-			free(bloquesABuscar);
-			config_destroy(particion);
+		char* rutaTemporal = string_new();
+		string_append(&rutaTemporal, dirMontaje);
+		string_append(&rutaTemporal, "Tablas/");
+		string_append(&rutaTemporal, nombre_tabla);
+		string_append(&rutaTemporal, ("/"));
+		string_append_with_format(&rutaTemporal, "%d", aux - 1);
+		string_append(&rutaTemporal, ".tmp");
+		t_config* particion = config_create(rutaTemporal);
+		int size = config_get_int_value(particion, "SIZE");
+		char** bloquesABuscar = config_get_array_value(particion, "BLOCKS");
+		int i = 0;
+		//		Unifico la informacion de todos los bloques en los que esta dividido el archivo .tmp
+		while (bloquesABuscar[i] != NULL) {
+			char* bloque = string_new();
+			string_append(&bloque, dirMontaje);
+			string_append(&bloque, "Bloques/");
+			string_append(&bloque, bloquesABuscar[i]);
+			string_append(&bloque, ".bin");
+			int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
+			struct stat s;
+			fstat(fd, &s);
+			size = s.st_size;
+			char* f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+			log_debug(logger, "en temporales levante: %s", f);
+			string_append(&bloquesUnificados, f);
+
+			t_bitarray* bitmap = levantarBitmap();
+			bitarray_clean_bit(bitmap, atoi(bloquesABuscar[i]));
+			char* bloque_a_limpiar = string_new();
+			string_append_with_format(&bloque_a_limpiar, "rm %sBloques/%s.bin",
+					dirMontaje, bloquesABuscar[i]);
+			system(bloque_a_limpiar);
+			free(bloque_a_limpiar);
+
+			close(fd);
+			free(bloque);
+			i++;
 		}
-return todoJoya;
+		free(rutaTemporal);
+		free(bloquesABuscar);
+		config_destroy(particion);
+	}
+	return todoJoya;
 }
 
 ///
-
 
 // ---------------OTROS-----------------
 

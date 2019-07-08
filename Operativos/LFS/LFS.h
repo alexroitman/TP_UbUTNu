@@ -89,12 +89,17 @@ int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo);
 t_bitarray* levantarBitmap();
 off_t obtener_bit_libre();
 
-// DUMPEO
+// DUMPEO Y COMPACTACION
 void bajarAMemoria(int* fd2, char* registroParaEscribir, t_config* tmp);
-void dumpearTabla(t_tabla* UnaTabla);
+void dumpearTabla(t_list* registros, char* ruta);
 int dumpeoMemoria();
 char* mapearBloque(int fd2, size_t textsize);
 void actualizarBloquesEnTemporal(t_config* tmp, off_t bloque);
+int compactacion(char* nombre_tabla);
+void guardar_en_disco(t_list* binarios, int cantParticiones,char* nombre_tabla);
+void crearListaRegistros(char* string, t_list* lista);
+int levantarbinarios(char* nombre_tabla, char* bloquesUnificados);
+int obtener_temporales(char* nombre_tabla, char* bloquesUnificados);
 
 // OTROS
 char* direccionarTabla(char* tabla);
