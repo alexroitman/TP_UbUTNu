@@ -41,7 +41,7 @@ void ejecutarConsulta() {
 			reg->key = pagina->key;
 			reg->value_long = strlen(pagina->value) + 1;
 			error = 1;
-			enviarRegistroAKernel(reg, socket_kernel, leyoConsola);
+			//enviarRegistroAKernel(reg, socket_kernel, leyoConsola);
 			log_debug(logger, "El value es: %s", pagina->value);
 		} else {
 			pedirRegistroALFS(socket_lfs, packSelect, reg);
@@ -61,9 +61,12 @@ void ejecutarConsulta() {
 				log_error(logger,"No existe el registro");
 			}
 			//SI NO LO ENCONTRO IGUALMENTE SE LO MANDO A KERNEL PARA QUE TAMBIEN MANEJE EL ERROR
+			//enviarRegistroAKernel(reg, socket_kernel, leyoConsola);
+		}
+		chequearMemoriaFull(leyoConsola, error , miSegmento, pagina);
+		if(error == 1){
 			enviarRegistroAKernel(reg, socket_kernel, leyoConsola);
 		}
-		chequearMemoriaFull(leyoConsola,error , miSegmento, pagina);
 		free(reg->value);
 		free(reg);
 		free(packSelect);

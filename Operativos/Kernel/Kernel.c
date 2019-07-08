@@ -139,13 +139,8 @@ int despacharQuery(char* consulta, int socket_memoria) {
 				serializado = serializarSelect(paqueteSelect);
 				sem_wait(&mutexSocket);
 				enviarPaquete(socket_memoria, serializado, paqueteSelect->length);
-				type header=leerHeader(socket_memoria);
-				tRegistroRespuesta* reg = malloc(sizeof(tRegistroRespuesta));
-				desSerializarRegistro(reg,socket_memoria);
-				log_debug(logger,"Value: %s",reg->value);
-				sem_post(&mutexSocket);
 				recv(socket_memoria, &error, sizeof(error), 0);
-				if(error == -1){
+				if (error == -1) {
 					log_error(logger, "Memoria llena, hago JOURNAL");
 					cargarPaqueteJournal(paqueteJournal, "JOURNAL");
 					serializado = serializarJournal(paqueteJournal);
@@ -153,8 +148,19 @@ int despacharQuery(char* consulta, int socket_memoria) {
 					enviarPaquete(socket_memoria, serializado,
 							paqueteJournal->length);
 					sem_post(&mutexSocket);
+					serializado = serializarSelect(paqueteSelect);
+					sem_wait(&mutexSocket);
+					enviarPaquete(socket_memoria, serializado,
+							paqueteSelect->length);
+					sem_post(&mutexSocket);
+					recv(socket_memoria, &error, sizeof(error), 0);
 					consultaOk = 1;
 				}
+				type header = leerHeader(socket_memoria);
+				tRegistroRespuesta* reg = malloc(sizeof(tRegistroRespuesta));
+				desSerializarRegistro(reg,socket_memoria);
+				log_debug(logger,"Value: %s",reg->value);
+				sem_post(&mutexSocket);
 				free(paqueteSelect->nombre_tabla);
 				free(reg->value);
 				free(reg);
@@ -187,12 +193,12 @@ int despacharQuery(char* consulta, int socket_memoria) {
 					enviarPaquete(socket_memoria, serializado,
 							paqueteJournal->length);
 					sem_post(&mutexSocket);
-					consultaOk = 1;
 					serializado = serializarInsert(paqueteInsert);
 					sem_wait(&mutexSocket);
 					enviarPaquete(socket_memoria, serializado, paqueteInsert->length);
 					sem_post(&mutexSocket);
 					recv(socket_memoria, &error, sizeof(error), 0);
+					consultaOk = 1;
 				}
 				free(serializado);
 				free(paqueteInsert->nombre_tabla);

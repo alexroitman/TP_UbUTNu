@@ -372,6 +372,7 @@ void chequearMemoriaFull(bool leyoConsola, int error, tSegmento* miSegmento,
 				ejecutarJournal();
 				agregarPaginaAMemoria(miSegmento, pagina);
 			} else {
+				//le envio el error a kernel para que me devuelva un JOURNAL
 				send(socket_kernel, &error, sizeof(int), 0);
 			}
 		} else {
@@ -379,6 +380,7 @@ void chequearMemoriaFull(bool leyoConsola, int error, tSegmento* miSegmento,
 		}
 	}else{
 		if(!leyoConsola){
+			//le aviso a kernel que la consulta termino OK
 			send(socket_kernel,&error,sizeof(int),0);
 		}
 	}
