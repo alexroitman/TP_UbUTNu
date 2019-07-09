@@ -97,9 +97,9 @@ char* mapearBloque(int fd2, size_t textsize);
 void actualizarBloquesEnTemporal(t_config* tmp, off_t bloque);
 int compactacion(char* nombre_tabla);
 void guardar_en_disco(t_list* binarios, int cantParticiones,char* nombre_tabla);
-void crearListaRegistros(char* string, t_list* lista);
-int levantarbinarios(char* nombre_tabla, char* bloquesUnificados);
-int obtener_temporales(char* nombre_tabla, char* bloquesUnificados);
+void crearListaRegistros(char** string, t_list* lista);
+int levantarbinarios(char* nombre_tabla, char** bloquesUnificados);
+int obtener_temporales(char* nombre_tabla, char** bloquesUnificados);
 
 // OTROS
 char* direccionarTabla(char* tabla);
