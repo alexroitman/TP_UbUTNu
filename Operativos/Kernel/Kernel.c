@@ -22,14 +22,15 @@ sem_t mutexSC;
 sem_t mutexSHC;
 sem_t mutexEC;
 pthread_t planificador_t;
+t_infoMem *SC;
 t_log *logger;
 t_log *loggerError;
 t_log *loggerWarning;
 t_queue *colaReady;
 t_queue *colaNew;
-t_list *listaMemsSC;
 t_list *listaMemsEC;
 t_list *listaMemsSHC;
+t_list *listaTablas;
 configKernel *miConfig;
 t_config* config;
 int contScript;
@@ -41,9 +42,7 @@ int main(){
 	signal(SIGINT, finalizarEjecucion);
 	inicializarTodo();
 	socket_memoria = levantarCliente(miConfig->puerto_mem, miConfig->ip_mem);
-	listaMemsSC = list_create();
-	listaMemsEC = list_create();
-	listaMemsSHC = list_create();
+	SC = malloc(sizeof(t_infoMem));
 	log_debug(logger,"Sockets inicializados con exito");
 	log_debug(logger,"Se tendra un nivel de multiprocesamiento de: %d cpus", miConfig->MULT_PROC);
 	log_debug(logger, "Realizando describe general");
@@ -257,6 +256,7 @@ int despacharQuery(char* consulta, int socket_memoria) {
 			t_describe* response = malloc(sizeof(t_describe));
 			desserializarDescribe_Response(response,socket_memoria);
 			log_debug(logger,"Cant tablas: %d", response->cant_tablas);
+
 			free(serializado);
 			free(paqueteDescribe->nombre_tabla);
 			consultaOk = 1;
@@ -303,17 +303,7 @@ int despacharQuery(char* consulta, int socket_memoria) {
 }
 
 void CPU(int socket_memoria){
-	/*
-	 * QUERIDOS CHOLO Y FELIPE
-	 * SEGUN VI EN VARIOS POST DE STACK OVERFLOW
-	 * NO HABRIA PROBLEMA SI ME CONECTO AL MISMO PUERTO
-	 * (CUANDO TENGAMOS MAS MEMORIAS MEPA QUE VA A HABER QUE USAR UN PUERTO DIF PARA
-	 * CADA UNA)
-	 * SI ESTO NO VA TENEMOS QUE VER DE HACER UN HANDSHAKE Y QUE EN BASE AL MULTIPROCESAMIENTO
-	 * USTEDES ME DEVUELVAN UN ARRAY DE PUERTOS.
-	 * CON AMOR... UNTER.
-	 * socket_memoria = levantarCliente(miConfig->puerto_mem,miConfig->ip_mem);
-	 */
+	socket_memoria = levantarCliente(miConfig->puerto_mem,miConfig->ip_mem);
 	while(1){
 		script *unScript;
 		char* consulta = malloc(256);
@@ -502,12 +492,8 @@ void ejecutarAdd(char* consulta){
 	switch (cons){
 	case sc:
 		sem_wait(&mutexSC);
-		if(list_is_empty(list_filter(listaMemsSC, mismoId))){
-				list_add(listaMemsSC, memAdd);
-				log_debug(logger,"La memoria %d se asoció al criterio %s",memAdd->id,split[4]);
-			}else{
-				log_error(loggerError,"Ya se encuentra asociada la memoria %d al criterio",memAdd->id);
-			}
+		SC = memAdd;
+		log_debug(logger,"La memoria %d se asoció al criterio %s",memAdd->id,split[4]);
 		sem_post(&mutexSC);
 		break;
 	case shc:
@@ -587,8 +573,24 @@ void inicializarTodo(){
 	log_debug(logger,"Semaforos incializados con exito");
 	log_debug(logger,"Inicializando sockets");
 	listaMemsEC = list_create();
-	listaMemsSC = list_create();
 	listaMemsSHC = list_create();
+	listaTablas = list_create();
+}
+
+void ejecutarDescribe(t_describe *response){
+
+	for(int i = 0; i < response->cant_tablas; i++){
+		char* nombre = response->tablas[i]->nombre_tabla;
+		bool mismoNombre(void* elemento) {
+						t_metadata* tabla = malloc(sizeof(t_metadata));
+						tabla = (t_metadata*) elemento;
+						return (!strcmp(tabla->nombre_tabla,nombre));
+					}
+		if(list_is_empty(list_filter(listaTablas,mismoNombre))){
+			list_add(listaTablas,response->tablas[i]);
+			log_debug(logger, "Se agrego la tabla %s a la lista", nombre);
+		}
+	}
 }
 
 void finalizarEjecucion() {
@@ -597,9 +599,6 @@ void finalizarEjecucion() {
 	printf("------------------------\n");
 	log_destroy(logger);
 	log_destroy(loggerError);
-	list_iterate(listaMemsEC,free);
-	list_iterate(listaMemsSC,free);
-	list_iterate(listaMemsSHC,free);
 	sem_destroy(&semReady);
 	sem_destroy(&semNew);
 	sem_destroy(&mutexNew);
@@ -610,9 +609,10 @@ void finalizarEjecucion() {
 	sem_destroy(&mutexEC);
 	queue_destroy_and_destroy_elements(colaNew,free);
 	queue_destroy_and_destroy_elements(colaReady,free);
-	list_iterate(listaMemsSC,free);
+	free(SC);
 	list_iterate(listaMemsEC,free);
 	list_iterate(listaMemsSHC,free);
+	list_iterate(listaTablas, free);
 	close(socket_memoria);
 	raise(SIGTERM);
 }
