@@ -46,6 +46,9 @@ int cantPagsMax;
 pthread_t hiloConsola;
 pthread_t hiloSocket;
 pthread_t hiloJournal;
+
+sem_t mutexJournal;
+
 typedef struct{
 	type* header;
 	char consulta[256];

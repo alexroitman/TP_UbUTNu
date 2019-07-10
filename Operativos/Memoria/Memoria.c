@@ -7,9 +7,6 @@
 
 
 int main() {
-
-
-
 	tamanioMaxValue = 10;
 	signal(SIGINT, finalizarEjecucion);
 	logger = log_create("Memoria.log", "Memoria.c", 1, LOG_LEVEL_DEBUG);
@@ -29,6 +26,7 @@ int main() {
 	log_debug(logger,"Cantidad maxima de paginas en memoria: %d",cantPagsMax);
 	tablaSegmentos = list_create();
 	header = malloc(sizeof(type));
+	sem_init(&mutexJournal,0,1);
 	leyoConsola = true;
 	recibioSocket = true;
 	*header = NIL;
@@ -53,6 +51,7 @@ void* recibirHeader(void* arg) {
 
 		while (flagError != 1) {
 			read_fd_set = active_fd_set;
+			recibioSocket = false;
 			if (select(FD_SETSIZE, &read_fd_set, NULL, NULL, NULL) < 0) {
 				log_error(logger, "error de socket");
 			} else {
@@ -71,14 +70,16 @@ void* recibirHeader(void* arg) {
 									clienteNuevo);
 							FD_SET(clienteNuevo, &active_fd_set);
 						} else {
-							recibioSocket = false;
+
 							type* header = (type*) arg;
 							if (recv(i, &(*header), sizeof(type), MSG_WAITALL)
 									> 0) {
 								log_debug(logger, "llego algo del cliente %d", i);
 								recibioSocket = true;
 								usleep(miConfig->retardoMemoria * 1000);
+								sem_wait(&mutexJournal);
 								ejecutarConsulta(i);
+								sem_post(&mutexJournal);
 							} else {
 								flagError = 1;
 							}
@@ -316,6 +317,7 @@ int listMinTimestamp(t_list* listaPaginas,elem_tabla_pag* pagina){
 
 
 void ejecutarJournal(){
+	sem_wait(&mutexJournal);
 	log_debug(logger,"Realizando Journal");
 	int index = 0;
 	tSegmento* miSegmento = list_get(tablaSegmentos, 0);
@@ -328,7 +330,9 @@ void ejecutarJournal(){
 		index++;
 		miSegmento = list_get(tablaSegmentos, index);
 	}
+
 	log_debug(logger, "Journal finalizado");
+	sem_post(&mutexJournal);
 }
 
 void mandarInsertDePaginasModificadas(t_list* paginasModificadas,char* nombreTabla, int socket_lfs){

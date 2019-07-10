@@ -136,7 +136,7 @@ void ejecutarConsulta(int socket) {
 		log_debug(logger, "LLEGO UN DROP");
 		log_debug(logger, "Drop Tabla: %s", packDrop->nombre_tabla);
 		encontroSeg = buscarSegmentoEnTabla(packDrop->nombre_tabla, miSegmento, tablaSegmentos);
-		if(encontroSeg == 1){
+		if (encontroSeg == 1) {
 			log_debug(logger, "Encontre segmento: %s", packDrop->nombre_tabla);
 			liberarPaginasDelSegmento(miSegmento, tablaSegmentos);
 			log_debug(logger, "Segmento eliminado");
@@ -146,6 +146,7 @@ void ejecutarConsulta(int socket) {
 		} else {
 			log_error(logger, "No se encontro el segmento");
 		}
+		free(packDrop);
 
 		break;
 	case JOURNAL:
@@ -230,7 +231,9 @@ void* leerQuery(void* params) {
 		free(tempSplit[0]);
 		free(tempSplit[1]);
 		free(tempSplit);
+		sem_wait(&mutexJournal);
 		ejecutarConsulta(-1);
+		sem_post(&mutexJournal);
 
 	}
 }
