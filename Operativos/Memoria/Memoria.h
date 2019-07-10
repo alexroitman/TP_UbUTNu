@@ -45,7 +45,7 @@ void* memoria;
 int cantPagsMax;
 pthread_t hiloConsola;
 pthread_t hiloSocket;
-
+pthread_t hiloJournal;
 typedef struct{
 	type* header;
 	char consulta[256];
@@ -76,6 +76,8 @@ typedef struct {
 	int puerto_fs;
 	char* ip_fs;
 	int tam_mem ;
+	int retardoJournal;
+	int retardoGossiping;
 } t_miConfig;
 t_miConfig* miConfig;
 char package[PACKAGESIZE];
@@ -108,7 +110,7 @@ void chequearMemoriaFull(bool leyoConsola, int error,int socket, tSegmento* miSe
 void finalizarEjecucion();
 void enviarMensajeAKernel();
 t_miConfig* cargarConfig();
-
+void journalAsincronico();
 int levantarCliente();
 
 int levantarServidor();

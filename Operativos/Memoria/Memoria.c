@@ -37,9 +37,10 @@ int main() {
 	pthread_create(&hiloSocket, NULL, (void*) recibirHeader, (void*) header);
 	pthread_create(&hiloConsola, NULL, (void*) leerQuery,
 			(void*) paramsConsola);
+	pthread_create(&hiloJournal, NULL, (void*) journalAsincronico, NULL);
 	pthread_join(hiloSocket, NULL);
 	pthread_join(hiloConsola, NULL);
-
+	pthread_join(hiloJournal, NULL);
 }
 
 void* recibirHeader(void* arg) {
@@ -331,6 +332,7 @@ void ejecutarJournal(){
 		index++;
 		miSegmento = list_get(tablaSegmentos, index);
 	}
+	log_debug(logger, "Journal finalizado");
 }
 
 void mandarInsertDePaginasModificadas(t_list* paginasModificadas,char* nombreTabla, int socket_lfs){
@@ -400,6 +402,7 @@ t_miConfig* cargarConfig() {
 	miConfig->puerto_fs = (int) config_get_string_value(config, "PUERTO_FS");
 	miConfig->ip_fs = config_get_string_value(config, "IP");
 	miConfig->tam_mem = config_get_int_value(config, "TAM_MEM");
+	miConfig->retardoJournal = config_get_int_value(config,"RETARDO_JOURNAL");
 	log_debug(logger, "Levanta archivo de config");
 	return miConfig;
 }

@@ -151,9 +151,7 @@ void ejecutarConsulta(int socket) {
 	case JOURNAL:
 		packJournal = malloc(sizeof(tJournal));
 		cargarPackJournal(packJournal, leyoConsola, paramsConsola->consulta, socket);
-		log_debug(logger, "Se realizara el JOURNAL");
 		ejecutarJournal();
-		log_debug(logger, "JOURNAL finalizado");
 		break;
 	case DESCRIBE:
 		packDescribe = malloc(sizeof(tDescribe));
@@ -234,6 +232,16 @@ void* leerQuery(void* params) {
 		free(tempSplit);
 		ejecutarConsulta(-1);
 
+	}
+}
+
+void journalAsincronico(){
+	while (1) {
+		int tiempoSegundos;
+		tiempoSegundos = miConfig->retardoJournal / 1000;
+		log_debug(logger,"tiempo journal: %d",tiempoSegundos);
+		sleep(tiempoSegundos);
+		ejecutarJournal();
 	}
 }
 
