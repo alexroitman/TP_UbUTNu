@@ -103,7 +103,7 @@ void eliminarDeMemoria(void* elemento);
 void liberarPaginasDelSegmento(tSegmento* miSegmento, t_list* tablaSegmentos);
 void mandarInsertDePaginasModificadas(t_list* paginasModificadas,char* nombreTabla, int socket_lfs);
 void borrarPaginasModificadas(t_list* paginasModificadas, t_list* tablaPaginasMiSegmento);
-void chequearMemoriaFull(bool leyoConsola, int error, tSegmento* miSegmento,
+void chequearMemoriaFull(bool leyoConsola, int error,int socket, tSegmento* miSegmento,
 		tPagina* pagina);
 void finalizarEjecucion();
 void enviarMensajeAKernel();

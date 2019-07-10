@@ -9,7 +9,7 @@
 
 
 
-void ejecutarConsulta() {
+void ejecutarConsulta(int socket) {
 	encontroSeg = -1;
 	indexPag = -1;
 	tPagina* pagina = malloc(sizeof(tPagina));
@@ -22,7 +22,7 @@ void ejecutarConsulta() {
 	switch (*header) {
 	case SELECT:
 		packSelect = malloc(sizeof(tSelect));
-		cargarPackSelect(packSelect, leyoConsola, paramsConsola->consulta);
+		cargarPackSelect(packSelect, leyoConsola, paramsConsola->consulta,socket);
 		encontroSeg = buscarSegmentoEnTabla(packSelect->nombre_tabla,
 				miSegmento, tablaSegmentos);
 		if (encontroSeg == 1) {
@@ -55,7 +55,7 @@ void ejecutarConsulta() {
 					miSegmento = obtenerUltimoSegmentoDeTabla(tablaSegmentos);
 				}
 				error = agregarPaginaAMemoria(miSegmento, pagina);
-				send(socket_kernel, &error, sizeof(error), 0);
+				send(socket, &error, sizeof(error), 0);
 			}else{
 				error = 1;
 				log_error(logger,"No existe el registro");
@@ -63,9 +63,9 @@ void ejecutarConsulta() {
 			//SI NO LO ENCONTRO IGUALMENTE SE LO MANDO A KERNEL PARA QUE TAMBIEN MANEJE EL ERROR
 			//enviarRegistroAKernel(reg, socket_kernel, leyoConsola);
 		}
-		chequearMemoriaFull(leyoConsola, error , miSegmento, pagina);
+		chequearMemoriaFull(leyoConsola, error ,socket, miSegmento, pagina);
 		if(error == 1){
-			enviarRegistroAKernel(reg, socket_kernel, leyoConsola);
+			enviarRegistroAKernel(reg, socket, leyoConsola);
 		}
 		free(reg->value);
 		free(reg);
@@ -74,7 +74,7 @@ void ejecutarConsulta() {
 	case INSERT:
 		packInsert = malloc(sizeof(tInsert));
 		error = 1;
-		cargarPackInsert(packInsert, leyoConsola, paramsConsola->consulta);
+		cargarPackInsert(packInsert, leyoConsola, paramsConsola->consulta, socket);
 		encontroSeg = buscarSegmentoEnTabla(packInsert->nombre_tabla,
 				miSegmento, tablaSegmentos);
 		if (encontroSeg == 1) {
@@ -112,7 +112,7 @@ void ejecutarConsulta() {
 
 		}
 
-		chequearMemoriaFull(leyoConsola,error, miSegmento, pagina);
+		chequearMemoriaFull(leyoConsola,error,socket, miSegmento, pagina);
 
 		free(packInsert);
 		free(packInsert->nombre_tabla);
@@ -121,7 +121,7 @@ void ejecutarConsulta() {
 		break;
 	case CREATE:
 		packCreate = malloc(sizeof(tCreate));
-		cargarPackCreate(packCreate, leyoConsola, paramsConsola->consulta);
+		cargarPackCreate(packCreate, leyoConsola, paramsConsola->consulta, socket);
 		char* createAEnviar = serializarCreate(packCreate);
 		enviarPaquete(socket_lfs, createAEnviar, packCreate->length);
 		log_debug(logger, "Mando la consulta a LFS");
@@ -131,7 +131,7 @@ void ejecutarConsulta() {
 
 	case DROP:
 		packDrop = malloc(sizeof(tDrop));
-		cargarPackDrop(packDrop, leyoConsola, paramsConsola->consulta);
+		cargarPackDrop(packDrop, leyoConsola, paramsConsola->consulta, socket);
 		packDrop->type = DROP;
 		log_debug(logger, "LLEGO UN DROP");
 		log_debug(logger, "Drop Tabla: %s", packDrop->nombre_tabla);
@@ -150,7 +150,7 @@ void ejecutarConsulta() {
 		break;
 	case JOURNAL:
 		packJournal = malloc(sizeof(tJournal));
-		cargarPackJournal(packJournal, leyoConsola, paramsConsola->consulta);
+		cargarPackJournal(packJournal, leyoConsola, paramsConsola->consulta, socket);
 		log_debug(logger, "Se realizara el JOURNAL");
 		ejecutarJournal();
 		log_debug(logger, "JOURNAL finalizado");
@@ -232,52 +232,52 @@ void* leerQuery(void* params) {
 		free(tempSplit[0]);
 		free(tempSplit[1]);
 		free(tempSplit);
-		ejecutarConsulta();
+		ejecutarConsulta(-1);
 
 	}
 }
 
 
-void cargarPackSelect(tSelect* packSelect,bool leyoConsola,char consulta[]){
+void cargarPackSelect(tSelect* packSelect,bool leyoConsola,char consulta[], int socket){
 	if(leyoConsola){
 		cargarPaqueteSelect(packSelect, consulta);
 	}else{
-		desSerializarSelect(packSelect, socket_kernel);
+		desSerializarSelect(packSelect, socket);
 	}
 
 }
 
-void cargarPackInsert(tInsert* packInsert, bool leyoConsola, char consulta[]) {
+void cargarPackInsert(tInsert* packInsert, bool leyoConsola, char consulta[], int socket) {
 	if (leyoConsola) {
 		cargarPaqueteInsert(packInsert, consulta);
 	} else {
-		desSerializarInsert(packInsert, socket_kernel);
+		desSerializarInsert(packInsert, socket);
 	}
 
 }
 
-void cargarPackCreate(tCreate* packCreate,bool leyoConsola,char consulta[]){
+void cargarPackCreate(tCreate* packCreate,bool leyoConsola,char consulta[], int socket){
 	if(leyoConsola){
 		cargarPaqueteCreate(packCreate, consulta);
 	}else{
-		desSerializarCreate(packCreate, socket_kernel);
+		desSerializarCreate(packCreate, socket);
 	}
 
 }
-void cargarPackDrop(tDrop* packDrop, bool leyoConsola, char consulta[]){
+void cargarPackDrop(tDrop* packDrop, bool leyoConsola, char consulta[], int socket){
 	if(leyoConsola){
 		cargarPaqueteDrop(packDrop, consulta);
 	} else {
-		desSerializarDrop(packDrop, socket_kernel);
+		desSerializarDrop(packDrop, socket);
 	}
 }
 
 
-void cargarPackJournal(tJournal* packJournal, bool leyoConsola, char consulta[]){
+void cargarPackJournal(tJournal* packJournal, bool leyoConsola, char consulta[], int socket){
 	if(leyoConsola){
 		cargarPaqueteJournal(packJournal, consulta);
 	} else {
-		desSerializarJournal(packJournal, socket_kernel);
+		desSerializarJournal(packJournal, socket);
 	}
 }
 int handshakeLFS(int socket_lfs){

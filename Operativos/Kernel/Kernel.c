@@ -32,14 +32,13 @@ t_list *listaMemsSHC;
 configKernel *miConfig;
 t_config* config;
 int contScript;
-int socket_memoria;
 
 // Define cual va a ser el size maximo del paquete a enviar
 
 int main(){
 	signal(SIGINT, finalizarEjecucion);
 	inicializarTodo();
-	socket_memoria = levantarCliente(miConfig->puerto_mem, miConfig->ip_mem);
+	int socket_memoria = levantarCliente(miConfig->puerto_mem, miConfig->ip_mem);
 	listaMemsSC = list_create();
 	listaMemsEC = list_create();
 	listaMemsSHC = list_create();
@@ -317,8 +316,9 @@ void CPU(int socket_memoria){
 	 * SI ESTO NO VA TENEMOS QUE VER DE HACER UN HANDSHAKE Y QUE EN BASE AL MULTIPROCESAMIENTO
 	 * USTEDES ME DEVUELVAN UN ARRAY DE PUERTOS.
 	 * CON AMOR... UNTER.
-	 * socket_memoria = levantarCliente(miConfig->puerto_mem,miConfig->ip_mem);
 	 */
+	 socket_memoria = levantarCliente(miConfig->puerto_mem,miConfig->ip_mem);
+
 	while(1){
 		script *unScript;
 		char* consulta = malloc(256);
@@ -600,7 +600,7 @@ void finalizarEjecucion() {
 	list_iterate(listaMemsSC,free);
 	list_iterate(listaMemsEC,free);
 	list_iterate(listaMemsSHC,free);
-	close(socket_memoria);
+	//close(socket_memoria);
 	raise(SIGTERM);
 }
 

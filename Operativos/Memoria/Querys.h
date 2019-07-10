@@ -8,13 +8,13 @@
 #ifndef QUERYS_H_
 #define QUERYS_H_
 #include "Memoria.h"
-void ejecutarConsulta();
+void ejecutarConsulta(int socket);
 void pedirRegistroALFS(int socket,tSelect* packSelect,tRegistroRespuesta* reg);
 void enviarRegistroAKernel(tRegistroRespuesta* reg, int socket,bool leyoConsola);
 void* leerQuery(void* params);
-void cargarPackCreate(tCreate* packCreate,bool leyoConsola,char consulta[]);
-void cargarPackSelect(tSelect* packSelect,bool leyoConsola,char* consulta);
-void cargarPackInsert(tInsert* packInsert, bool leyoConsola, char consulta[]);
-void cargarPackDrop(tDrop* packDrop, bool leyoConsola, char consulta[]);
-void cargarPackJournal(tJournal* packJournal, bool leyoConsola, char consulta[]);
+void cargarPackCreate(tCreate* packCreate,bool leyoConsola,char consulta[], int socket);
+void cargarPackSelect(tSelect* packSelect,bool leyoConsola,char* consulta, int socket);
+void cargarPackInsert(tInsert* packInsert, bool leyoConsola, char consulta[], int socket);
+void cargarPackDrop(tDrop* packDrop, bool leyoConsola, char consulta[], int socket);
+void cargarPackJournal(tJournal* packJournal, bool leyoConsola, char consulta[], int socket);
 #endif /* QUERYS_H_ */

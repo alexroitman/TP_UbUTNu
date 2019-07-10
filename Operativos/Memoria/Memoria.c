@@ -15,11 +15,13 @@ int main() {
 	logger = log_create("Memoria.log", "Memoria.c", 1, LOG_LEVEL_DEBUG);
 	miConfig = cargarConfig();
 	log_debug(logger,"Tamanio Memoria: %d",miConfig->tam_mem);
-	socket_sv = levantarServidor((char*) miConfig->puerto_kernel);
-	socket_kernel = aceptarCliente(socket_sv);
-	log_debug(logger, "Levanta conexion con kernel");
 	socket_lfs = levantarCliente((char*) miConfig->puerto_fs, miConfig->ip_fs);
+	socket_sv = levantarServidor((char*) miConfig->puerto_kernel);
+	//socket_kernel = aceptarCliente(socket_sv);
+	log_debug(logger, "Levanta conexion con kernel");
 	tamanioMaxValue = handshakeLFS(socket_lfs);
+	log_debug(logger,"socket lfs: %d",socket_lfs);
+	log_debug(logger,"socket sv: %d",socket_sv);
 	log_debug(logger, "Handshake con LFS realizado. Tamanio max del value: %d",
 			tamanioMaxValue);
 	memoria = calloc(miConfig->tam_mem,6 + tamanioMaxValue);
@@ -41,7 +43,47 @@ int main() {
 }
 
 void* recibirHeader(void* arg) {
+	int listener = socket_sv;
+	fd_set active_fd_set, read_fd_set;
+	FD_ZERO (&active_fd_set);
+	FD_SET (socket_sv, &active_fd_set);
+
 	while (1) {
+		read_fd_set = active_fd_set;
+		if (select(FD_SETSIZE, &read_fd_set, NULL, NULL, NULL) < 0) {
+			log_error(logger,"error de socket");
+		}
+		for (int i = 0; i < FD_SETSIZE; ++i) {
+			if (FD_ISSET (i, &read_fd_set)){
+				//El cliente quiere algo!!, vamos a ver quien es primero y que quiere
+
+				if (i == listener) {
+					/*
+					 El socket i resultó ser el listener! o sea el socket del servidor. Cuando el que quiere algo es el propio servidor
+					 significa que tenemos un nuevo cliente QUE SE QUIERE CONECTAR. Por lo que tenemos que hacer un accept() para generar un nuevo socket para ese lciente
+					 y guardar dicho nuevo cliente en nuestra lista general de sockets
+					 */
+					int clienteNuevo = aceptarCliente(listener);
+					log_debug(logger,"cliente nuevo: %d",clienteNuevo);
+					FD_SET (clienteNuevo, &active_fd_set);
+				} else {
+					log_debug(logger, "llego algo del cliente %d", i);
+					recibioSocket = false;
+					type* header = (type*) arg;
+					sleep(1);
+					if(recv(i, &(*header), sizeof(type), MSG_DONTWAIT) > 0){
+						recibioSocket = true;
+						ejecutarConsulta(i);
+					}
+
+					//Si no es el listener, es un cliente, por lo que acá tenemso que hacer un recv(i) para ver que es lo que quiere el cliente
+				}
+			}
+		}
+	}
+
+
+		/*
 		recibioSocket = false;
 		type* header = (type*) arg;
 		sleep(2);
@@ -52,7 +94,7 @@ void* recibirHeader(void* arg) {
 			//PORQUE SI SE CORTO LA CONEXION CON KERNEL NO QUIERO QUE HAGA EL SIGNAL DEL SEMAFORO
 			ejecutarConsulta();
 		}
-	}
+	}*/
 }
 
 
@@ -362,7 +404,7 @@ t_miConfig* cargarConfig() {
 	return miConfig;
 }
 
-void chequearMemoriaFull(bool leyoConsola, int error, tSegmento* miSegmento,
+void chequearMemoriaFull(bool leyoConsola, int error,int socket, tSegmento* miSegmento,
 		tPagina* pagina) {
 	int errorLRU;
 	if (error == -1) {
@@ -372,8 +414,8 @@ void chequearMemoriaFull(bool leyoConsola, int error, tSegmento* miSegmento,
 				ejecutarJournal();
 				agregarPaginaAMemoria(miSegmento, pagina);
 			} else {
-				//le envio el error a kernel para que me devuelva un JOURNAL
-				send(socket_kernel, &error, sizeof(int), 0);
+				//le envio el error a kernel para que me devuelva un JOURNAL y la consulta denuevo
+				send(socket, &error, sizeof(int), 0);
 			}
 		} else {
 			agregarPaginaAMemoria(miSegmento, pagina);
@@ -381,7 +423,7 @@ void chequearMemoriaFull(bool leyoConsola, int error, tSegmento* miSegmento,
 	}else{
 		if(!leyoConsola){
 			//le aviso a kernel que la consulta termino OK
-			send(socket_kernel,&error,sizeof(int),0);
+			send(socket,&error,sizeof(int),0);
 		}
 	}
 }
