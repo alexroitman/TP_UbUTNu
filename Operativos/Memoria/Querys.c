@@ -237,10 +237,7 @@ void* leerQuery(void* params) {
 
 void journalAsincronico(){
 	while (1) {
-		int tiempoSegundos;
-		tiempoSegundos = miConfig->retardoJournal / 1000;
-		log_debug(logger,"tiempo journal: %d",tiempoSegundos);
-		sleep(tiempoSegundos);
+		usleep(miConfig->retardoJournal * 1000);
 		ejecutarJournal();
 	}
 }

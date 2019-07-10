@@ -76,6 +76,7 @@ typedef struct {
 	int puerto_fs;
 	char* ip_fs;
 	int tam_mem ;
+	int retardoMemoria;
 	int retardoJournal;
 	int retardoGossiping;
 } t_miConfig;

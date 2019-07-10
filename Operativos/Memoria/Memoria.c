@@ -77,7 +77,7 @@ void* recibirHeader(void* arg) {
 									> 0) {
 								log_debug(logger, "llego algo del cliente %d", i);
 								recibioSocket = true;
-								sleep(1);
+								usleep(miConfig->retardoMemoria * 1000);
 								ejecutarConsulta(i);
 							} else {
 								flagError = 1;
@@ -399,7 +399,10 @@ t_miConfig* cargarConfig() {
 	miConfig->ip_fs = config_get_string_value(config, "IP");
 	miConfig->tam_mem = config_get_int_value(config, "TAM_MEM");
 	miConfig->retardoJournal = config_get_int_value(config,"RETARDO_JOURNAL");
+	miConfig->retardoMemoria = config_get_int_value(config,"RETARDO_MEM");
 	log_debug(logger, "Levanta archivo de config");
+	free(buffer);
+	free(pathConfig);
 	return miConfig;
 }
 
