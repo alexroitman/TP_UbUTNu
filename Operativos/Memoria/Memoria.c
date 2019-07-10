@@ -44,58 +44,54 @@ int main() {
 }
 
 void* recibirHeader(void* arg) {
-	int listener = socket_sv;
-	fd_set active_fd_set, read_fd_set;
-	FD_ZERO (&active_fd_set);
-	FD_SET (socket_sv, &active_fd_set);
-
 	while (1) {
-		read_fd_set = active_fd_set;
-		if (select(FD_SETSIZE, &read_fd_set, NULL, NULL, NULL) < 0) {
-			log_error(logger,"error de socket");
-		}
-		for (int i = 0; i < FD_SETSIZE; ++i) {
-			if (FD_ISSET (i, &read_fd_set)){
-				//El cliente quiere algo!!, vamos a ver quien es primero y que quiere
+		int listener = socket_sv;
+		fd_set active_fd_set, read_fd_set;
+		FD_ZERO(&active_fd_set);
+		FD_SET(socket_sv, &active_fd_set);
+		int flagError = 0;
 
-				if (i == listener) {
-					/*
-					 El socket i resultó ser el listener! o sea el socket del servidor. Cuando el que quiere algo es el propio servidor
-					 significa que tenemos un nuevo cliente QUE SE QUIERE CONECTAR. Por lo que tenemos que hacer un accept() para generar un nuevo socket para ese lciente
-					 y guardar dicho nuevo cliente en nuestra lista general de sockets
-					 */
-					int clienteNuevo = aceptarCliente(listener);
-					log_debug(logger,"cliente nuevo: %d",clienteNuevo);
-					FD_SET (clienteNuevo, &active_fd_set);
-				} else {
-					log_debug(logger, "llego algo del cliente %d", i);
-					recibioSocket = false;
-					type* header = (type*) arg;
-					if(recv(i, &(*header), sizeof(type), MSG_DONTWAIT) > 0){
-						recibioSocket = true;
-						sleep(1);
-						ejecutarConsulta(i);
+		while (flagError != 1) {
+			read_fd_set = active_fd_set;
+			if (select(FD_SETSIZE, &read_fd_set, NULL, NULL, NULL) < 0) {
+				log_error(logger, "error de socket");
+			} else {
+				for (int i = 0; i < FD_SETSIZE; ++i) {
+					if (FD_ISSET(i, &read_fd_set)) {
+						//El cliente quiere algo!!, vamos a ver quien es primero y que quiere
+
+						if (i == listener) {
+							/*
+							 El socket i resultó ser el listener! o sea el socket del servidor. Cuando el que quiere algo es el propio servidor
+							 significa que tenemos un nuevo cliente QUE SE QUIERE CONECTAR. Por lo que tenemos que hacer un accept() para generar un nuevo socket para ese lciente
+							 y guardar dicho nuevo cliente en nuestra lista general de sockets
+							 */
+							int clienteNuevo = aceptarCliente(listener);
+							log_debug(logger, "cliente nuevo: %d",
+									clienteNuevo);
+							FD_SET(clienteNuevo, &active_fd_set);
+						} else {
+							recibioSocket = false;
+							type* header = (type*) arg;
+							if (recv(i, &(*header), sizeof(type), MSG_WAITALL)
+									> 0) {
+								log_debug(logger, "llego algo del cliente %d", i);
+								recibioSocket = true;
+								sleep(1);
+								ejecutarConsulta(i);
+							} else {
+								flagError = 1;
+							}
+
+							//Si no es el listener, es un cliente, por lo que acá tenemso que hacer un recv(i) para ver que es lo que quiere el cliente
+						}
 					}
-
-					//Si no es el listener, es un cliente, por lo que acá tenemso que hacer un recv(i) para ver que es lo que quiere el cliente
 				}
 			}
 		}
+		log_debug(logger, "Se ha cortado la conexion");
 	}
 
-
-		/*
-		recibioSocket = false;
-		type* header = (type*) arg;
-		sleep(2);
-		recv(socket_kernel, &(*header), sizeof(type), MSG_WAITALL);
-		recibioSocket = true;
-		if (*header != NIL) {
-			//EN REALIDAD LO QUE ESTOY PREGUNTANDO ES SI RECIBIO ALGO DE KERNEL
-			//PORQUE SI SE CORTO LA CONEXION CON KERNEL NO QUIERO QUE HAGA EL SIGNAL DEL SEMAFORO
-			ejecutarConsulta();
-		}
-	}*/
 }
 
 
