@@ -70,9 +70,9 @@ void* recibirHeader(void* arg) {
 					log_debug(logger, "llego algo del cliente %d", i);
 					recibioSocket = false;
 					type* header = (type*) arg;
-					sleep(1);
 					if(recv(i, &(*header), sizeof(type), MSG_DONTWAIT) > 0){
 						recibioSocket = true;
+						sleep(1);
 						ejecutarConsulta(i);
 					}
 
