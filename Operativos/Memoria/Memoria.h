@@ -45,6 +45,9 @@ void* memoria;
 int cantPagsMax;
 pthread_t hiloConsola;
 pthread_t hiloSocket;
+pthread_t hiloJournal;
+
+sem_t mutexJournal;
 
 typedef struct{
 	type* header;
@@ -76,6 +79,9 @@ typedef struct {
 	int puerto_fs;
 	char* ip_fs;
 	int tam_mem ;
+	int retardoMemoria;
+	int retardoJournal;
+	int retardoGossiping;
 } t_miConfig;
 t_miConfig* miConfig;
 char package[PACKAGESIZE];
@@ -103,12 +109,12 @@ void eliminarDeMemoria(void* elemento);
 void liberarPaginasDelSegmento(tSegmento* miSegmento, t_list* tablaSegmentos);
 void mandarInsertDePaginasModificadas(t_list* paginasModificadas,char* nombreTabla, int socket_lfs);
 void borrarPaginasModificadas(t_list* paginasModificadas, t_list* tablaPaginasMiSegmento);
-void chequearMemoriaFull(bool leyoConsola, int error, tSegmento* miSegmento,
+void chequearMemoriaFull(bool leyoConsola, int error,int socket, tSegmento* miSegmento,
 		tPagina* pagina);
 void finalizarEjecucion();
 void enviarMensajeAKernel();
 t_miConfig* cargarConfig();
-
+void journalAsincronico();
 int levantarCliente();
 
 int levantarServidor();

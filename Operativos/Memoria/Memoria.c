@@ -7,19 +7,18 @@
 
 
 int main() {
-
-
-
 	tamanioMaxValue = 10;
 	signal(SIGINT, finalizarEjecucion);
 	logger = log_create("Memoria.log", "Memoria.c", 1, LOG_LEVEL_DEBUG);
 	miConfig = cargarConfig();
 	log_debug(logger,"Tamanio Memoria: %d",miConfig->tam_mem);
-	socket_sv = levantarServidor((char*) miConfig->puerto_kernel);
-	socket_kernel = aceptarCliente(socket_sv);
-	log_debug(logger, "Levanta conexion con kernel");
 	socket_lfs = levantarCliente((char*) miConfig->puerto_fs, miConfig->ip_fs);
+	socket_sv = levantarServidor((char*) miConfig->puerto_kernel);
+	//socket_kernel = aceptarCliente(socket_sv);
+	log_debug(logger, "Levanta conexion con kernel");
 	tamanioMaxValue = handshakeLFS(socket_lfs);
+	log_debug(logger,"socket lfs: %d",socket_lfs);
+	log_debug(logger,"socket sv: %d",socket_sv);
 	log_debug(logger, "Handshake con LFS realizado. Tamanio max del value: %d",
 			tamanioMaxValue);
 	memoria = calloc(miConfig->tam_mem,6 + tamanioMaxValue);
@@ -27,6 +26,7 @@ int main() {
 	log_debug(logger,"Cantidad maxima de paginas en memoria: %d",cantPagsMax);
 	tablaSegmentos = list_create();
 	header = malloc(sizeof(type));
+	sem_init(&mutexJournal,0,1);
 	leyoConsola = true;
 	recibioSocket = true;
 	*header = NIL;
@@ -35,24 +35,64 @@ int main() {
 	pthread_create(&hiloSocket, NULL, (void*) recibirHeader, (void*) header);
 	pthread_create(&hiloConsola, NULL, (void*) leerQuery,
 			(void*) paramsConsola);
+	pthread_create(&hiloJournal, NULL, (void*) journalAsincronico, NULL);
 	pthread_join(hiloSocket, NULL);
 	pthread_join(hiloConsola, NULL);
-
+	pthread_join(hiloJournal, NULL);
 }
 
 void* recibirHeader(void* arg) {
 	while (1) {
-		recibioSocket = false;
-		type* header = (type*) arg;
-		sleep(2);
-		recv(socket_kernel, &(*header), sizeof(type), MSG_WAITALL);
-		recibioSocket = true;
-		if (*header != NIL) {
-			//EN REALIDAD LO QUE ESTOY PREGUNTANDO ES SI RECIBIO ALGO DE KERNEL
-			//PORQUE SI SE CORTO LA CONEXION CON KERNEL NO QUIERO QUE HAGA EL SIGNAL DEL SEMAFORO
-			ejecutarConsulta();
+		int listener = socket_sv;
+		fd_set active_fd_set, read_fd_set;
+		FD_ZERO(&active_fd_set);
+		FD_SET(socket_sv, &active_fd_set);
+		int flagError = 0;
+
+		while (flagError != 1) {
+			read_fd_set = active_fd_set;
+			recibioSocket = false;
+			if (select(FD_SETSIZE, &read_fd_set, NULL, NULL, NULL) < 0) {
+				log_error(logger, "error de socket");
+			} else {
+				for (int i = 0; i < FD_SETSIZE; ++i) {
+					if (FD_ISSET(i, &read_fd_set)) {
+						//El cliente quiere algo!!, vamos a ver quien es primero y que quiere
+
+						if (i == listener) {
+							/*
+							 El socket i resultó ser el listener! o sea el socket del servidor. Cuando el que quiere algo es el propio servidor
+							 significa que tenemos un nuevo cliente QUE SE QUIERE CONECTAR. Por lo que tenemos que hacer un accept() para generar un nuevo socket para ese lciente
+							 y guardar dicho nuevo cliente en nuestra lista general de sockets
+							 */
+							int clienteNuevo = aceptarCliente(listener);
+							log_debug(logger, "cliente nuevo: %d",
+									clienteNuevo);
+							FD_SET(clienteNuevo, &active_fd_set);
+						} else {
+
+							type* header = (type*) arg;
+							if (recv(i, &(*header), sizeof(type), MSG_WAITALL)
+									> 0) {
+								log_debug(logger, "llego algo del cliente %d", i);
+								recibioSocket = true;
+								usleep(miConfig->retardoMemoria * 1000);
+								sem_wait(&mutexJournal);
+								ejecutarConsulta(i);
+								sem_post(&mutexJournal);
+							} else {
+								flagError = 1;
+							}
+
+							//Si no es el listener, es un cliente, por lo que acá tenemso que hacer un recv(i) para ver que es lo que quiere el cliente
+						}
+					}
+				}
+			}
 		}
+		log_debug(logger, "Se ha cortado la conexion");
 	}
+
 }
 
 
@@ -277,6 +317,7 @@ int listMinTimestamp(t_list* listaPaginas,elem_tabla_pag* pagina){
 
 
 void ejecutarJournal(){
+	sem_wait(&mutexJournal);
 	log_debug(logger,"Realizando Journal");
 	int index = 0;
 	tSegmento* miSegmento = list_get(tablaSegmentos, 0);
@@ -289,6 +330,9 @@ void ejecutarJournal(){
 		index++;
 		miSegmento = list_get(tablaSegmentos, index);
 	}
+
+	log_debug(logger, "Journal finalizado");
+	sem_post(&mutexJournal);
 }
 
 void mandarInsertDePaginasModificadas(t_list* paginasModificadas,char* nombreTabla, int socket_lfs){
@@ -358,11 +402,15 @@ t_miConfig* cargarConfig() {
 	miConfig->puerto_fs = (int) config_get_string_value(config, "PUERTO_FS");
 	miConfig->ip_fs = config_get_string_value(config, "IP");
 	miConfig->tam_mem = config_get_int_value(config, "TAM_MEM");
+	miConfig->retardoJournal = config_get_int_value(config,"RETARDO_JOURNAL");
+	miConfig->retardoMemoria = config_get_int_value(config,"RETARDO_MEM");
 	log_debug(logger, "Levanta archivo de config");
+	free(buffer);
+	free(pathConfig);
 	return miConfig;
 }
 
-void chequearMemoriaFull(bool leyoConsola, int error, tSegmento* miSegmento,
+void chequearMemoriaFull(bool leyoConsola, int error,int socket, tSegmento* miSegmento,
 		tPagina* pagina) {
 	int errorLRU;
 	if (error == -1) {
@@ -372,8 +420,8 @@ void chequearMemoriaFull(bool leyoConsola, int error, tSegmento* miSegmento,
 				ejecutarJournal();
 				agregarPaginaAMemoria(miSegmento, pagina);
 			} else {
-				//le envio el error a kernel para que me devuelva un JOURNAL
-				send(socket_kernel, &error, sizeof(int), 0);
+				//le envio el error a kernel para que me devuelva un JOURNAL y la consulta denuevo
+				send(socket, &error, sizeof(int), 0);
 			}
 		} else {
 			agregarPaginaAMemoria(miSegmento, pagina);
@@ -381,7 +429,7 @@ void chequearMemoriaFull(bool leyoConsola, int error, tSegmento* miSegmento,
 	}else{
 		if(!leyoConsola){
 			//le aviso a kernel que la consulta termino OK
-			send(socket_kernel,&error,sizeof(int),0);
+			send(socket,&error,sizeof(int),0);
 		}
 	}
 }

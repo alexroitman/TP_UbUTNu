@@ -34,14 +34,13 @@ t_list *listaTablas;
 configKernel *miConfig;
 t_config* config;
 int contScript;
-int socket_memoria;
 
 // Define cual va a ser el size maximo del paquete a enviar
 
 int main(){
 	signal(SIGINT, finalizarEjecucion);
 	inicializarTodo();
-	socket_memoria = levantarCliente(miConfig->puerto_mem, miConfig->ip_mem);
+	int socket_memoria = levantarCliente(miConfig->puerto_mem, miConfig->ip_mem);
 	SC = malloc(sizeof(t_infoMem));
 	log_debug(logger,"Sockets inicializados con exito");
 	log_debug(logger,"Se tendra un nivel de multiprocesamiento de: %d cpus", miConfig->MULT_PROC);
@@ -303,7 +302,22 @@ int despacharQuery(char* consulta, int socket_memoria) {
 }
 
 void CPU(int socket_memoria){
+<<<<<<< HEAD
 	socket_memoria = levantarCliente(miConfig->puerto_mem,miConfig->ip_mem);
+=======
+	/*
+	 * QUERIDOS CHOLO Y FELIPE
+	 * SEGUN VI EN VARIOS POST DE STACK OVERFLOW
+	 * NO HABRIA PROBLEMA SI ME CONECTO AL MISMO PUERTO
+	 * (CUANDO TENGAMOS MAS MEMORIAS MEPA QUE VA A HABER QUE USAR UN PUERTO DIF PARA
+	 * CADA UNA)
+	 * SI ESTO NO VA TENEMOS QUE VER DE HACER UN HANDSHAKE Y QUE EN BASE AL MULTIPROCESAMIENTO
+	 * USTEDES ME DEVUELVAN UN ARRAY DE PUERTOS.
+	 * CON AMOR... UNTER.
+	 */
+	 socket_memoria = levantarCliente(miConfig->puerto_mem,miConfig->ip_mem);
+
+>>>>>>> 6f4b07aef7ef45b62b23c514c4aa6e9c7662d7ca
 	while(1){
 		script *unScript;
 		char* consulta = malloc(256);
