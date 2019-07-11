@@ -157,14 +157,14 @@ void ejecutarConsulta(int socket) {
 	case DESCRIBE:
 		packDescribe = malloc(sizeof(tDescribe));
 		packDescResp = malloc(sizeof(t_describe));
-		desSerializarDescribe(packDescribe, socket_kernel);
+		desSerializarDescribe(packDescribe, socket);
 		char* serializado = serializarDescribe(packDescribe);
-		enviarPaquete(socket_kernel,serializado,packDescribe->length);
+		enviarPaquete(socket_lfs,serializado,packDescribe->length);
 		type header = leerHeader(socket_lfs);
 		desserializarDescribe_Response(packDescResp,socket_lfs);
 		char* respSerializada = serializarDescribe_Response(packDescResp);
 		int length = packDescResp->cant_tablas * sizeof(t_metadata) + sizeof(uint16_t);
-		enviarPaquete(socket_kernel,respSerializada,length);
+		enviarPaquete(socket,respSerializada,length);
 		free(packDescResp->tablas);
 		free(packDescResp);
 		free(packDescribe->nombre_tabla);

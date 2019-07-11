@@ -26,12 +26,15 @@ t_log *logger;
 t_log *loggerError;
 t_queue *colaReady;
 t_queue *colaNew;
-t_list *listaMemsSC;
+t_infoMem *SC;
 t_list *listaMemsEC;
 t_list *listaMemsSHC;
+t_list *mems;
+t_list *listaTablas;
 configKernel *miConfig;
 t_config* config;
 int contScript;
+bool continuar = true;
 
 // Define cual va a ser el size maximo del paquete a enviar
 
@@ -39,39 +42,38 @@ int main(){
 	signal(SIGINT, finalizarEjecucion);
 	inicializarTodo();
 	int socket_memoria = levantarCliente(miConfig->puerto_mem, miConfig->ip_mem);
-	listaMemsSC = list_create();
-	listaMemsEC = list_create();
-	listaMemsSHC = list_create();
 	log_debug(logger,"Sockets inicializados con exito");
 	log_debug(logger,"Se tendra un nivel de multiprocesamiento de: %d cpus", miConfig->MULT_PROC);
 	pthread_t cpus[miConfig->MULT_PROC];
+	despacharQuery("describe\n",socket_memoria);
 	if(levantarCpus(socket_memoria,cpus)){
 		colaReady = queue_create();
 		colaNew = queue_create();
 		pthread_create(&planificador_t, NULL, (void*) planificador, NULL);
 		char consulta[256] = "";
-			while (1) {
-
-				fgets(consulta, 256, stdin);
-				int consultaOk = despacharQuery(consulta, socket_memoria);
-				if (!consultaOk) {
-					printf("no entendi tu header \n");
-					log_error(loggerError,"Se ingreso un header no valido");
+		for(int i = 0; i < miConfig->MULT_PROC; i++){
+					pthread_detach(cpus[i]);
 				}
-				consultaOk = 0;
+				pthread_detach(planificador_t);
+		while (continuar) {
+
+			fgets(consulta, 256, stdin);
+			int consultaOk = despacharQuery(consulta, socket_memoria);
+			if (!consultaOk) {
+				printf("no entendi tu header \n");
+				log_error(loggerError,"Se ingreso un header no valido");
 			}
-			for(int i = 0; i < miConfig->MULT_PROC; i++){
-				pthread_detach(cpus[i]);
-			}
-			pthread_detach(planificador_t);
+			consultaOk = 0;
+		}
+
 	}else{
 		log_error(loggerError,"No se han podido levantar las cpus...");
 	}
-	sem_destroy(&semReady);
+	/*sem_destroy(&semReady);
 	sem_destroy(&semNew);
 	sem_destroy(&mutexNew);
 	sem_destroy(&mutexReady);
-	sem_destroy(&mutexSocket);
+	sem_destroy(&mutexSocket);*/
 	close(socket_memoria);
 }
 
@@ -257,10 +259,12 @@ int despacharQuery(char* consulta, int socket_memoria) {
 			cargarPaqueteDescribe(paqueteDescribe,
 					string_substring_until(consulta,string_length(consulta)-1  ) );
 			serializado = serializarDescribe(paqueteDescribe);
-			/*enviarPaquete(socket_memoria,serializado,paqueteDescribe->length);
-			 * type header = leerHeader(socket_memoria);
-			 * t_describe.....
-			*/
+			enviarPaquete(socket_memoria,serializado,paqueteDescribe->length);
+			//type header = leerHeader(socket_memoria);
+			t_describe* response = malloc(sizeof(t_describe));
+			desserializarDescribe_Response(response,socket_memoria);
+			log_debug(logger,"Cant tablas: %d", response->cant_tablas);
+			ejecutarDescribe(response);
 			free(serializado);
 			free(paqueteDescribe->nombre_tabla);
 			consultaOk = 1;
@@ -319,7 +323,7 @@ void CPU(int socket_memoria){
 	 */
 	 socket_memoria = levantarCliente(miConfig->puerto_mem,miConfig->ip_mem);
 
-	while(1){
+	while(continuar){
 		script *unScript;
 		char* consulta = malloc(256);
 		sem_wait(&semReady);
@@ -375,6 +379,7 @@ void CPU(int socket_memoria){
 		}
 		free(consulta);
 	}
+	close(socket_memoria);
 }
 
 void planificador(){
@@ -508,12 +513,8 @@ void ejecutarAdd(char* consulta){
 	switch (cons){
 	case sc:
 		sem_wait(&mutexSC);
-		if(list_is_empty(list_filter(listaMemsSC, mismoId))){
-				list_add(listaMemsSC, memAdd);
-				log_debug(logger,"La memoria %d se asoció al criterio %s",memAdd->id,split[4]);
-			}else{
-				log_error(loggerError,"Ya se encuentra asociada la memoria %d al criterio",memAdd->id);
-			}
+		SC = memAdd;
+		log_debug(logger,"La memoria %d se asoció al criterio %s",memAdd->id,split[4]);
 		sem_post(&mutexSC);
 		break;
 	case shc:
@@ -525,6 +526,7 @@ void ejecutarAdd(char* consulta){
 						log_error(loggerError,"Ya se encuentra asociada la memoria %d al criterio",memAdd->id);
 					}
 		sem_post(&mutexSHC);
+		//despacharQuery("journal\n",)
 		break;
 	case ec:
 		sem_wait(&mutexEC);
@@ -560,6 +562,48 @@ consistencias obtCons(char* criterio){
 			return ec;
 		}
 }
+
+void ejecutarDescribe(t_describe *response){
+
+	for(int i = 0; i < response->cant_tablas; i++){
+		t_metadata *metadata = malloc(sizeof(t_metadata));
+		memcpy(metadata,&(response->tablas[i]),sizeof(t_metadata));
+		char nombre[12];
+		strcpy(nombre, metadata->nombre_tabla);
+		bool mismoNombre(void* elemento) {
+						t_metadata* tabla = malloc(sizeof(t_metadata));
+						tabla = (t_metadata*) elemento;
+						return (!strcmp(tabla->nombre_tabla,nombre));
+					}
+		if(list_is_empty(list_filter(listaTablas,mismoNombre))){
+			list_add(listaTablas,metadata);
+			log_debug(logger, "Se agrego la tabla %s a la lista", nombre);
+		}
+	}
+}
+consistencias consTabla (char* nombre){
+	bool mismoNombre(void* elemento) {
+		t_metadata* tabla = malloc(sizeof(t_metadata));
+		tabla = (t_metadata*) elemento;
+		return (!strcmp(tabla->nombre_tabla,nombre));
+	}
+	t_metadata *tabla = list_find(listaTablas,mismoNombre);
+	return tabla->consistencia;
+}
+
+int SHC(int key){
+	sem_wait(&mutexSHC);
+	int tamanio = list_size(listaMemsSHC);
+	sem_post(&mutexSHC);
+	return (tamanio % key);
+}
+
+int EC(int time){
+	sem_wait(&mutexEC);
+	int tamanio = list_size(listaMemsEC);
+	sem_post(&mutexEC);
+	return (tamanio % time);
+}
 void cargarConfig(t_config* config){
 	miConfig = malloc(sizeof(configKernel));
 	miConfig->ip_mem = config_get_string_value(config,"IP");
@@ -587,6 +631,9 @@ void inicializarTodo(){
 	sem_init(&mutexEC,0,1);
 	sem_init(&mutexSC,0,1);
 	sem_init(&mutexSHC,0,1);
+	listaMemsEC = list_create();
+	listaMemsSHC = list_create();
+	listaTablas = list_create();
 	log_debug(logger,"Semaforos incializados con exito");
 	log_debug(logger,"Inicializando sockets");
 }
@@ -597,9 +644,10 @@ void finalizarEjecucion() {
 	printf("------------------------\n");
 	log_destroy(logger);
 	log_destroy(loggerError);
-	list_iterate(listaMemsSC,free);
+	free(SC);
 	list_iterate(listaMemsEC,free);
 	list_iterate(listaMemsSHC,free);
+	continuar = false;
 	//close(socket_memoria);
 	raise(SIGTERM);
 }

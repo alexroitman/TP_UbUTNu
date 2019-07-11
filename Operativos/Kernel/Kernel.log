@@ -256,3 +256,34 @@
 [DEBUG] 01:11:32:413 Kernel.c/(12089:12089): Se recibio un ADD
 [DEBUG] 01:12:00:446 Kernel.c/(12089:12089): header ADD
 [DEBUG] 01:12:00:446 Kernel.c/(12089:12089): Se recibio un ADD
+[DEBUG] 12:27:34:802 Kernel.c/(23471:23471): Cargando configuracion
+[DEBUG] 12:27:34:826 Kernel.c/(23471:23471): Configuracion cargada con exito
+[DEBUG] 12:27:34:826 Kernel.c/(23471:23471): Inicializando semaforos
+[DEBUG] 12:27:34:826 Kernel.c/(23471:23471): Semaforos incializados con exito
+[DEBUG] 12:27:34:826 Kernel.c/(23471:23471): Inicializando sockets
+[DEBUG] 12:27:34:827 Kernel.c/(23471:23471): Sockets inicializados con exito
+[DEBUG] 12:27:34:827 Kernel.c/(23471:23471): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 12:27:34:827 Kernel.c/(23471:23471): header describe
+
+[DEBUG] 12:27:34:827 Kernel.c/(23471:23471): Se recibio un DESCRIBE
+[DEBUG] 12:28:53:611 Kernel.c/(23560:23560): Cargando configuracion
+[DEBUG] 12:28:53:611 Kernel.c/(23560:23560): Configuracion cargada con exito
+[DEBUG] 12:28:53:611 Kernel.c/(23560:23560): Inicializando semaforos
+[DEBUG] 12:28:53:611 Kernel.c/(23560:23560): Semaforos incializados con exito
+[DEBUG] 12:28:53:611 Kernel.c/(23560:23560): Inicializando sockets
+[DEBUG] 12:28:53:611 Kernel.c/(23560:23560): Sockets inicializados con exito
+[DEBUG] 12:28:53:611 Kernel.c/(23560:23560): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 12:28:53:611 Kernel.c/(23560:23560): header describe
+
+[DEBUG] 12:28:53:611 Kernel.c/(23560:23560): Se recibio un DESCRIBE
+[DEBUG] 12:42:38:799 Kernel.c/(24275:24275): Cargando configuracion
+[DEBUG] 12:42:38:799 Kernel.c/(24275:24275): Configuracion cargada con exito
+[DEBUG] 12:42:38:799 Kernel.c/(24275:24275): Inicializando semaforos
+[DEBUG] 12:42:38:799 Kernel.c/(24275:24275): Semaforos incializados con exito
+[DEBUG] 12:42:38:799 Kernel.c/(24275:24275): Inicializando sockets
+[DEBUG] 12:42:38:800 Kernel.c/(24275:24275): Sockets inicializados con exito
+[DEBUG] 12:42:38:800 Kernel.c/(24275:24275): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 12:42:38:800 Kernel.c/(24275:24275): header describe
+
+[DEBUG] 12:42:38:800 Kernel.c/(24275:24275): Se recibio un DESCRIBE
+[DEBUG] 12:43:15:576 Kernel.c/(24275:24275): Cant tablas: 8

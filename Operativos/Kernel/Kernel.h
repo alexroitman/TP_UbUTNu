@@ -34,9 +34,9 @@ typedef enum{
 }estados;
 
 typedef enum{
-	sc,
-	shc,
-	ec
+	sc = 1,
+	shc = 2,
+	ec = 3
 }consistencias;
 
 
