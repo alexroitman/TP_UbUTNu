@@ -36,7 +36,8 @@ typedef enum{
 typedef enum{
 	sc = 1,
 	shc = 2,
-	ec = 3
+	ec = 3,
+	nada = 4
 }consistencias;
 
 
@@ -47,6 +48,12 @@ typedef struct{
     int id;
 }script;
 
+typedef struct{
+	int contInsert;
+	int contSelect;
+	int acumtInsert;
+	int acumtSelect;
+}t_contMetrics;
 typedef struct{
 	int id;
 	int puerto;
@@ -66,11 +73,11 @@ type validarSegunHeader(char* header);
 bool analizarConsulta();
 
 void run();
-int despacharQuery(char* consulta, int socket_memoria);
+int despacharQuery(char* consulta, t_list* socket_memoria);
 void add();
 void cargarPaqueteSelect();
 void cargarPaqueteInsert();
-void CPU(int socket_memoria);
+void CPU();
 void planificador();
 int leerLinea(char* path, int linea, char* leido);
 void cargarPaqueteCreate(tCreate *pack, char* cons);
@@ -79,10 +86,11 @@ int validarCreate(char* consulta);
 int validarInsert(char* consulta);
 int validarAdd(char* consulta);
 t_infoMem* generarMem(char* consulta);
-int levantarCpus(int socket_memoria, pthread_t* cpus);
+int levantarCpus(pthread_t* cpus);
 void cargarConfig(t_config* config);
 consistencias obtCons(char* criterio);
 void inicializarTodo();
 void finalizarEjecucion();
+consistencias consTabla (char* nombre);
 
 #endif /* KERNEL_KERNEL_H_ */

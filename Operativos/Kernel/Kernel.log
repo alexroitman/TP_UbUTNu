@@ -287,3 +287,32 @@
 
 [DEBUG] 12:42:38:800 Kernel.c/(24275:24275): Se recibio un DESCRIBE
 [DEBUG] 12:43:15:576 Kernel.c/(24275:24275): Cant tablas: 8
+[DEBUG] 20:05:35:957 Kernel.c/(29549:29549): Cargando configuracion
+[DEBUG] 20:05:35:991 Kernel.c/(29549:29549): Configuracion cargada con exito
+[DEBUG] 20:05:35:991 Kernel.c/(29549:29549): Inicializando semaforos
+[DEBUG] 20:05:35:991 Kernel.c/(29549:29549): Semaforos incializados con exito
+[DEBUG] 20:05:35:991 Kernel.c/(29549:29549): Inicializando sockets
+[DEBUG] 20:05:35:991 Kernel.c/(29549:29549): Sockets inicializados con exito
+[DEBUG] 20:05:35:991 Kernel.c/(29549:29549): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 20:05:35:991 Kernel.c/(29549:29549): header describe
+
+[DEBUG] 20:05:35:991 Kernel.c/(29549:29549): Se recibio un DESCRIBE
+[DEBUG] 20:05:41:649 Kernel.c/(29549:29549): Cant tablas: 11
+[DEBUG] 20:05:41:649 Kernel.c/(29549:29549): Se agrego la tabla COSAS a la lista
+[DEBUG] 20:05:41:649 Kernel.c/(29549:29549): Se agrego la tabla BEBIDAS a la lista
+[DEBUG] 20:05:41:649 Kernel.c/(29549:29549): Se agrego la tabla POSTRES a la lista
+[DEBUG] 20:05:41:649 Kernel.c/(29549:29549): Se agrego la tabla AVES a la lista
+[DEBUG] 20:05:41:649 Kernel.c/(29549:29549): Se agrego la tabla TABLA1 a la lista
+[DEBUG] 20:05:41:649 Kernel.c/(29549:29549): Se agrego la tabla TABLA2 a la lista
+[DEBUG] 20:05:41:649 Kernel.c/(29549:29549): Se agrego la tabla COLORES a la lista
+[DEBUG] 20:05:41:649 Kernel.c/(29549:29549): Se agrego la tabla TABLA12 a la lista
+[DEBUG] 20:05:41:649 Kernel.c/(29549:29549): Se agrego la tabla MAMIFEROS a la lista
+[DEBUG] 20:05:41:649 Kernel.c/(29549:29549): Se agrego la tabla FRUTAS a la lista
+[DEBUG] 20:05:41:649 Kernel.c/(29549:29549): Se agrego la tabla MARINOS a la lista
+[DEBUG] 20:05:56:249 Kernel.c/(29549:29549): header add
+[DEBUG] 20:05:56:249 Kernel.c/(29549:29549): Se recibio un ADD
+[DEBUG] 20:05:56:249 Kernel.c/(29549:29549): La memoria 0 se asoció al criterio SC
+
+[DEBUG] 20:06:09:689 Kernel.c/(29549:29549): header select
+[DEBUG] 20:06:09:689 Kernel.c/(29549:29549): Se recibio un SELECT
+[ERROR] 20:08:01:840 Kernel.c/(29549:29549): No existen memorias disponibles para el criterio de la tabla
