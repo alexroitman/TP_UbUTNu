@@ -36,6 +36,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <signal.h>
+#include <stdarg.h>
 
 // Estructuras
 typedef struct {
@@ -70,8 +71,9 @@ int Create(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, 
 int Insert (char* NOMBRE_TABLA, int KEY, char* VALUE, int Timestamp);
 int Drop(char* NOMBRE_TABLA);
 int Select(registro* reg, char* NOMBRE_TABLA, int KEY);
+t_list* Describe();
 
-t_list* lfs_describe();
+
 int consistency_to_int(char* cons);
 Metadata* obtener_metadata(char* ruta);
 // AUXILIARES DE SELECT
@@ -87,12 +89,17 @@ int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo);
 t_bitarray* levantarBitmap();
 off_t obtener_bit_libre();
 
-// DUMPEO
+// DUMPEO Y COMPACTACION
 void bajarAMemoria(int* fd2, char* registroParaEscribir, t_config* tmp);
-void dumpearTabla(t_tabla* UnaTabla);
+void dumpearTabla(t_list* registros, char* ruta);
 int dumpeoMemoria();
 char* mapearBloque(int fd2, size_t textsize);
 void actualizarBloquesEnTemporal(t_config* tmp, off_t bloque);
+int compactacion(char* nombre_tabla);
+void guardar_en_disco(t_list* binarios, int cantParticiones,char* nombre_tabla);
+void crearListaRegistros(char** string, t_list* lista);
+int levantarbinarios(char* nombre_tabla, char** bloquesUnificados);
+int obtener_temporales(char* nombre_tabla, char** bloquesUnificados);
 
 // OTROS
 char* direccionarTabla(char* tabla);

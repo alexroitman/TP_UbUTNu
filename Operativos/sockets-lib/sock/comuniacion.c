@@ -79,6 +79,7 @@ void cargarPaqueteCreate(tCreate *pack, char* cons) {
 	string_iterate_lines(spliteado,free);
 	free(spliteado);
 }
+
 void cargarPaqueteDescribe(tDescribe *pack, char* cons) {
 	char** spliteado;
 	spliteado = string_n_split(cons, 2, " ");
@@ -112,6 +113,7 @@ void cargarPaqueteDrop(tDrop*pack, char* cons) {
 	string_iterate_lines(spliteado,free);
 	free(spliteado);
 }
+
 void cargarPaqueteJournal(tJournal* pack, char* cons){
 	char** spliteado;
 	spliteado = string_n_split(cons, 0, " ");
@@ -119,6 +121,7 @@ void cargarPaqueteJournal(tJournal* pack, char* cons){
 		pack->length = sizeof(pack->type);
 		free(spliteado);
 }
+
 char* serializarSelect(tSelect* packageSelect) {
 	packageSelect->length = sizeof(packageSelect->type)
 			+ sizeof(packageSelect->nombre_tabla_long)
@@ -179,6 +182,7 @@ int desSerializarSelect(tSelect* packageSelect, int socket) {
 	return status;
 
 }
+
 char* serializarInsert(tInsert* packageInsert) {
 
 	char* serializedPackage = malloc(packageInsert->length);
@@ -260,6 +264,7 @@ int desSerializarInsert(tInsert* packageInsert, int socket) {
 	return status;
 
 }
+
 char* serializarCreate(tCreate* packageCreate) {
 
 	char* serializedPackage = malloc(packageCreate->length);
@@ -384,28 +389,24 @@ char* serializarDescribe(tDescribe* packageDescribe) {
 }
 
 int desSerializarDescribe(tDescribe* packageDescribe, int socket) {
-
 	int status;
 	int buffer_size;
 	char *buffer = malloc(buffer_size = sizeof(uint32_t));
 
 	uint32_t nombrelong;
-	status = recv(socket, buffer, sizeof((packageDescribe->nombre_tabla_long)),
-			0); //recibo la longitud
+	status = recv(socket, buffer, sizeof((packageDescribe->nombre_tabla_long)), 0); //recibo la longitud
 	memcpy(&(packageDescribe->nombre_tabla_long), buffer, buffer_size);
 	if (!status)
 		return 0;
 	packageDescribe->nombre_tabla = malloc(packageDescribe->nombre_tabla_long);
 
-	status = recv(socket, packageDescribe->nombre_tabla,
-			packageDescribe->nombre_tabla_long, 0); //recibo el nombre de la tabla
+	status = recv(socket, packageDescribe->nombre_tabla, packageDescribe->nombre_tabla_long, 0); //recibo el nombre de la tabla
 	free(buffer);
 	packageDescribe->length = sizeof(packageDescribe->type)
 			+ sizeof(packageDescribe->nombre_tabla_long)
 			+ packageDescribe->nombre_tabla_long;
 	packageDescribe->type = DESCRIBE;
 	return status;
-
 }
 
 char* serializarDescribe_Response(t_describe *package) {

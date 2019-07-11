@@ -1,31 +1,1797 @@
-18:42:38 **** Incremental Build of configuration Debug for project sockets-lib ****
+10:26:06 **** Incremental Build of configuration Debug for project sockets-lib ****
 make all 
 make: Nothing to be done for 'all'.
-18:42:38 **** Incremental Build of configuration Debug for project Memoria ****
+10:26:07 **** Incremental Build of configuration Default for project LFS ****
+make all 
+make: Nothing to be done for 'all'.
+11:25:14 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+Building file: ../sock/comuniacion.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/comuniacion.d" -MT"sock/comuniacion.o" -o "sock/comuniacion.o" "../sock/comuniacion.c"
+../sock/comuniacion.c: In function ‘cargarPaqueteSelect’:
+../sock/comuniacion.c:28:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(spliteado,free);
+                                 ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c: In function ‘cargarPaqueteInsert’:
+../sock/comuniacion.c:52:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(spliteado,free);
+                                 ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c:54:29: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(value,free);
+                             ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c: In function ‘cargarPaqueteCreate’:
+../sock/comuniacion.c:79:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(spliteado,free);
+                                 ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c: In function ‘cargarPaqueteDescribe’:
+../sock/comuniacion.c:99:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(spliteado,free);
+                                 ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c: In function ‘cargarPaqueteDrop’:
+../sock/comuniacion.c:113:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(spliteado,free);
+                                 ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c: In function ‘desSerializarSelect’:
+../sock/comuniacion.c:175:21: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  packageSelect->key = malloc(sizeof(uint16_t));
+                     ^
+../sock/comuniacion.c:161:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+  uint32_t nombrelong;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarInsert’:
+../sock/comuniacion.c:242:21: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  packageInsert->key = malloc(sizeof(uint16_t));
+                     ^
+../sock/comuniacion.c:246:11: warning: unused variable ‘valuelong’ [-Wunused-variable]
+  uint32_t valuelong;
+           ^
+../sock/comuniacion.c:229:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+  uint32_t nombrelong;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarCreate’:
+../sock/comuniacion.c:342:29: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  packageCreate->particiones = malloc(sizeof(int));
+                             ^
+../sock/comuniacion.c:348:33: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  packageCreate->compaction_time = malloc(sizeof(int));
+                                 ^
+../sock/comuniacion.c:319:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+  uint32_t nombrelong;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarDescribe’:
+../sock/comuniacion.c:396:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+  uint32_t nombrelong;
+           ^
+../sock/comuniacion.c: In function ‘desserializarDescribe_Response’:
+../sock/comuniacion.c:437:22: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  package->cant_tablas=malloc(sizeof(uint16_t));
+                      ^
+../sock/comuniacion.c: In function ‘desSerializarDrop’:
+../sock/comuniacion.c:478:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+  uint32_t nombrelong;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarJournal’:
+../sock/comuniacion.c:514:9: warning: ‘status’ is used uninitialized in this function [-Wuninitialized]
+  return status;
+         ^
+Finished building: ../sock/comuniacion.c
+ 
+Building target: libsockets-lib.so
+Invoking: GCC C Linker
+gcc -shared -o "libsockets-lib.so"  ./sock/comuniacion.o ./sock/logger.o ./sock/sockets-lib.o   -lcommons
+Finished building target: libsockets-lib.so
+ 
+11:25:15 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+Building target: Memoria
+Invoking: GCC C Linker
+gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Memoria"  ./Memoria.o ./Querys.o   -lsockets-lib -lcommons -lpthread
+Finished building target: Memoria
+ 
+11:25:16 **** Incremental Build of configuration Default for project LFS ****
+make all 
+Building file: ../LFS.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+In file included from ../LFS.c:8:0:
+../LFS.h:74:45: error: unknown type name ‘metadata’
+ int DESCRIBEespecifico (char* NOMBRE_TABLA, metadata *myMetadata){
+                                             ^
+subdir.mk:18: recipe for target 'LFS.o' failed
+make: *** [LFS.o] Error 1
+11:25:17 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+Building target: Kernel
+Invoking: GCC C Linker
+gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Kernel"  ./Kernel.o   -lsockets-lib -lcommons -lpthread
+Finished building target: Kernel
+ 
+11:29:37 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+make: Nothing to be done for 'all'.
+11:29:38 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+make: Nothing to be done for 'all'.
+11:29:38 **** Incremental Build of configuration Default for project LFS ****
+make all 
+Building file: ../LFS.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+../LFS.c: In function ‘DESCRIBEespecifico’:
+../LFS.c:27:5: warning: ‘main’ is normally a non-static function [-Wmain]
+ int main(void) {
+     ^
+../LFS.c: In function ‘main’:
+../LFS.c:46:3: warning: implicit declaration of function ‘logeoDeErroresLFS’ [-Wimplicit-function-declaration]
+   logeoDeErroresLFS(noLevantoServidor, logger);
+   ^
+../LFS.c:191:38: error: expected expression before ‘t_metadata’
+      errorHandler = DESCRIBEmultiple(t_metadata* metadata);
+                                      ^
+../LFS.c:193:40: error: expected expression before ‘char’
+      errorHandler = DESCRIBEespecifico(char* packDescribe->nombre_tabla, t_metadata* metadata);
+                                        ^
+../LFS.c:193:21: error: too few arguments to function ‘DESCRIBEespecifico’
+      errorHandler = DESCRIBEespecifico(char* packDescribe->nombre_tabla, t_metadata* metadata);
+                     ^
+In file included from ../LFS.c:8:0:
+../LFS.h:74:5: note: declared here
+ int DESCRIBEespecifico (char* NOMBRE_TABLA, t_metadata* metadata){
+     ^
+../LFS.c: In function ‘DESCRIBEespecifico’:
+../LFS.c:507:9: error: static declaration of ‘lfs_describe’ follows non-static declaration
+ t_list* lfs_describe() {
+         ^
+In file included from ../LFS.c:8:0:
+../LFS.h:77:9: note: previous declaration of ‘lfs_describe’ was here
+ t_list* lfs_describe();
+         ^
+../LFS.c:541:11: error: static declaration of ‘obtener_metadata’ follows non-static declaration
+ Metadata* obtener_metadata(char* ruta) {
+           ^
+In file included from ../LFS.c:8:0:
+../LFS.h:79:11: note: previous declaration of ‘obtener_metadata’ was here
+ Metadata* obtener_metadata(char* ruta);
+           ^
+../LFS.c:562:5: error: static declaration of ‘consistency_to_int’ follows non-static declaration
+ int consistency_to_int(char* cons) {
+     ^
+In file included from ../LFS.c:8:0:
+../LFS.h:78:5: note: previous declaration of ‘consistency_to_int’ was here
+subdir.mk:18: recipe for target 'LFS.o' failed
+ int consistency_to_int(char* cons);
+     ^
+../LFS.c:573:9: error: static declaration of ‘selectEnMemtable’ follows non-static declaration
+ t_list* selectEnMemtable(uint16_t key, char* tabla) {
+         ^
+In file included from ../LFS.c:8:0:
+../LFS.h:82:9: note: previous declaration of ‘selectEnMemtable’ was here
+ t_list* selectEnMemtable( uint16_t key, char* tabla);
+         ^
+../LFS.c:593:5: error: static declaration of ‘SelectFS’ follows non-static declaration
+ int SelectFS(char* ruta, int KEY, registro* registro) {
+     ^
+In file included from ../LFS.c:8:0:
+../LFS.h:81:5: note: previous declaration of ‘SelectFS’ was here
+ int SelectFS(char* NOMBRE_TABLA, int KEY, registro* registro);
+     ^
+../LFS.c:650:9: error: static declaration of ‘SelectTemp’ follows non-static declaration
+ t_list* SelectTemp(char* ruta, int KEY) {
+         ^
+In file included from ../LFS.c:8:0:
+../LFS.h:83:9: note: previous declaration of ‘SelectTemp’ was here
+ t_list* SelectTemp(char* ruta, int KEY);
+         ^
+../LFS.c:710:5: error: static declaration of ‘crearMetadata’ follows non-static declaration
+ int crearMetadata(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA,
+     ^
+In file included from ../LFS.c:8:0:
+../LFS.h:86:5: note: previous declaration of ‘crearMetadata’ was here
+ int crearMetadata(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME);
+     ^
+../LFS.c:726:6: error: static declaration of ‘crearBinarios’ follows non-static declaration
+ void crearBinarios(char* NOMBRE_TABLA, int NUMERO_PARTICIONES) {
+      ^
+In file included from ../LFS.c:8:0:
+../LFS.h:87:6: note: previous declaration of ‘crearBinarios’ was here
+ void crearBinarios(char* NOMBRE_TABLA, int NUMERO_PARTICIONES);
+      ^
+../LFS.c:749:5: error: static declaration of ‘verificadorDeTabla’ follows non-static declaration
+ int verificadorDeTabla(char* tabla) {
+     ^
+In file included from ../LFS.c:8:0:
+../LFS.h:88:5: note: previous declaration of ‘verificadorDeTabla’ was here
+ int verificadorDeTabla(char* NOMBRE_TABLA);
+     ^
+../LFS.c:762:5: error: static declaration of ‘buscarEnMetadata’ follows non-static declaration
+ int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo) {
+     ^
+In file included from ../LFS.c:8:0:
+../LFS.h:89:5: note: previous declaration of ‘buscarEnMetadata’ was here
+ int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo);
+     ^
+../LFS.c:773:13: error: static declaration of ‘levantarBitmap’ follows non-static declaration
+ t_bitarray* levantarBitmap() {
+             ^
+In file included from ../LFS.c:8:0:
+../LFS.h:90:13: note: previous declaration of ‘levantarBitmap’ was here
+ t_bitarray* levantarBitmap();
+             ^
+../LFS.c:792:7: error: static declaration of ‘obtener_bit_libre’ follows non-static declaration
+ off_t obtener_bit_libre() {
+       ^
+In file included from ../LFS.c:8:0:
+../LFS.h:91:7: note: previous declaration of ‘obtener_bit_libre’ was here
+ off_t obtener_bit_libre();
+       ^
+../LFS.c:804:5: error: static declaration of ‘dumpeoMemoria’ follows non-static declaration
+ int dumpeoMemoria() {
+     ^
+In file included from ../LFS.c:8:0:
+../LFS.h:96:5: note: previous declaration of ‘dumpeoMemoria’ was here
+ int dumpeoMemoria();
+     ^
+../LFS.c:814:6: error: static declaration of ‘dumpearTabla’ follows non-static declaration
+ void dumpearTabla(t_tabla* UnaTabla) {
+      ^
+In file included from ../LFS.c:8:0:
+../LFS.h:95:6: note: previous declaration of ‘dumpearTabla’ was here
+ void dumpearTabla(t_tabla* UnaTabla);
+      ^
+../LFS.c:857:6: error: static declaration of ‘bajarAMemoria’ follows non-static declaration
+ void bajarAMemoria(int* fd2, char* registroParaEscribir, t_config* tmp) {
+      ^
+In file included from ../LFS.c:8:0:
+../LFS.h:94:6: note: previous declaration of ‘bajarAMemoria’ was here
+ void bajarAMemoria(int* fd2, char* registroParaEscribir, t_config* tmp);
+      ^
+../LFS.c:898:7: error: static declaration of ‘mapearBloque’ follows non-static declaration
+ char* mapearBloque(int fd2, size_t textsize) {
+       ^
+In file included from ../LFS.c:8:0:
+../LFS.h:97:7: note: previous declaration of ‘mapearBloque’ was here
+ char* mapearBloque(int fd2, size_t textsize);
+       ^
+../LFS.c:907:6: error: static declaration of ‘actualizarBloquesEnTemporal’ follows non-static declaration
+ void actualizarBloquesEnTemporal(t_config* tmp, off_t bloque) {
+      ^
+In file included from ../LFS.c:8:0:
+../LFS.h:98:6: note: previous declaration of ‘actualizarBloquesEnTemporal’ was here
+ void actualizarBloquesEnTemporal(t_config* tmp, off_t bloque);
+      ^
+../LFS.c:919:7: error: static declaration of ‘direccionarTabla’ follows non-static declaration
+ char* direccionarTabla(char* tabla){
+       ^
+In file included from ../LFS.c:8:0:
+../LFS.h:101:7: note: previous declaration of ‘direccionarTabla’ was here
+ char* direccionarTabla(char* tabla);
+       ^
+../LFS.c:927:6: error: static declaration of ‘crearBitmapNuestro’ follows non-static declaration
+ void crearBitmapNuestro() {
+      ^
+In file included from ../LFS.c:8:0:
+../LFS.h:102:6: note: previous declaration of ‘crearBitmapNuestro’ was here
+ void crearBitmapNuestro(); // Solo lo usamos para pruebas
+      ^
+../LFS.c:948:5: error: static declaration of ‘borrarDirectorio’ follows non-static declaration
+ int borrarDirectorio(char *dir) {
+     ^
+In file included from ../LFS.c:8:0:
+../LFS.h:103:5: note: previous declaration of ‘borrarDirectorio’ was here
+ int borrarDirectorio(char* directorio);
+     ^
+../LFS.c:978:6: error: static declaration of ‘finalizarEjecutcion’ follows non-static declaration
+ void finalizarEjecutcion() {
+      ^
+In file included from ../LFS.c:8:0:
+../LFS.h:106:6: note: previous declaration of ‘finalizarEjecutcion’ was here
+ void finalizarEjecutcion();
+      ^
+../LFS.c:991:1: error: expected declaration or statement at end of input
+ }
+ ^
+../LFS.c:991:1: warning: control reaches end of non-void function [-Wreturn-type]
+ }
+ ^
+make: *** [LFS.o] Error 1
+11:29:40 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+make: Nothing to be done for 'all'.
+11:29:45 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+make: Nothing to be done for 'all'.
+11:29:46 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+make: Nothing to be done for 'all'.
+11:29:46 **** Incremental Build of configuration Default for project LFS ****
+make all 
+Building file: ../LFS.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+../LFS.c: In function ‘main’:
+../LFS.c:46:3: warning: implicit declaration of function ‘logeoDeErroresLFS’ [-Wimplicit-function-declaration]
+   logeoDeErroresLFS(noLevantoServidor, logger);
+   ^
+../LFS.c:191:38: error: expected expression before ‘t_metadata’
+      errorHandler = DESCRIBEmultiple(t_metadata* metadata);
+                                      ^
+../LFS.c:193:40: error: expected expression before ‘char’
+      errorHandler = DESCRIBEespecifico(char* packDescribe->nombre_tabla, t_metadata* metadata);
+                                        ^
+../LFS.c:193:21: error: too few arguments to function ‘DESCRIBEespecifico’
+      errorHandler = DESCRIBEespecifico(char* packDescribe->nombre_tabla, t_metadata* metadata);
+                     ^
+In file included from ../LFS.c:8:0:
+../LFS.h:74:5: note: declared here
+ int DESCRIBEespecifico (char* NOMBRE_TABLA, t_metadata* metadata);
+     ^
+subdir.mk:18: recipe for target 'LFS.o' failed
+make: *** [LFS.o] Error 1
+11:29:47 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+make: Nothing to be done for 'all'.
+11:30:04 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+make: Nothing to be done for 'all'.
+11:30:05 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+make: Nothing to be done for 'all'.
+11:30:05 **** Incremental Build of configuration Default for project LFS ****
+make all 
+Building file: ../LFS.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+../LFS.c: In function ‘main’:
+../LFS.c:46:3: warning: implicit declaration of function ‘logeoDeErroresLFS’ [-Wimplicit-function-declaration]
+   logeoDeErroresLFS(noLevantoServidor, logger);
+   ^
+../LFS.c:191:38: error: expected expression before ‘t_metadata’
+      errorHandler = DESCRIBEmultiple(t_metadata* metadata);
+                                      ^
+../LFS.c:193:40: error: expected expression before ‘char’
+      errorHandler = DESCRIBEespecifico(char* packDescribe->nombre_tabla, t_metadata* metadata);
+                                        ^
+../LFS.c:193:21: error: too few arguments to function ‘DESCRIBEespecifico’
+      errorHandler = DESCRIBEespecifico(char* packDescribe->nombre_tabla, t_metadata* metadata);
+                     ^
+In file included from ../LFS.c:8:0:
+../LFS.h:74:5: note: declared here
+ int DESCRIBEespecifico(char* NOMBRE_TABLA, t_metadata* metadata);
+     ^
+make: *** [LFS.o] Error 1
+subdir.mk:18: recipe for target 'LFS.o' failed
+11:30:06 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+make: Nothing to be done for 'all'.
+11:33:13 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+make: Nothing to be done for 'all'.
+11:33:14 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+make: Nothing to be done for 'all'.
+11:33:15 **** Incremental Build of configuration Default for project LFS ****
+make all 
+Building file: ../LFS.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+../LFS.c: In function ‘main’:
+../LFS.c:46:3: warning: implicit declaration of function ‘logeoDeErroresLFS’ [-Wimplicit-function-declaration]
+   logeoDeErroresLFS(noLevantoServidor, logger);
+   ^
+../LFS.c:191:38: error: expected expression before ‘t_metadata’
+      errorHandler = DESCRIBEmultiple(t_metadata* metadata);
+                                      ^
+../LFS.c:193:40: error: expected expression before ‘char’
+      errorHandler = DESCRIBEespecifico(char* packDescribe->nombre_tabla, t_metadata* metadata);
+                                        ^
+../LFS.c:193:21: error: too few arguments to function ‘DESCRIBEespecifico’
+      errorHandler = DESCRIBEespecifico(char* packDescribe->nombre_tabla, t_metadata* metadata);
+                     ^
+In file included from ../LFS.c:8:0:
+../LFS.h:74:5: note: declared here
+ int DESCRIBEespecifico(char* NOMBRE_TABLA, t_metadata* metadata);
+     ^
+subdir.mk:18: recipe for target 'LFS.o' failed
+make: *** [LFS.o] Error 1
+11:33:16 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+make: Nothing to be done for 'all'.
+11:49:43 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+Building file: ../sock/comuniacion.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/comuniacion.d" -MT"sock/comuniacion.o" -o "sock/comuniacion.o" "../sock/comuniacion.c"
+In file included from ../sock/comuniacion.c:1:0:
+../sock/comunicacion.h:93:1: warning: no semicolon at end of struct or union
+ } t_metadata;
+ ^
+../sock/comuniacion.c: In function ‘cargarPaqueteSelect’:
+../sock/comuniacion.c:28:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(spliteado,free);
+                                 ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c: In function ‘cargarPaqueteInsert’:
+../sock/comuniacion.c:52:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(spliteado,free);
+                                 ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c:54:29: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(value,free);
+                             ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c: In function ‘cargarPaqueteCreate’:
+../sock/comuniacion.c:79:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(spliteado,free);
+                                 ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c: In function ‘cargarPaqueteDescribe’:
+../sock/comuniacion.c:99:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(spliteado,free);
+                                 ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c: In function ‘cargarPaqueteDrop’:
+../sock/comuniacion.c:113:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(spliteado,free);
+                                 ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c: In function ‘desSerializarSelect’:
+../sock/comuniacion.c:175:21: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  packageSelect->key = malloc(sizeof(uint16_t));
+                     ^
+../sock/comuniacion.c:161:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+  uint32_t nombrelong;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarInsert’:
+../sock/comuniacion.c:242:21: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  packageInsert->key = malloc(sizeof(uint16_t));
+                     ^
+../sock/comuniacion.c:246:11: warning: unused variable ‘valuelong’ [-Wunused-variable]
+  uint32_t valuelong;
+           ^
+../sock/comuniacion.c:229:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+  uint32_t nombrelong;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarCreate’:
+../sock/comuniacion.c:342:29: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  packageCreate->particiones = malloc(sizeof(int));
+                             ^
+../sock/comuniacion.c:348:33: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  packageCreate->compaction_time = malloc(sizeof(int));
+                                 ^
+../sock/comuniacion.c:319:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+  uint32_t nombrelong;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarDescribe’:
+../sock/comuniacion.c:396:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+  uint32_t nombrelong;
+           ^
+../sock/comuniacion.c: In function ‘desserializarDescribe_Response’:
+../sock/comuniacion.c:437:22: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  package->cant_tablas=malloc(sizeof(uint16_t));
+                      ^
+../sock/comuniacion.c: In function ‘desSerializarDrop’:
+../sock/comuniacion.c:478:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+  uint32_t nombrelong;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarJournal’:
+../sock/comuniacion.c:514:9: warning: ‘status’ is used uninitialized in this function [-Wuninitialized]
+  return status;
+         ^
+Finished building: ../sock/comuniacion.c
+ 
+Building file: ../sock/logger.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/logger.d" -MT"sock/logger.o" -o "sock/logger.o" "../sock/logger.c"
+In file included from ../sock/logger.h:33:0,
+                 from ../sock/logger.c:8:
+../sock/comunicacion.h:93:1: warning: no semicolon at end of struct or union
+ } t_metadata;
+ ^
+Finished building: ../sock/logger.c
+ 
+Building file: ../sock/sockets-lib.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/sockets-lib.d" -MT"sock/sockets-lib.o" -o "sock/sockets-lib.o" "../sock/sockets-lib.c"
+In file included from ../sock/sockets-lib.c:11:0:
+../sock/comunicacion.h:93:1: warning: no semicolon at end of struct or union
+ } t_metadata;
+ ^
+Finished building: ../sock/sockets-lib.c
+ 
+Building target: libsockets-lib.so
+Invoking: GCC C Linker
+gcc -shared -o "libsockets-lib.so"  ./sock/comuniacion.o ./sock/logger.o ./sock/sockets-lib.o   -lcommons
+Finished building target: libsockets-lib.so
+ 
+11:49:53 **** Incremental Build of configuration Debug for project Memoria ****
 make all 
 Building file: ../Memoria.c
 Invoking: GCC C Compiler
 gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"Memoria.d" -MT"Memoria.o" -o "Memoria.o" "../Memoria.c"
-../Memoria.c: In function ‘main’:
-../Memoria.c:34:12: warning: implicit declaration of function ‘agregarPaginaAMemoria’ [-Wimplicit-function-declaration]
-  int cod = agregarPaginaAMemoria(seg,pagina,memoria);
-            ^
-../Memoria.c:50:9: warning: too many arguments for format [-Wformat-extra-args]
-  printf("PRIMER SEGMENTO, PRIMERA PAG\n", a->key);
-         ^
-../Memoria.c:55:9: warning: too many arguments for format [-Wformat-extra-args]
-  printf("PRIMER SEGMENTO, SEGUNDA PAG\n", a->key);
-         ^
-../Memoria.c:60:9: warning: too many arguments for format [-Wformat-extra-args]
-  printf("SEGUNDO SEGMENTO, PRIMERA PAG\n", a->key);
-         ^
-../Memoria.c:34:6: warning: variable ‘cod’ set but not used [-Wunused-but-set-variable]
-  int cod = agregarPaginaAMemoria(seg,pagina,memoria);
-      ^
+In file included from ../Memoria.h:11:0,
+                 from ../Memoria.c:1:
+/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/comunicacion.h:93:1: warning: no semicolon at end of struct or union
+ } t_metadata;
+ ^
 Finished building: ../Memoria.c
+ 
+Building file: ../Querys.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"Querys.d" -MT"Querys.o" -o "Querys.o" "../Querys.c"
+In file included from ../Memoria.h:11:0,
+                 from ../Querys.h:10,
+                 from ../Querys.c:8:
+/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/comunicacion.h:93:1: warning: no semicolon at end of struct or union
+ } t_metadata;
+ ^
+../Querys.c: In function ‘ejecutarConsulta’:
+../Querys.c:21:2: warning: enumeration value ‘DESCRIBE’ not handled in switch [-Wswitch]
+  switch (*header) {
+  ^
+../Querys.c:21:2: warning: enumeration value ‘ADD’ not handled in switch [-Wswitch]
+../Querys.c:21:2: warning: enumeration value ‘RUN’ not handled in switch [-Wswitch]
+../Querys.c:21:2: warning: enumeration value ‘REGISTRO’ not handled in switch [-Wswitch]
+Finished building: ../Querys.c
  
 Building target: Memoria
 Invoking: GCC C Linker
-gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Memoria"  ./Memoria.o   -lsockets-lib -lcommons -lpthread
+gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Memoria"  ./Memoria.o ./Querys.o   -lsockets-lib -lcommons -lpthread
 Finished building target: Memoria
  
+11:50:03 **** Incremental Build of configuration Default for project LFS ****
+make all 
+Building file: ../LFS.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+In file included from ../LFS.h:32:0,
+                 from ../LFS.c:8:
+/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/comunicacion.h:93:1: warning: no semicolon at end of struct or union
+ } t_metadata;
+ ^
+../LFS.c: In function ‘main’:
+../LFS.c:46:3: warning: implicit declaration of function ‘logeoDeErroresLFS’ [-Wimplicit-function-declaration]
+   logeoDeErroresLFS(noLevantoServidor, logger);
+   ^
+../LFS.c: In function ‘DESCRIBEmultiple’:
+../LFS.c:488:2: error: number of arguments doesn’t match prototype
+  int DESCRIBEmultiple(){
+  ^
+In file included from ../LFS.c:8:0:
+../LFS.h:75:5: error: prototype declaration
+ int DESCRIBEmultiple(t_metadata* metadata);
+     ^
+../LFS.c:497:2: error: called object is not a function or function pointer
+  DESCRIBE(dp->d_name);
+  ^
+../LFS.c: At top level:
+../LFS.c:505:3: error: expected identifier or ‘(’ before ‘/’ token
+  */
+   ^
+subdir.mk:18: recipe for target 'LFS.o' failed
+make: *** [LFS.o] Error 1
+11:50:09 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+Building file: ../Kernel.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"Kernel.d" -MT"Kernel.o" -o "Kernel.o" "../Kernel.c"
+In file included from ../Kernel.h:20:0,
+                 from ../Kernel.c:8:
+/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/comunicacion.h:93:1: warning: no semicolon at end of struct or union
+ } t_metadata;
+ ^
+../Kernel.c: In function ‘despacharQuery’:
+../Kernel.c:141:10: warning: unused variable ‘header’ [-Wunused-variable]
+     type header=leerHeader(socket_memoria);
+          ^
+../Kernel.c:214:5: warning: implicit declaration of function ‘ejecutarAdd’ [-Wimplicit-function-declaration]
+     ejecutarAdd(consulta);
+     ^
+../Kernel.c:268:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(tempSplit,free);
+                                 ^
+In file included from /home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:20:0,
+                 from ../Kernel.h:19,
+                 from ../Kernel.c:8:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../Kernel.c: In function ‘validarSelect’:
+../Kernel.c:404:29: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(split,free);
+                             ^
+In file included from /home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:20:0,
+                 from ../Kernel.h:19,
+                 from ../Kernel.c:8:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../Kernel.c: In function ‘validarInsert’:
+../Kernel.c:419:29: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(split,free);
+                             ^
+In file included from /home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:20:0,
+                 from ../Kernel.h:19,
+                 from ../Kernel.c:8:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../Kernel.c:421:29: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(value,free);
+                             ^
+In file included from /home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:20:0,
+                 from ../Kernel.h:19,
+                 from ../Kernel.c:8:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../Kernel.c: In function ‘validarCreate’:
+../Kernel.c:431:29: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(split,free);
+                             ^
+In file included from /home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:20:0,
+                 from ../Kernel.h:19,
+                 from ../Kernel.c:8:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../Kernel.c: In function ‘validarAdd’:
+../Kernel.c:456:29: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(split,free);
+                             ^
+In file included from /home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:20:0,
+                 from ../Kernel.h:19,
+                 from ../Kernel.c:8:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../Kernel.c: At top level:
+../Kernel.c:461:6: warning: conflicting types for ‘ejecutarAdd’
+ void ejecutarAdd(char* consulta){
+      ^
+../Kernel.c:214:5: note: previous implicit declaration of ‘ejecutarAdd’ was here
+     ejecutarAdd(consulta);
+     ^
+../Kernel.c: In function ‘ejecutarAdd’:
+../Kernel.c:503:29: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(split,free);
+                             ^
+In file included from /home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:20:0,
+                 from ../Kernel.h:19,
+                 from ../Kernel.c:8:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../Kernel.c: In function ‘main’:
+../Kernel.c:56:5: warning: ignoring return value of ‘fgets’, declared with attribute warn_unused_result [-Wunused-result]
+     fgets(consulta, 256, stdin);
+     ^
+../Kernel.c: In function ‘obtCons’:
+../Kernel.c:525:1: warning: control reaches end of non-void function [-Wreturn-type]
+ }
+ ^
+../Kernel.c: In function ‘CPU’:
+../Kernel.c:331:5: warning: ‘info’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+   if(info == 1){
+     ^
+Finished building: ../Kernel.c
+ 
+Building target: Kernel
+Invoking: GCC C Linker
+gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Kernel"  ./Kernel.o   -lsockets-lib -lcommons -lpthread
+Finished building target: Kernel
+ 
+11:52:47 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+make: Nothing to be done for 'all'.
+11:52:51 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+make: Nothing to be done for 'all'.
+11:52:54 **** Incremental Build of configuration Default for project LFS ****
+make all 
+Building file: ../LFS.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+In file included from ../LFS.h:32:0,
+                 from ../LFS.c:8:
+/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/comunicacion.h:93:1: warning: no semicolon at end of struct or union
+ } t_metadata;
+ ^
+../LFS.c: In function ‘main’:
+../LFS.c:46:3: warning: implicit declaration of function ‘logeoDeErroresLFS’ [-Wimplicit-function-declaration]
+   logeoDeErroresLFS(noLevantoServidor, logger);
+   ^
+../LFS.c: In function ‘DESCRIBEmultiple’:
+../LFS.c:488:2: error: number of arguments doesn’t match prototype
+  int DESCRIBEmultiple(){
+  ^
+In file included from ../LFS.c:8:0:
+../LFS.h:75:5: error: prototype declaration
+ int DESCRIBEmultiple(t_metadata* metadata);
+     ^
+../LFS.c:497:2: error: called object is not a function or function pointer
+  DESCRIBE(dp->d_name);
+  ^
+subdir.mk:18: recipe for target 'LFS.o' failed
+make: *** [LFS.o] Error 1
+11:52:59 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+make: Nothing to be done for 'all'.
+11:53:14 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+make: Nothing to be done for 'all'.
+11:53:18 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+make: Nothing to be done for 'all'.
+11:53:23 **** Incremental Build of configuration Default for project LFS ****
+make all 
+Building file: ../LFS.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+In file included from ../LFS.h:32:0,
+                 from ../LFS.c:8:
+/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/comunicacion.h:93:1: warning: no semicolon at end of struct or union
+ } t_metadata;
+ ^
+../LFS.c: In function ‘main’:
+../LFS.c:46:3: warning: implicit declaration of function ‘logeoDeErroresLFS’ [-Wimplicit-function-declaration]
+   logeoDeErroresLFS(noLevantoServidor, logger);
+   ^
+../LFS.c: In function ‘DESCRIBEmultiple’:
+../LFS.c:488:2: error: number of arguments doesn’t match prototype
+  int DESCRIBEmultiple(){
+  ^
+In file included from ../LFS.c:8:0:
+../LFS.h:75:5: error: prototype declaration
+ int DESCRIBEmultiple(t_metadata* metadata);
+     ^
+../LFS.c:504:4: warning: control reaches end of non-void function [-Wreturn-type]
+  */}
+    ^
+subdir.mk:18: recipe for target 'LFS.o' failed
+make: *** [LFS.o] Error 1
+11:53:27 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+make: Nothing to be done for 'all'.
+11:54:02 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+make: Nothing to be done for 'all'.
+11:54:06 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+make: Nothing to be done for 'all'.
+11:54:10 **** Incremental Build of configuration Default for project LFS ****
+make all 
+Building file: ../LFS.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+In file included from ../LFS.h:32:0,
+                 from ../LFS.c:8:
+/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/comunicacion.h:93:1: warning: no semicolon at end of struct or union
+ } t_metadata;
+ ^
+../LFS.c: In function ‘main’:
+../LFS.c:46:3: warning: implicit declaration of function ‘logeoDeErroresLFS’ [-Wimplicit-function-declaration]
+   logeoDeErroresLFS(noLevantoServidor, logger);
+   ^
+../LFS.c: In function ‘DESCRIBEmultiple’:
+../LFS.c:488:2: error: number of arguments doesn’t match prototype
+  int DESCRIBEmultiple(){
+  ^
+In file included from ../LFS.c:8:0:
+../LFS.h:75:5: error: prototype declaration
+ int DESCRIBEmultiple(t_metadata* metadata);
+     ^
+make: *** [LFS.o] Error 1
+subdir.mk:18: recipe for target 'LFS.o' failed
+11:54:14 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+make: Nothing to be done for 'all'.
+12:00:24 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+Building file: ../sock/comuniacion.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/comuniacion.d" -MT"sock/comuniacion.o" -o "sock/comuniacion.o" "../sock/comuniacion.c"
+../sock/comuniacion.c: In function ‘cargarPaqueteSelect’:
+../sock/comuniacion.c:28:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(spliteado,free);
+                                 ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c: In function ‘cargarPaqueteInsert’:
+../sock/comuniacion.c:52:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(spliteado,free);
+                                 ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c:54:29: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(value,free);
+                             ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c: In function ‘cargarPaqueteCreate’:
+../sock/comuniacion.c:79:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(spliteado,free);
+                                 ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c: In function ‘cargarPaqueteDescribe’:
+../sock/comuniacion.c:99:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(spliteado,free);
+                                 ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c: In function ‘cargarPaqueteDrop’:
+../sock/comuniacion.c:113:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(spliteado,free);
+                                 ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c: In function ‘desSerializarSelect’:
+../sock/comuniacion.c:175:21: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  packageSelect->key = malloc(sizeof(uint16_t));
+                     ^
+../sock/comuniacion.c:161:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+  uint32_t nombrelong;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarInsert’:
+../sock/comuniacion.c:242:21: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  packageInsert->key = malloc(sizeof(uint16_t));
+                     ^
+../sock/comuniacion.c:246:11: warning: unused variable ‘valuelong’ [-Wunused-variable]
+  uint32_t valuelong;
+           ^
+../sock/comuniacion.c:229:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+  uint32_t nombrelong;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarCreate’:
+../sock/comuniacion.c:342:29: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  packageCreate->particiones = malloc(sizeof(int));
+                             ^
+../sock/comuniacion.c:348:33: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  packageCreate->compaction_time = malloc(sizeof(int));
+                                 ^
+../sock/comuniacion.c:319:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+  uint32_t nombrelong;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarDescribe’:
+../sock/comuniacion.c:396:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+  uint32_t nombrelong;
+           ^
+../sock/comuniacion.c: In function ‘desserializarDescribe_Response’:
+../sock/comuniacion.c:437:22: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  package->cant_tablas=malloc(sizeof(uint16_t));
+                      ^
+../sock/comuniacion.c: In function ‘desSerializarDrop’:
+../sock/comuniacion.c:478:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+  uint32_t nombrelong;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarJournal’:
+../sock/comuniacion.c:514:9: warning: ‘status’ is used uninitialized in this function [-Wuninitialized]
+  return status;
+         ^
+Finished building: ../sock/comuniacion.c
+ 
+Building file: ../sock/logger.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/logger.d" -MT"sock/logger.o" -o "sock/logger.o" "../sock/logger.c"
+Finished building: ../sock/logger.c
+ 
+Building file: ../sock/sockets-lib.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/sockets-lib.d" -MT"sock/sockets-lib.o" -o "sock/sockets-lib.o" "../sock/sockets-lib.c"
+Finished building: ../sock/sockets-lib.c
+ 
+Building target: libsockets-lib.so
+Invoking: GCC C Linker
+gcc -shared -o "libsockets-lib.so"  ./sock/comuniacion.o ./sock/logger.o ./sock/sockets-lib.o   -lcommons
+Finished building target: libsockets-lib.so
+ 
+12:00:32 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+Building file: ../Memoria.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"Memoria.d" -MT"Memoria.o" -o "Memoria.o" "../Memoria.c"
+Finished building: ../Memoria.c
+ 
+Building file: ../Querys.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"Querys.d" -MT"Querys.o" -o "Querys.o" "../Querys.c"
+../Querys.c: In function ‘ejecutarConsulta’:
+../Querys.c:21:2: warning: enumeration value ‘DESCRIBE’ not handled in switch [-Wswitch]
+  switch (*header) {
+  ^
+../Querys.c:21:2: warning: enumeration value ‘ADD’ not handled in switch [-Wswitch]
+../Querys.c:21:2: warning: enumeration value ‘RUN’ not handled in switch [-Wswitch]
+../Querys.c:21:2: warning: enumeration value ‘REGISTRO’ not handled in switch [-Wswitch]
+Finished building: ../Querys.c
+ 
+Building target: Memoria
+Invoking: GCC C Linker
+gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Memoria"  ./Memoria.o ./Querys.o   -lsockets-lib -lcommons -lpthread
+Finished building target: Memoria
+ 
+12:00:39 **** Incremental Build of configuration Default for project LFS ****
+make all 
+Building file: ../LFS.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+../LFS.c: In function ‘main’:
+../LFS.c:46:3: warning: implicit declaration of function ‘logeoDeErroresLFS’ [-Wimplicit-function-declaration]
+   logeoDeErroresLFS(noLevantoServidor, logger);
+   ^
+../LFS.c:65:22: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+    meta.consistencia = a_metadata->consistency;
+                      ^
+../LFS.c:94:21: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+   meta.consistencia = SC;
+                     ^
+../LFS.c: In function ‘DESCRIBEespecifico’:
+../LFS.c:479:25: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+  metadata->consistencia = buscarEnMetadata(NOMBRE_TABLA, "CONSISTENCY");
+                         ^
+../LFS.c: In function ‘main’:
+../LFS.c:185:8: warning: ‘packCreate’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+    if (!packCreate || !metadata)
+        ^
+Finished building: ../LFS.c
+ 
+Building target: LFS
+Invoking: GCC C++ Linker
+g++ -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "LFS"  ./LFS.o   -lsockets-lib -lcommons
+Finished building target: LFS
+ 
+12:00:48 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+Building file: ../Kernel.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"Kernel.d" -MT"Kernel.o" -o "Kernel.o" "../Kernel.c"
+../Kernel.c: In function ‘despacharQuery’:
+../Kernel.c:141:10: warning: unused variable ‘header’ [-Wunused-variable]
+     type header=leerHeader(socket_memoria);
+          ^
+../Kernel.c:214:5: warning: implicit declaration of function ‘ejecutarAdd’ [-Wimplicit-function-declaration]
+     ejecutarAdd(consulta);
+     ^
+../Kernel.c:268:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(tempSplit,free);
+                                 ^
+In file included from /home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:20:0,
+                 from ../Kernel.h:19,
+                 from ../Kernel.c:8:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../Kernel.c: In function ‘validarSelect’:
+../Kernel.c:404:29: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(split,free);
+                             ^
+In file included from /home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:20:0,
+                 from ../Kernel.h:19,
+                 from ../Kernel.c:8:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../Kernel.c: In function ‘validarInsert’:
+../Kernel.c:419:29: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(split,free);
+                             ^
+In file included from /home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:20:0,
+                 from ../Kernel.h:19,
+                 from ../Kernel.c:8:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../Kernel.c:421:29: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(value,free);
+                             ^
+In file included from /home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:20:0,
+                 from ../Kernel.h:19,
+                 from ../Kernel.c:8:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../Kernel.c: In function ‘validarCreate’:
+../Kernel.c:431:29: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(split,free);
+                             ^
+In file included from /home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:20:0,
+                 from ../Kernel.h:19,
+                 from ../Kernel.c:8:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../Kernel.c: In function ‘validarAdd’:
+../Kernel.c:456:29: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(split,free);
+                             ^
+In file included from /home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:20:0,
+                 from ../Kernel.h:19,
+                 from ../Kernel.c:8:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../Kernel.c: At top level:
+../Kernel.c:461:6: warning: conflicting types for ‘ejecutarAdd’
+ void ejecutarAdd(char* consulta){
+      ^
+../Kernel.c:214:5: note: previous implicit declaration of ‘ejecutarAdd’ was here
+     ejecutarAdd(consulta);
+     ^
+../Kernel.c: In function ‘ejecutarAdd’:
+../Kernel.c:503:29: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(split,free);
+                             ^
+In file included from /home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:20:0,
+                 from ../Kernel.h:19,
+                 from ../Kernel.c:8:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../Kernel.c: In function ‘main’:
+../Kernel.c:56:5: warning: ignoring return value of ‘fgets’, declared with attribute warn_unused_result [-Wunused-result]
+     fgets(consulta, 256, stdin);
+     ^
+../Kernel.c: In function ‘obtCons’:
+../Kernel.c:525:1: warning: control reaches end of non-void function [-Wreturn-type]
+ }
+ ^
+../Kernel.c: In function ‘CPU’:
+../Kernel.c:331:5: warning: ‘info’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+   if(info == 1){
+     ^
+Finished building: ../Kernel.c
+ 
+Building target: Kernel
+Invoking: GCC C Linker
+gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Kernel"  ./Kernel.o   -lsockets-lib -lcommons -lpthread
+Finished building target: Kernel
+ 
+12:05:54 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+make: Nothing to be done for 'all'.
+12:05:58 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+make: Nothing to be done for 'all'.
+12:06:01 **** Incremental Build of configuration Default for project LFS ****
+make all 
+Building file: ../LFS.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+../LFS.c: In function ‘main’:
+../LFS.c:45:3: warning: implicit declaration of function ‘logeoDeErroresLFS’ [-Wimplicit-function-declaration]
+   logeoDeErroresLFS(noLevantoServidor, logger);
+   ^
+../LFS.c:64:22: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+    meta.consistencia = a_metadata->consistency;
+                      ^
+../LFS.c:95:21: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+   meta.consistencia = SC;
+                     ^
+../LFS.c: In function ‘DESCRIBEespecifico’:
+../LFS.c:488:25: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+  metadata->consistencia = buscarEnMetadata(NOMBRE_TABLA, "CONSISTENCY");
+                         ^
+../LFS.c:489:29: warning: comparison between pointer and integer
+  if (metadata->consistencia < 1 || metadata->consistencia > 3)
+                             ^
+../LFS.c:489:59: warning: comparison between pointer and integer
+  if (metadata->consistencia < 1 || metadata->consistencia > 3)
+                                                           ^
+../LFS.c: In function ‘main’:
+../LFS.c:190:8: warning: ‘packCreate’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+    if (!packCreate || !metadata)
+        ^
+Finished building: ../LFS.c
+ 
+Building target: LFS
+Invoking: GCC C++ Linker
+g++ -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "LFS"  ./LFS.o   -lsockets-lib -lcommons
+Finished building target: LFS
+ 
+12:06:09 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+make: Nothing to be done for 'all'.
+12:11:49 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+make: Nothing to be done for 'all'.
+12:11:53 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+make: Nothing to be done for 'all'.
+12:11:56 **** Incremental Build of configuration Default for project LFS ****
+make all 
+Building file: ../LFS.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+../LFS.c: In function ‘main’:
+../LFS.c:45:3: warning: implicit declaration of function ‘logeoDeErroresLFS’ [-Wimplicit-function-declaration]
+   logeoDeErroresLFS(noLevantoServidor, logger);
+   ^
+../LFS.c:53:32: error: called object is not a function or function pointer
+  t_list* metadatas = (t_list*) DESCRIBE();
+                                ^
+../LFS.c:64:22: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+    meta.consistencia = a_metadata->consistency;
+                      ^
+../LFS.c:95:21: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+   meta.consistencia = SC;
+                     ^
+../LFS.c: At top level:
+../LFS.c:516:9: error: ‘DESCRIBE’ redeclared as different kind of symbol
+ t_list* DESCRIBE() {
+         ^
+In file included from ../LFS.h:32:0,
+                 from ../LFS.c:8:
+/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/comunicacion.h:14:26: note: previous definition of ‘DESCRIBE’ was here
+  INSERT, SELECT, CREATE, DESCRIBE, DROP, JOURNAL, ADD, RUN, REGISTRO, NIL
+                          ^
+subdir.mk:18: recipe for target 'LFS.o' failed
+make: *** [LFS.o] Error 1
+12:12:00 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+make: Nothing to be done for 'all'.
+12:13:18 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+make: Nothing to be done for 'all'.
+12:13:21 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+make: Nothing to be done for 'all'.
+12:13:25 **** Incremental Build of configuration Default for project LFS ****
+make all 
+Building file: ../LFS.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+../LFS.c: In function ‘main’:
+../LFS.c:45:3: warning: implicit declaration of function ‘logeoDeErroresLFS’ [-Wimplicit-function-declaration]
+   logeoDeErroresLFS(noLevantoServidor, logger);
+   ^
+../LFS.c:53:32: error: called object is not a function or function pointer
+  t_list* metadatas = (t_list*) DESCRIBE();
+                                ^
+../LFS.c:64:22: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+    meta.consistencia = a_metadata->consistency;
+                      ^
+../LFS.c:95:21: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+   meta.consistencia = SC;
+                     ^
+../LFS.c:196:21: warning: implicit declaration of function ‘DESCRIBEmultiple’ [-Wimplicit-function-declaration]
+      errorHandler = DESCRIBEmultiple(metadata);
+                     ^
+../LFS.c:198:21: warning: implicit declaration of function ‘DESCRIBEespecifico’ [-Wimplicit-function-declaration]
+      errorHandler = DESCRIBEespecifico(
+                     ^
+subdir.mk:18: recipe for target 'LFS.o' failed
+make: *** [LFS.o] Error 1
+12:13:29 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+make: Nothing to be done for 'all'.
+12:14:21 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+Building file: ../sock/comuniacion.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/comuniacion.d" -MT"sock/comuniacion.o" -o "sock/comuniacion.o" "../sock/comuniacion.c"
+../sock/comuniacion.c: In function ‘cargarPaqueteSelect’:
+../sock/comuniacion.c:28:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(spliteado,free);
+                                 ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c: In function ‘cargarPaqueteInsert’:
+../sock/comuniacion.c:52:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(spliteado,free);
+                                 ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c:54:29: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(value,free);
+                             ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c: In function ‘cargarPaqueteCreate’:
+../sock/comuniacion.c:79:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(spliteado,free);
+                                 ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c: In function ‘cargarPaqueteDescribe’:
+../sock/comuniacion.c:99:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(spliteado,free);
+                                 ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c: In function ‘cargarPaqueteDrop’:
+../sock/comuniacion.c:113:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(spliteado,free);
+                                 ^
+In file included from ../sock/sockets-lib.h:20:0,
+                 from ../sock/comunicacion.h:11,
+                 from ../sock/comuniacion.c:1:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../sock/comuniacion.c: In function ‘desSerializarSelect’:
+../sock/comuniacion.c:175:21: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  packageSelect->key = malloc(sizeof(uint16_t));
+                     ^
+../sock/comuniacion.c:161:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+  uint32_t nombrelong;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarInsert’:
+../sock/comuniacion.c:242:21: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  packageInsert->key = malloc(sizeof(uint16_t));
+                     ^
+../sock/comuniacion.c:246:11: warning: unused variable ‘valuelong’ [-Wunused-variable]
+  uint32_t valuelong;
+           ^
+../sock/comuniacion.c:229:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+  uint32_t nombrelong;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarCreate’:
+../sock/comuniacion.c:342:29: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  packageCreate->particiones = malloc(sizeof(int));
+                             ^
+../sock/comuniacion.c:348:33: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  packageCreate->compaction_time = malloc(sizeof(int));
+                                 ^
+../sock/comuniacion.c:319:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+  uint32_t nombrelong;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarDescribe’:
+../sock/comuniacion.c:396:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+  uint32_t nombrelong;
+           ^
+../sock/comuniacion.c: In function ‘desserializarDescribe_Response’:
+../sock/comuniacion.c:437:22: warning: assignment makes integer from pointer without a cast [-Wint-conversion]
+  package->cant_tablas=malloc(sizeof(uint16_t));
+                      ^
+../sock/comuniacion.c: In function ‘desSerializarDrop’:
+../sock/comuniacion.c:478:11: warning: unused variable ‘nombrelong’ [-Wunused-variable]
+  uint32_t nombrelong;
+           ^
+../sock/comuniacion.c: In function ‘desSerializarJournal’:
+../sock/comuniacion.c:514:9: warning: ‘status’ is used uninitialized in this function [-Wuninitialized]
+  return status;
+         ^
+Finished building: ../sock/comuniacion.c
+ 
+Building file: ../sock/logger.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/logger.d" -MT"sock/logger.o" -o "sock/logger.o" "../sock/logger.c"
+Finished building: ../sock/logger.c
+ 
+Building file: ../sock/sockets-lib.c
+Invoking: GCC C Compiler
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"sock/sockets-lib.d" -MT"sock/sockets-lib.o" -o "sock/sockets-lib.o" "../sock/sockets-lib.c"
+Finished building: ../sock/sockets-lib.c
+ 
+Building target: libsockets-lib.so
+Invoking: GCC C Linker
+gcc -shared -o "libsockets-lib.so"  ./sock/comuniacion.o ./sock/logger.o ./sock/sockets-lib.o   -lcommons
+Finished building target: libsockets-lib.so
+ 
+12:14:27 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+Building file: ../Memoria.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"Memoria.d" -MT"Memoria.o" -o "Memoria.o" "../Memoria.c"
+Finished building: ../Memoria.c
+ 
+Building file: ../Querys.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"Querys.d" -MT"Querys.o" -o "Querys.o" "../Querys.c"
+../Querys.c: In function ‘ejecutarConsulta’:
+../Querys.c:21:2: warning: enumeration value ‘DESCRIBE’ not handled in switch [-Wswitch]
+  switch (*header) {
+  ^
+../Querys.c:21:2: warning: enumeration value ‘ADD’ not handled in switch [-Wswitch]
+../Querys.c:21:2: warning: enumeration value ‘RUN’ not handled in switch [-Wswitch]
+../Querys.c:21:2: warning: enumeration value ‘REGISTRO’ not handled in switch [-Wswitch]
+Finished building: ../Querys.c
+ 
+Building target: Memoria
+Invoking: GCC C Linker
+gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Memoria"  ./Memoria.o ./Querys.o   -lsockets-lib -lcommons -lpthread
+Finished building target: Memoria
+ 
+12:14:33 **** Incremental Build of configuration Default for project LFS ****
+make all 
+Building file: ../LFS.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+../LFS.c: In function ‘main’:
+../LFS.c:45:3: warning: implicit declaration of function ‘logeoDeErroresLFS’ [-Wimplicit-function-declaration]
+   logeoDeErroresLFS(noLevantoServidor, logger);
+   ^
+../LFS.c:64:22: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+    meta.consistencia = a_metadata->consistency;
+                      ^
+../LFS.c:95:21: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+   meta.consistencia = SC;
+                     ^
+../LFS.c:196:21: warning: implicit declaration of function ‘DESCRIBEmultiple’ [-Wimplicit-function-declaration]
+      errorHandler = DESCRIBEmultiple(metadata);
+                     ^
+../LFS.c:198:21: warning: implicit declaration of function ‘DESCRIBEespecifico’ [-Wimplicit-function-declaration]
+      errorHandler = DESCRIBEespecifico(
+                     ^
+../LFS.c:190:8: warning: ‘packCreate’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+    if (!packCreate || !metadata)
+        ^
+Finished building: ../LFS.c
+ 
+Building target: LFS
+Invoking: GCC C++ Linker
+g++ -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "LFS"  ./LFS.o   -lsockets-lib -lcommons
+./LFS.o: In function `main':
+makefile:47: recipe for target 'LFS' failed
+/home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/Default/../LFS.c:196: undefined reference to `DESCRIBEmultiple'
+/home/utnso/tp-2019-1c-UbUTNu/Operativos/LFS/Default/../LFS.c:198: undefined reference to `DESCRIBEespecifico'
+collect2: error: ld returned 1 exit status
+make: *** [LFS] Error 1
+12:14:39 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+Building file: ../Kernel.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"Kernel.d" -MT"Kernel.o" -o "Kernel.o" "../Kernel.c"
+../Kernel.c: In function ‘despacharQuery’:
+../Kernel.c:141:10: warning: unused variable ‘header’ [-Wunused-variable]
+     type header=leerHeader(socket_memoria);
+          ^
+../Kernel.c:214:5: warning: implicit declaration of function ‘ejecutarAdd’ [-Wimplicit-function-declaration]
+     ejecutarAdd(consulta);
+     ^
+../Kernel.c:268:33: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(tempSplit,free);
+                                 ^
+In file included from /home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:20:0,
+                 from ../Kernel.h:19,
+                 from ../Kernel.c:8:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../Kernel.c: In function ‘validarSelect’:
+../Kernel.c:404:29: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(split,free);
+                             ^
+In file included from /home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:20:0,
+                 from ../Kernel.h:19,
+                 from ../Kernel.c:8:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../Kernel.c: In function ‘validarInsert’:
+../Kernel.c:419:29: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(split,free);
+                             ^
+In file included from /home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:20:0,
+                 from ../Kernel.h:19,
+                 from ../Kernel.c:8:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../Kernel.c:421:29: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(value,free);
+                             ^
+In file included from /home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:20:0,
+                 from ../Kernel.h:19,
+                 from ../Kernel.c:8:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../Kernel.c: In function ‘validarCreate’:
+../Kernel.c:431:29: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(split,free);
+                             ^
+In file included from /home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:20:0,
+                 from ../Kernel.h:19,
+                 from ../Kernel.c:8:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../Kernel.c: In function ‘validarAdd’:
+../Kernel.c:456:29: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(split,free);
+                             ^
+In file included from /home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:20:0,
+                 from ../Kernel.h:19,
+                 from ../Kernel.c:8:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../Kernel.c: At top level:
+../Kernel.c:461:6: warning: conflicting types for ‘ejecutarAdd’
+ void ejecutarAdd(char* consulta){
+      ^
+../Kernel.c:214:5: note: previous implicit declaration of ‘ejecutarAdd’ was here
+     ejecutarAdd(consulta);
+     ^
+../Kernel.c: In function ‘ejecutarAdd’:
+../Kernel.c:503:29: warning: passing argument 2 of ‘string_iterate_lines’ from incompatible pointer type [-Wincompatible-pointer-types]
+  string_iterate_lines(split,free);
+                             ^
+In file included from /home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/sock/sockets-lib.h:20:0,
+                 from ../Kernel.h:19,
+                 from ../Kernel.c:8:
+/usr/include/commons/string.h:221:8: note: expected ‘void (*)(char *)’ but argument is of type ‘void (*)(void *)’
+  void  string_iterate_lines(char ** strings, void (*closure)(char *));
+        ^
+../Kernel.c: In function ‘main’:
+../Kernel.c:56:5: warning: ignoring return value of ‘fgets’, declared with attribute warn_unused_result [-Wunused-result]
+     fgets(consulta, 256, stdin);
+     ^
+../Kernel.c: In function ‘obtCons’:
+../Kernel.c:525:1: warning: control reaches end of non-void function [-Wreturn-type]
+ }
+ ^
+../Kernel.c: In function ‘CPU’:
+../Kernel.c:331:5: warning: ‘info’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+   if(info == 1){
+     ^
+Finished building: ../Kernel.c
+ 
+Building target: Kernel
+Invoking: GCC C Linker
+gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Kernel"  ./Kernel.o   -lsockets-lib -lcommons -lpthread
+Finished building target: Kernel
+ 
+12:19:26 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+make: Nothing to be done for 'all'.
+12:19:29 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+make: Nothing to be done for 'all'.
+12:19:33 **** Incremental Build of configuration Default for project LFS ****
+make all 
+Building file: ../LFS.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+../LFS.c: In function ‘main’:
+../LFS.c:45:3: warning: implicit declaration of function ‘logeoDeErroresLFS’ [-Wimplicit-function-declaration]
+   logeoDeErroresLFS(noLevantoServidor, logger);
+   ^
+../LFS.c:64:22: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+    meta.consistencia = a_metadata->consistency;
+                      ^
+../LFS.c:95:21: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+   meta.consistencia = SC;
+                     ^
+../LFS.c:190:8: warning: ‘packCreate’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+    if (!packCreate || !metadata)
+        ^
+Finished building: ../LFS.c
+ 
+Building target: LFS
+Invoking: GCC C++ Linker
+g++ -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "LFS"  ./LFS.o   -lsockets-lib -lcommons
+Finished building target: LFS
+ 
+12:19:43 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+make: Nothing to be done for 'all'.
+12:19:59 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+make: Nothing to be done for 'all'.
+12:20:01 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+make: Nothing to be done for 'all'.
+12:20:03 **** Incremental Build of configuration Default for project LFS ****
+make all 
+make: Nothing to be done for 'all'.
+12:20:06 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+make: Nothing to be done for 'all'.
+12:27:05 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+make: Nothing to be done for 'all'.
+12:27:07 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+make: Nothing to be done for 'all'.
+12:27:10 **** Incremental Build of configuration Default for project LFS ****
+make all 
+Building file: ../LFS.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+../LFS.c: In function ‘main’:
+../LFS.c:45:3: warning: implicit declaration of function ‘logeoDeErroresLFS’ [-Wimplicit-function-declaration]
+   logeoDeErroresLFS(noLevantoServidor, logger);
+   ^
+../LFS.c:65:22: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+    meta.consistencia = a_metadata->consistency;
+                      ^
+../LFS.c:96:21: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+   meta.consistencia = SC;
+                     ^
+../LFS.c:192:8: warning: ‘packCreate’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+    if (!packCreate || !metadata)
+        ^
+Finished building: ../LFS.c
+ 
+Building target: LFS
+Invoking: GCC C++ Linker
+g++ -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "LFS"  ./LFS.o   -lsockets-lib -lcommons
+Finished building target: LFS
+ 
+12:27:19 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+make: Nothing to be done for 'all'.
+12:28:51 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+make: Nothing to be done for 'all'.
+12:28:53 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+make: Nothing to be done for 'all'.
+12:28:57 **** Incremental Build of configuration Default for project LFS ****
+make all 
+Building file: ../LFS.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+../LFS.c: In function ‘main’:
+../LFS.c:45:3: warning: implicit declaration of function ‘logeoDeErroresLFS’ [-Wimplicit-function-declaration]
+   logeoDeErroresLFS(noLevantoServidor, logger);
+   ^
+../LFS.c:65:22: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+    meta.consistencia = a_metadata->consistency;
+                      ^
+../LFS.c:96:21: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+   meta.consistencia = SC;
+                     ^
+../LFS.c:192:8: warning: ‘packCreate’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+    if (!packCreate || !metadata)
+        ^
+Finished building: ../LFS.c
+ 
+Building target: LFS
+Invoking: GCC C++ Linker
+g++ -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "LFS"  ./LFS.o   -lsockets-lib -lcommons
+Finished building target: LFS
+ 
+12:29:04 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+make: Nothing to be done for 'all'.
+12:44:09 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+make: Nothing to be done for 'all'.
+12:44:10 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+make: Nothing to be done for 'all'.
+12:44:11 **** Incremental Build of configuration Default for project LFS ****
+make all 
+make: Nothing to be done for 'all'.
+12:44:12 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+make: Nothing to be done for 'all'.
+12:51:58 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+make: Nothing to be done for 'all'.
+12:51:59 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+make: Nothing to be done for 'all'.
+12:52:00 **** Incremental Build of configuration Default for project LFS ****
+make all 
+make: Nothing to be done for 'all'.
+12:52:01 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+make: Nothing to be done for 'all'.
+13:08:00 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+make: Nothing to be done for 'all'.
+13:08:01 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+make: Nothing to be done for 'all'.
+13:08:02 **** Incremental Build of configuration Default for project LFS ****
+make all 
+Building file: ../LFS.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+../LFS.c: In function ‘main’:
+../LFS.c:45:3: warning: implicit declaration of function ‘logeoDeErroresLFS’ [-Wimplicit-function-declaration]
+   logeoDeErroresLFS(noLevantoServidor, logger);
+   ^
+../LFS.c:65:22: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+    meta.consistencia = a_metadata->consistency;
+                      ^
+../LFS.c:96:21: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+   meta.consistencia = SC;
+                     ^
+../LFS.c:192:8: warning: ‘packCreate’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+    if (!packCreate || !metadata)
+        ^
+Finished building: ../LFS.c
+ 
+Building target: LFS
+Invoking: GCC C++ Linker
+g++ -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "LFS"  ./LFS.o   -lsockets-lib -lcommons
+Finished building target: LFS
+ 
+13:08:04 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+make: Nothing to be done for 'all'.
+13:08:48 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+make: Nothing to be done for 'all'.
+13:08:48 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+make: Nothing to be done for 'all'.
+13:08:49 **** Incremental Build of configuration Default for project LFS ****
+make all 
+Building file: ../LFS.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+../LFS.c: In function ‘main’:
+../LFS.c:45:3: warning: implicit declaration of function ‘logeoDeErroresLFS’ [-Wimplicit-function-declaration]
+   logeoDeErroresLFS(noLevantoServidor, logger);
+   ^
+../LFS.c:65:22: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+    meta.consistencia = a_metadata->consistency;
+                      ^
+../LFS.c:96:21: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+   meta.consistencia = SC;
+                     ^
+../LFS.c:192:8: warning: ‘packCreate’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+    if (!packCreate || !metadata)
+        ^
+Finished building: ../LFS.c
+ 
+Building target: LFS
+Invoking: GCC C++ Linker
+g++ -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "LFS"  ./LFS.o   -lsockets-lib -lcommons
+Finished building target: LFS
+ 
+13:08:52 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+make: Nothing to be done for 'all'.
+13:36:26 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+make: Nothing to be done for 'all'.
+13:36:27 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+make: Nothing to be done for 'all'.
+13:36:27 **** Incremental Build of configuration Default for project LFS ****
+make all 
+Building file: ../LFS.c
+Invoking: GCC C Compiler
+gcc -I"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib" -O2 -g -Wall -c -fmessage-length=0 -MMD -MP -MF"LFS.d" -MT"LFS.o" -o "LFS.o" "../LFS.c"
+../LFS.c: In function ‘main’:
+../LFS.c:45:3: warning: implicit declaration of function ‘logeoDeErroresLFS’ [-Wimplicit-function-declaration]
+   logeoDeErroresLFS(noLevantoServidor, logger);
+   ^
+../LFS.c:65:22: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+    meta.consistencia = a_metadata->consistency;
+                      ^
+../LFS.c:96:21: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
+   meta.consistencia = SC;
+                     ^
+../LFS.c:192:8: warning: ‘packCreate’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+    if (!packCreate || !metadata)
+        ^
+Finished building: ../LFS.c
+ 
+Building target: LFS
+Invoking: GCC C++ Linker
+g++ -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "LFS"  ./LFS.o   -lsockets-lib -lcommons
+Finished building target: LFS
+ 
+13:36:29 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+make: Nothing to be done for 'all'.
+13:37:31 **** Incremental Build of configuration Debug for project sockets-lib ****
+make all 
+make: Nothing to be done for 'all'.
+13:37:32 **** Incremental Build of configuration Debug for project Memoria ****
+make all 
+make: Nothing to be done for 'all'.
+13:37:32 **** Incremental Build of configuration Default for project LFS ****
+make all 
+make: Nothing to be done for 'all'.
+13:37:33 **** Incremental Build of configuration Default for project Kernel ****
+make all 
+make: Nothing to be done for 'all'.
