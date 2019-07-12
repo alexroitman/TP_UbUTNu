@@ -160,7 +160,6 @@ void ejecutarConsulta(int socket) {
 		desSerializarDescribe(packDescribe, socket);
 		char* serializado = serializarDescribe(packDescribe);
 		enviarPaquete(socket_lfs,serializado,packDescribe->length);
-		type header = leerHeader(socket_lfs);
 		desserializarDescribe_Response(packDescResp,socket_lfs);
 		char* respSerializada = serializarDescribe_Response(packDescResp);
 		int length = packDescResp->cant_tablas * sizeof(t_metadata) + sizeof(uint16_t);

@@ -260,7 +260,6 @@ int despacharQuery(char* consulta, int socket_memoria) {
 					string_substring_until(consulta,string_length(consulta)-1  ) );
 			serializado = serializarDescribe(paqueteDescribe);
 			enviarPaquete(socket_memoria,serializado,paqueteDescribe->length);
-			//type header = leerHeader(socket_memoria);
 			t_describe* response = malloc(sizeof(t_describe));
 			desserializarDescribe_Response(response,socket_memoria);
 			log_debug(logger,"Cant tablas: %d", response->cant_tablas);
