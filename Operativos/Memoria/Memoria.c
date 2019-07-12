@@ -12,20 +12,20 @@ int main() {
 	miConfig = cargarConfig();
 	log_debug(logger,"Tamanio Memoria: %d",miConfig->tam_mem);
 
-	/*
+
 	socket_lfs = levantarCliente((char*) miConfig->puerto_fs, miConfig->ip_fs);
 	socket_sv = levantarServidor((char*) miConfig->puerto_kernel);
-	*/
-	socket_gossip = levantarServidor((char*) miConfig->miPuerto);
 
-	/*
+	//socket_gossip = levantarServidor((char*) miConfig->miPuerto);
+
+
 	log_debug(logger, "Levanta conexion con kernel");
 	tamanioMaxValue = handshakeLFS(socket_lfs);
 	log_debug(logger,"socket lfs: %d",socket_lfs);
 	log_debug(logger,"socket sv: %d",socket_sv);
 	log_debug(logger, "Handshake con LFS realizado. Tamanio max del value: %d",
 			tamanioMaxValue);
-	*/
+
 	memoria = calloc(miConfig->tam_mem,6 + tamanioMaxValue);
 	cantPagsMax = miConfig->tam_mem / (6 + tamanioMaxValue);
 	log_debug(logger,"Cantidad maxima de paginas en memoria: %d",cantPagsMax);
@@ -37,16 +37,16 @@ int main() {
 	*header = NIL;
 	paramsConsola = malloc(sizeof(tHiloConsola));
 	paramsConsola->header = header;
-	inicializarTablaGossip();
+	//inicializarTablaGossip();
 	pthread_create(&hiloSocket, NULL, (void*) recibirHeader, (void*) header);
 	pthread_create(&hiloConsola, NULL, (void*) leerQuery,
 			(void*) paramsConsola);
 	pthread_create(&hiloJournal, NULL, (void*) journalAsincronico, NULL);
-	pthread_create(&hiloGossip, NULL, (void*) realizarGossiping, NULL);
+	//pthread_create(&hiloGossip, NULL, (void*) realizarGossiping, NULL);
 	pthread_join(hiloSocket, NULL);
 	pthread_join(hiloConsola, NULL);
 	pthread_join(hiloJournal, NULL);
-	pthread_join(hiloGossip, NULL);
+	//pthread_join(hiloGossip, NULL);
 }
 
 void* recibirHeader(void* arg) {
@@ -54,7 +54,7 @@ void* recibirHeader(void* arg) {
 		int listener = socket_sv;
 		FD_ZERO(&active_fd_set);
 		FD_SET(socket_sv, &active_fd_set);
-		FD_SET(socket_gossip, &active_fd_set);
+		//FD_SET(socket_gossip, &active_fd_set);
 		int flagError = 0;
 
 		while (flagError != 1) {
@@ -62,6 +62,7 @@ void* recibirHeader(void* arg) {
 			recibioSocket = false;
 			if (select(FD_SETSIZE, &read_fd_set, NULL, NULL, NULL) < 0) {
 				log_error(logger, "error de socket");
+				flagError = 1;
 			} else {
 				for (int i = 0; i < FD_SETSIZE; ++i) {
 					if (FD_ISSET(i, &read_fd_set)) {
@@ -144,9 +145,9 @@ void realizarGossiping() {
 					//log_debug(logger, "llego algo del cliente %d", clienteGossip);
 					recibioSocket = true;
 					usleep(miConfig->retardoMemoria * 1000);
-					sem_wait(&mutexJournal);
+					//sem_wait(&mutexJournal);
 					ejecutarConsulta(clienteGossip);
-					sem_post(&mutexJournal);
+					//sem_post(&mutexJournal);
 				}else{
 					error = -1;
 				}
@@ -468,8 +469,8 @@ int listMinTimestamp(t_list* listaPaginas,elem_tabla_pag* pagina){
 
 
 void ejecutarJournal(){
-	sem_wait(&mutexJournal);
 	log_debug(logger,"Realizando Journal");
+
 	int index = 0;
 	tSegmento* miSegmento = list_get(tablaSegmentos, 0);
 
@@ -483,7 +484,6 @@ void ejecutarJournal(){
 	}
 
 	log_debug(logger, "Journal finalizado");
-	sem_post(&mutexJournal);
 }
 
 void mandarInsertDePaginasModificadas(t_list* paginasModificadas,char* nombreTabla, int socket_lfs){

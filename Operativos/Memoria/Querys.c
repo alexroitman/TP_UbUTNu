@@ -255,6 +255,7 @@ void* leerQuery(void* params) {
 			*(parametros->header) = DROP;
 		}
 		if(!strcmp(tempSplit[0], "JOURNAL\n")){
+			log_debug(logger,"llega journal");
 			*(parametros->header) = JOURNAL;
 		}
 		leyoConsola = true;
