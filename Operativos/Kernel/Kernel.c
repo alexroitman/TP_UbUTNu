@@ -50,7 +50,6 @@ int main(){
 	log_debug(logger,"Sockets inicializados con exito");
 	log_debug(logger,"Se tendra un nivel de multiprocesamiento de: %d cpus", miConfig->MULT_PROC);
 	log_debug(logger, "Realizando describe general");
-	despacharQuery("describe\n",socket_memoria);
 	pthread_t cpus[miConfig->MULT_PROC];
 	t_list *sockets = list_create();
 	list_add_in_index(sockets,0,socket_memoria);
@@ -622,12 +621,12 @@ int devolverSocket(consistencias cons, t_list* sockets, int key){
 	int pos;
 	switch(cons){
 	case sc:
-		return (int)list_get(sockets,SC->id);
+		return list_get(sockets,SC->id);
 		break;
 	case shc:
 		pos = SHC(key);
 		if(pos!=-1){
-			return (int)list_get(sockets,pos);
+			return list_get(sockets,pos);
 		}else{
 			return pos;
 		}
@@ -635,7 +634,7 @@ int devolverSocket(consistencias cons, t_list* sockets, int key){
 	case ec:
 		pos = EC((int) time(NULL));
 		if(pos!=-1){
-			return (int)list_get(sockets,pos);
+			return list_get(sockets,pos);
 		}else{
 			return pos;
 		}

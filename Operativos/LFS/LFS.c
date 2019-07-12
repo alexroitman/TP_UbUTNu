@@ -548,11 +548,11 @@ Metadata* obtener_metadata(char* ruta) {
 
 int consistency_to_int(char* cons) {
 	if (!strcmp(cons, "SC"))
-		return 0;
+		return SC;
 	else if (!strcmp(cons, "SHC"))
-		return 1;
+		return SHC;
 	else if (!strcmp(cons, "EC"))
-		return 2;
+		return EC;
 	return errorDeConsistencia;
 }
 
