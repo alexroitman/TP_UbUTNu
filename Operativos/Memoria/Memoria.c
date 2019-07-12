@@ -120,7 +120,7 @@ void realizarGossiping() {
 			int clienteGossip;
 			do {
 				usleep(miConfig->retardoGossiping * 1000);
-				log_debug(logger, "pruebo conectarme");
+				//log_debug(logger, "pruebo conectarme");
 				clienteGossip = levantarClienteNoBloqueante(
 						(miConfig->puerto_seeds)[0], (miConfig->ip_seeds)[0]);
 				if (clienteGossip == -1) {
@@ -141,12 +141,14 @@ void realizarGossiping() {
 						+ sizeof(int);
 				error = enviarPaquete(clienteGossip, serializado, tam_tot);
 				if (recv(clienteGossip, &(*header), sizeof(type), MSG_WAITALL) > 0) {
-					log_debug(logger, "llego algo del cliente %d", clienteGossip);
+					//log_debug(logger, "llego algo del cliente %d", clienteGossip);
 					recibioSocket = true;
 					usleep(miConfig->retardoMemoria * 1000);
 					sem_wait(&mutexJournal);
 					ejecutarConsulta(clienteGossip);
 					sem_post(&mutexJournal);
+				}else{
+					error = -1;
 				}
 
 				free(packGossip);
@@ -200,7 +202,7 @@ int desSerializarGossip(tGossip* packGossip, int socket){
 		log_debug(logger,"no llego nada wacho");
 		return 0;
 	}
-	log_debug(logger,"cant memorias: %d",packGossip->cant_memorias);
+	//log_debug(logger,"cant memorias: %d",packGossip->cant_memorias);
 
 
 	packGossip->memorias = malloc(packGossip->cant_memorias * sizeof(tMemoria));
