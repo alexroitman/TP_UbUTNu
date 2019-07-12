@@ -1,0 +1,34 @@
+[INFO] 13:34:47:186 Memoria.c/(6256:6256): Por favor ingrese el path de su archivo de configuracion (Memoria.config): 
+[INFO] 13:35:34:538 Memoria.c/(6310:6310): Por favor ingrese el path de su archivo de configuracion (Memoria.config): 
+[DEBUG] 13:35:40:596 Memoria.c/(6310:6310): Levanta archivo de config
+[DEBUG] 13:35:40:596 Memoria.c/(6310:6310): Tamanio Memoria: 50
+[DEBUG] 13:35:40:596 Memoria.c/(6310:6310): Levanta conexion con kernel
+[DEBUG] 13:35:40:596 Memoria.c/(6310:6310): socket lfs: 4
+[DEBUG] 13:35:40:596 Memoria.c/(6310:6310): socket sv: 5
+[DEBUG] 13:35:40:596 Memoria.c/(6310:6310): Handshake con LFS realizado. Tamanio max del value: 8
+[DEBUG] 13:35:40:596 Memoria.c/(6310:6310): Cantidad maxima de paginas en memoria: 3
+[DEBUG] 13:35:44:814 Memoria.c/(6310:6321): cliente nuevo: 6
+[DEBUG] 13:35:44:814 Memoria.c/(6310:6321): llego algo del cliente 6
+[DEBUG] 13:35:55:749 Memoria.c/(6310:6321): cliente nuevo: 7
+[DEBUG] 13:35:55:750 Memoria.c/(6310:6321): cliente nuevo: 8
+[DEBUG] 13:35:55:751 Memoria.c/(6310:6321): cliente nuevo: 9
+[DEBUG] 13:36:12:570 Memoria.c/(6310:6321): llego algo del cliente 6
+[INFO] 13:39:06:757 Memoria.c/(6439:6439): Por favor ingrese el path de su archivo de configuracion (Memoria.config): 
+[DEBUG] 13:39:12:281 Memoria.c/(6439:6439): Levanta archivo de config
+[DEBUG] 13:39:12:281 Memoria.c/(6439:6439): Tamanio Memoria: 50
+[DEBUG] 13:39:31:848 Memoria.c/(6439:6439): Levanta conexion con kernel
+[DEBUG] 13:39:31:849 Memoria.c/(6439:6439): socket lfs: 4
+[DEBUG] 13:39:31:849 Memoria.c/(6439:6439): socket sv: 5
+[DEBUG] 13:39:31:849 Memoria.c/(6439:6439): Handshake con LFS realizado. Tamanio max del value: 8
+[DEBUG] 13:39:31:849 Memoria.c/(6439:6439): Cantidad maxima de paginas en memoria: 3
+[DEBUG] 13:39:39:473 Memoria.c/(6439:6461): cliente nuevo: 6
+[DEBUG] 13:39:39:474 Memoria.c/(6439:6461): llego algo del cliente 6
+[DEBUG] 13:39:42:777 Memoria.c/(6439:6461): cliente nuevo: 7
+[DEBUG] 13:39:42:778 Memoria.c/(6439:6461): cliente nuevo: 8
+[DEBUG] 13:39:42:779 Memoria.c/(6439:6461): cliente nuevo: 9
+[DEBUG] 13:39:57:261 Memoria.c/(6439:6461): llego algo del cliente 6
+[DEBUG] 13:41:12:320 Memoria.c/(6439:6461): Segmento cargado en tabla
+[DEBUG] 13:41:13:344 Memoria.c/(6439:6461): Pagina cargada en memoria.
+[DEBUG] 13:41:27:560 Memoria.c/(6439:6461): Value enviado a Kernel
+[DEBUG] 13:41:31:216 Memoria.c/(6439:6464): Realizando Journal
+[DEBUG] 13:41:31:216 Memoria.c/(6439:6464): Journal finalizado
