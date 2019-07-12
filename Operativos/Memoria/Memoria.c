@@ -271,7 +271,7 @@ tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg) {
 	return seg;
 }
 
-int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina) {
+int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina, bool modificado) {
 	int cantPags = 0;
 	int timeAux;
 	memcpy(&timeAux,memoria + 2,4);
@@ -293,7 +293,7 @@ int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina) {
 	memcpy((memoria + offset + 6),pagina->value,tamanioMaxValue);
 
 	elem_tabla_pag* pagTabla = malloc(sizeof(elem_tabla_pag));
-	pagTabla->modificado = true;//PARA PROBARRRRRRRRRRRR!!! TIENE QUE SERTRUE
+	pagTabla->modificado = modificado;//PARA PROBARRRRRRRRRRRR!!! TIENE QUE SERTRUE
 	pagTabla->offsetMemoria = offset;
 	pagTabla->index = list_size(seg->tablaPaginas);
 	pagTabla->ultimoTime = (int) time (NULL);
@@ -574,20 +574,20 @@ t_miConfig* cargarConfig() {
 }
 
 void chequearMemoriaFull(bool leyoConsola, int error,int socket, tSegmento* miSegmento,
-		tPagina* pagina) {
+		tPagina* pagina, bool modificado) {
 	int errorLRU;
 	if (error == -1) {
 		errorLRU = ejecutarLRU();
 		if (errorLRU == -1) {
 			if (leyoConsola) {
 				ejecutarJournal();
-				agregarPaginaAMemoria(miSegmento, pagina);
+				agregarPaginaAMemoria(miSegmento, pagina,modificado);
 			} else {
 				//le envio el error a kernel para que me devuelva un JOURNAL y la consulta denuevo
 				send(socket, &error, sizeof(int), 0);
 			}
 		} else {
-			agregarPaginaAMemoria(miSegmento, pagina);
+			agregarPaginaAMemoria(miSegmento, pagina,modificado);
 		}
 	}else{
 		if(!leyoConsola){

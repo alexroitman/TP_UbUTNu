@@ -54,7 +54,7 @@ void ejecutarConsulta(int socket) {
 							tablaSegmentos);
 					miSegmento = obtenerUltimoSegmentoDeTabla(tablaSegmentos);
 				}
-				error = agregarPaginaAMemoria(miSegmento, pagina);
+				error = agregarPaginaAMemoria(miSegmento, pagina,false);
 				send(socket, &error, sizeof(error), 0);
 			}else{
 				error = 1;
@@ -63,7 +63,7 @@ void ejecutarConsulta(int socket) {
 			//SI NO LO ENCONTRO IGUALMENTE SE LO MANDO A KERNEL PARA QUE TAMBIEN MANEJE EL ERROR
 			//enviarRegistroAKernel(reg, socket_kernel, leyoConsola);
 		}
-		chequearMemoriaFull(leyoConsola, error ,socket, miSegmento, pagina);
+		chequearMemoriaFull(leyoConsola, error ,socket, miSegmento, pagina, false);
 		if(error == 1){
 			enviarRegistroAKernel(reg, socket, leyoConsola);
 		}
@@ -96,7 +96,7 @@ void ejecutarConsulta(int socket) {
 				pagina->key = packInsert->key;
 				pagina->timestamp = (int) time (NULL);
 				strcpy(pagina->value,packInsert->value);
-				error = agregarPaginaAMemoria(miSegmento,pagina);
+				error = agregarPaginaAMemoria(miSegmento,pagina,true);
 
 			}
 
@@ -108,11 +108,11 @@ void ejecutarConsulta(int socket) {
 			strcpy(pagina->value, packInsert->value);
 			cargarSegmentoEnTabla(packInsert->nombre_tabla, tablaSegmentos);
 			miSegmento = obtenerUltimoSegmentoDeTabla(tablaSegmentos);
-			error = agregarPaginaAMemoria(miSegmento,pagina);
+			error = agregarPaginaAMemoria(miSegmento,pagina,true);
 
 		}
 
-		chequearMemoriaFull(leyoConsola,error,socket, miSegmento, pagina);
+		chequearMemoriaFull(leyoConsola,error,socket, miSegmento, pagina,true);
 
 		free(packInsert);
 		free(packInsert->nombre_tabla);

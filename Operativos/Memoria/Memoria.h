@@ -117,7 +117,7 @@ int listMinTimestamp(t_list* listaPaginas,elem_tabla_pag* pagina);
 void ejecutarJournal();
 void actualizarIndexLista(t_list* lista);
 int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla,tPagina* pagina);
-int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina);
+int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina, bool modificado);
 void cargarSegmentoEnTabla(char* path,t_list* listaSeg);
 tSegmento* obtenerSegmentoDeTabla(t_list* tablaSeg,int index);
 int buscarSegmentoEnTabla(char* nombreTabla, tSegmento* segmento, t_list* listaSegmentos);
@@ -132,7 +132,7 @@ void liberarPaginasDelSegmento(tSegmento* miSegmento, t_list* tablaSegmentos);
 void mandarInsertDePaginasModificadas(t_list* paginasModificadas,char* nombreTabla, int socket_lfs);
 void borrarPaginasModificadas(t_list* paginasModificadas, t_list* tablaPaginasMiSegmento);
 void chequearMemoriaFull(bool leyoConsola, int error,int socket, tSegmento* miSegmento,
-		tPagina* pagina);
+		tPagina* pagina, bool modificado);
 void finalizarEjecucion();
 void enviarMensajeAKernel();
 t_miConfig* cargarConfig();
