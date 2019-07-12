@@ -24,8 +24,10 @@ t_contMetrics metricsSC;
 t_contMetrics metricsSHC;
 t_contMetrics metricsEC;
 pthread_t planificador_t;
+t_infoMem *SC;
 t_log *logger;
 t_log *loggerError;
+t_log *loggerWarning;
 t_queue *colaReady;
 t_queue *colaNew;
 t_infoMem *SC;
@@ -44,8 +46,11 @@ int main(){
 	signal(SIGINT, finalizarEjecucion);
 	inicializarTodo();
 	int socket_memoria = levantarCliente(miConfig->puerto_mem, miConfig->ip_mem);
+	SC = malloc(sizeof(t_infoMem));
 	log_debug(logger,"Sockets inicializados con exito");
 	log_debug(logger,"Se tendra un nivel de multiprocesamiento de: %d cpus", miConfig->MULT_PROC);
+	log_debug(logger, "Realizando describe general");
+	despacharQuery("describe\n",socket_memoria);
 	pthread_t cpus[miConfig->MULT_PROC];
 	t_list *sockets = list_create();
 	list_add_in_index(sockets,0,socket_memoria);
@@ -98,7 +103,7 @@ type validarSegunHeader(char* header) {
 					return ADD;
 			}
 
-	if (!strcmp(header, "DESCRIBE")) {
+	if (!strcmp(header, "DESCRIBE") || !strcmp(header, "DESCRIBE\n") ) {
 					return DESCRIBE;
 			}
 	if (!strcmp(header, "DESCRIBE\n")) {
@@ -175,10 +180,9 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				free(paqueteSelect->nombre_tabla);
 				free(serializado);
 			}else{
-				printf("Por favor ingrese la consulta en formato correcto \n");
 				log_error(loggerError,"Se ingreso una consulta no valida");
+				consultaOk = 2;
 			}
-			consultaOk = 1;
 			break;
 		case INSERT:
 			if(validarInsert(consulta)){
@@ -218,10 +222,9 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				free(paqueteInsert->value);
 				free(sinFin);
 			}else{
-				printf("Por favor ingrese la consulta en formato correcto \n");
 				log_error(loggerError,"Se ingreso una consulta no valida");
+				consultaOk = 2;
 			}
-			consultaOk = 1;
 			break;
 		case CREATE:
 			if(validarCreate(consulta)){
@@ -237,10 +240,9 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				free(paqueteCreate->nombre_tabla);
 				free(sinFin);
 			}else{
-				printf("Por favor ingrese la consulta en formato correcto \n");
 				log_error(loggerError,"Se ingreso una consulta no valida");
+				consultaOk = 2;
 			}
-			consultaOk = 1;
 			break;
 		case RUN:
 			log_debug(logger,"Se recibio un RUN con la siguiente path: %s", tempSplit[1]);
@@ -264,7 +266,6 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				ejecutarAdd(consulta);
 				//log_debug(logger,"Se agrego el criterio a: %d ", ((t_infoMem*) list_get(listaMems, 0))->id);
 			}
-			consultaOk = 1;
 			break;
 		case DESCRIBE:
 			log_debug(logger,"Se recibio un DESCRIBE");
@@ -278,6 +279,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 			desserializarDescribe_Response(response,socket_memoria);
 			log_debug(logger,"Cant tablas: %d", response->cant_tablas);
 			ejecutarDescribe(response);
+
 			free(serializado);
 			free(paqueteDescribe->nombre_tabla);
 			consultaOk = 1;
@@ -324,7 +326,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 			free(paqueteDrop->nombre_tabla);
 			break;
 		default:
-			printf("Operacion no valida por el momento \n");
+			log_error(loggerError,"Se ingreso una consulta no disponible por el momento");
 			break;
 		}
 
@@ -341,16 +343,6 @@ int despacharQuery(char* consulta, t_list* sockets) {
 }
 
 void CPU(){
-	/*
-	 * QUERIDOS CHOLO Y FELIPE
-	 * SEGUN VI EN VARIOS POST DE STACK OVERFLOW
-	 * NO HABRIA PROBLEMA SI ME CONECTO AL MISMO PUERTO
-	 * (CUANDO TENGAMOS MAS MEMORIAS MEPA QUE VA A HABER QUE USAR UN PUERTO DIF PARA
-	 * CADA UNA)
-	 * SI ESTO NO VA TENEMOS QUE VER DE HACER UN HANDSHAKE Y QUE EN BASE AL MULTIPROCESAMIENTO
-	 * USTEDES ME DEVUELVAN UN ARRAY DE PUERTOS.
-	 * CON AMOR... UNTER.
-	 */
 	t_list *sockets = list_create();
 	int socket_memoria = levantarCliente(miConfig->puerto_mem,miConfig->ip_mem);
 	list_add_in_index(sockets,0,socket_memoria);
@@ -365,6 +357,7 @@ void CPU(){
 		int info;
 		log_debug(logger,"Se esta corriendo el script: %d", unScript->id);
 		for(int i = 0 ; i < miConfig->quantum; i++){
+			unScript->pos++;
 			info = leerLinea(unScript->path,unScript->pos,consulta);
 			switch(info){
 			case 0:
@@ -385,8 +378,6 @@ void CPU(){
 							unScript->pos);
 					free(unScript->path);
 					free(unScript);
-				}else{
-					unScript->pos++;
 				}
 				break;
 			case 2:
@@ -442,7 +433,7 @@ int leerLinea(char* path, int linea, char* leido){
 	log_debug(logger,"%s", path);
 	FILE* archivo = fopen(path,"r");
 	if(archivo != NULL){
-		int cont = 0;
+		int cont = 1;
 		while (fgets(leido, 256, archivo) != NULL)
 		{
 			if (cont == linea)
@@ -578,6 +569,8 @@ t_infoMem* generarMem(char* consulta){
 	char** split = string_split(consulta," ");
 	t_infoMem* mem = malloc(sizeof(t_infoMem));
 	mem->id = atoi(split[2]);
+	string_iterate_lines(split,free);
+	free(split);
 	return mem;
 }
 
@@ -690,6 +683,7 @@ void inicializarTodo(){
 	contScript = 1;
 	logger = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_DEBUG);
 	loggerError = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_ERROR);
+	loggerWarning = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_WARNING);
 	log_debug(logger,"Cargando configuracion");
 	config = config_create("Kernel.config");
 	cargarConfig(config);
@@ -707,7 +701,12 @@ void inicializarTodo(){
 	listaTablas = list_create();
 	log_debug(logger,"Semaforos incializados con exito");
 	log_debug(logger,"Inicializando sockets");
+	listaMemsEC = list_create();
+	listaMemsSHC = list_create();
+	listaTablas = list_create();
 }
+
+
 
 void finalizarEjecucion() {
 	printf("------------------------\n");

@@ -111,7 +111,6 @@ void ejecutarConsulta(int socket) {
 			error = agregarPaginaAMemoria(miSegmento,pagina);
 
 		}
-
 		chequearMemoriaFull(leyoConsola,error,socket, miSegmento, pagina);
 
 		free(packInsert);
