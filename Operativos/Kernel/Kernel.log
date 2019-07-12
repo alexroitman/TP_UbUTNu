@@ -259,3 +259,327 @@
 [ERROR] 22:07:57:978 Kernel.c/(973:973): Se ingreso un header no valido
 [DEBUG] 22:08:06:1 Kernel.c/(973:973): header select
 [DEBUG] 22:08:06:2 Kernel.c/(973:973): Se recibio un SELECT
+[DEBUG] 12:38:12:363 Kernel.c/(3350:3350): Cargando configuracion
+[DEBUG] 12:38:12:400 Kernel.c/(3350:3350): Configuracion cargada con exito
+[DEBUG] 12:38:12:400 Kernel.c/(3350:3350): Inicializando semaforos
+[DEBUG] 12:38:12:400 Kernel.c/(3350:3350): Semaforos incializados con exito
+[DEBUG] 12:38:12:400 Kernel.c/(3350:3350): Inicializando sockets
+[DEBUG] 12:38:12:400 Kernel.c/(3350:3350): Sockets inicializados con exito
+[DEBUG] 12:38:12:400 Kernel.c/(3350:3350): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 12:38:12:404 Kernel.c/(3350:3350): Realizando describe general
+[DEBUG] 12:38:12:404 Kernel.c/(3350:3350): header describe
+
+[DEBUG] 12:38:12:404 Kernel.c/(3350:3350): Se recibio un DESCRIBE
+[DEBUG] 12:38:13:4 Kernel.c/(3350:3350): Cant tablas: 11
+[DEBUG] 12:38:13:8 Kernel.c/(3350:3350): Se agrego la tabla COSAS a la lista
+[DEBUG] 12:38:13:8 Kernel.c/(3350:3350): Se agrego la tabla BEBIDAS a la lista
+[DEBUG] 12:38:13:8 Kernel.c/(3350:3350): Se agrego la tabla POSTRES a la lista
+[DEBUG] 12:38:13:8 Kernel.c/(3350:3350): Se agrego la tabla AVES a la lista
+[DEBUG] 12:38:13:8 Kernel.c/(3350:3350): Se agrego la tabla TABLA1 a la lista
+[DEBUG] 12:38:13:8 Kernel.c/(3350:3350): Se agrego la tabla TABLA2 a la lista
+[DEBUG] 12:38:13:8 Kernel.c/(3350:3350): Se agrego la tabla COLORES a la lista
+[DEBUG] 12:38:13:8 Kernel.c/(3350:3350): Se agrego la tabla TABLA12 a la lista
+[DEBUG] 12:38:13:8 Kernel.c/(3350:3350): Se agrego la tabla MAMIFEROS a la lista
+[DEBUG] 12:38:13:8 Kernel.c/(3350:3350): Se agrego la tabla FRUTAS a la lista
+[DEBUG] 12:38:13:8 Kernel.c/(3350:3350): Se agrego la tabla MARINOS a la lista
+[DEBUG] 12:38:20:178 Kernel.c/(3350:3350): header add
+[DEBUG] 12:38:20:178 Kernel.c/(3350:3350): Se recibio un ADD
+[DEBUG] 12:38:20:178 Kernel.c/(3350:3350): La memoria 0 se asoció al criterio SC
+
+[ERROR] 12:38:20:178 Kernel.c/(3350:3350): Se ingreso un header no valido
+[DEBUG] 12:38:31:507 Kernel.c/(3350:3350): header select
+[DEBUG] 12:38:31:507 Kernel.c/(3350:3350): Se recibio un SELECT
+[DEBUG] 12:39:12:372 Kernel.c/(3461:3461): Cargando configuracion
+[DEBUG] 12:39:12:372 Kernel.c/(3461:3461): Configuracion cargada con exito
+[DEBUG] 12:39:12:372 Kernel.c/(3461:3461): Inicializando semaforos
+[DEBUG] 12:39:12:372 Kernel.c/(3461:3461): Semaforos incializados con exito
+[DEBUG] 12:39:12:372 Kernel.c/(3461:3461): Inicializando sockets
+[DEBUG] 12:39:12:373 Kernel.c/(3461:3461): Sockets inicializados con exito
+[DEBUG] 12:39:12:373 Kernel.c/(3461:3461): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 12:39:12:373 Kernel.c/(3461:3461): Realizando describe general
+[DEBUG] 12:39:12:373 Kernel.c/(3461:3461): header describe
+
+[DEBUG] 12:39:12:373 Kernel.c/(3461:3461): Se recibio un DESCRIBE
+[DEBUG] 12:39:35:189 Kernel.c/(3498:3498): Cargando configuracion
+[DEBUG] 12:39:35:189 Kernel.c/(3498:3498): Configuracion cargada con exito
+[DEBUG] 12:39:35:189 Kernel.c/(3498:3498): Inicializando semaforos
+[DEBUG] 12:39:35:189 Kernel.c/(3498:3498): Semaforos incializados con exito
+[DEBUG] 12:39:35:189 Kernel.c/(3498:3498): Inicializando sockets
+[DEBUG] 12:39:35:189 Kernel.c/(3498:3498): Sockets inicializados con exito
+[DEBUG] 12:39:35:189 Kernel.c/(3498:3498): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 12:39:35:189 Kernel.c/(3498:3498): Realizando describe general
+[DEBUG] 12:39:35:189 Kernel.c/(3498:3498): header describe
+
+[DEBUG] 12:39:35:189 Kernel.c/(3498:3498): Se recibio un DESCRIBE
+[DEBUG] 12:43:34:827 Kernel.c/(3698:3698): Cargando configuracion
+[DEBUG] 12:43:34:827 Kernel.c/(3698:3698): Configuracion cargada con exito
+[DEBUG] 12:43:34:827 Kernel.c/(3698:3698): Inicializando semaforos
+[DEBUG] 12:43:34:827 Kernel.c/(3698:3698): Semaforos incializados con exito
+[DEBUG] 12:43:34:827 Kernel.c/(3698:3698): Inicializando sockets
+[DEBUG] 12:43:48:444 Kernel.c/(3740:3740): Cargando configuracion
+[DEBUG] 12:43:48:444 Kernel.c/(3740:3740): Configuracion cargada con exito
+[DEBUG] 12:43:48:444 Kernel.c/(3740:3740): Inicializando semaforos
+[DEBUG] 12:43:48:444 Kernel.c/(3740:3740): Semaforos incializados con exito
+[DEBUG] 12:43:48:444 Kernel.c/(3740:3740): Inicializando sockets
+[DEBUG] 12:44:04:940 Kernel.c/(3773:3773): Cargando configuracion
+[DEBUG] 12:44:04:940 Kernel.c/(3773:3773): Configuracion cargada con exito
+[DEBUG] 12:44:04:940 Kernel.c/(3773:3773): Inicializando semaforos
+[DEBUG] 12:44:04:940 Kernel.c/(3773:3773): Semaforos incializados con exito
+[DEBUG] 12:44:04:940 Kernel.c/(3773:3773): Inicializando sockets
+[DEBUG] 12:44:25:244 Kernel.c/(3818:3818): Cargando configuracion
+[DEBUG] 12:44:25:244 Kernel.c/(3818:3818): Configuracion cargada con exito
+[DEBUG] 12:44:25:244 Kernel.c/(3818:3818): Inicializando semaforos
+[DEBUG] 12:44:25:244 Kernel.c/(3818:3818): Semaforos incializados con exito
+[DEBUG] 12:44:25:244 Kernel.c/(3818:3818): Inicializando sockets
+[DEBUG] 12:44:25:244 Kernel.c/(3818:3818): Sockets inicializados con exito
+[DEBUG] 12:44:25:244 Kernel.c/(3818:3818): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 12:44:25:244 Kernel.c/(3818:3818): Realizando describe general
+[DEBUG] 12:44:25:244 Kernel.c/(3818:3818): header describe
+
+[DEBUG] 12:44:25:244 Kernel.c/(3818:3818): Se recibio un DESCRIBE
+[DEBUG] 12:44:25:845 Kernel.c/(3818:3818): Cant tablas: 11
+[DEBUG] 12:44:25:845 Kernel.c/(3818:3818): Se agrego la tabla COSAS a la lista
+[DEBUG] 12:44:25:845 Kernel.c/(3818:3818): Se agrego la tabla BEBIDAS a la lista
+[DEBUG] 12:44:25:845 Kernel.c/(3818:3818): Se agrego la tabla POSTRES a la lista
+[DEBUG] 12:44:25:845 Kernel.c/(3818:3818): Se agrego la tabla AVES a la lista
+[DEBUG] 12:44:25:845 Kernel.c/(3818:3818): Se agrego la tabla TABLA1 a la lista
+[DEBUG] 12:44:25:845 Kernel.c/(3818:3818): Se agrego la tabla TABLA2 a la lista
+[DEBUG] 12:44:25:845 Kernel.c/(3818:3818): Se agrego la tabla COLORES a la lista
+[DEBUG] 12:44:25:845 Kernel.c/(3818:3818): Se agrego la tabla TABLA12 a la lista
+[DEBUG] 12:44:25:845 Kernel.c/(3818:3818): Se agrego la tabla MAMIFEROS a la lista
+[DEBUG] 12:44:25:845 Kernel.c/(3818:3818): Se agrego la tabla FRUTAS a la lista
+[DEBUG] 12:44:25:845 Kernel.c/(3818:3818): Se agrego la tabla MARINOS a la lista
+[DEBUG] 12:44:33:260 Kernel.c/(3818:3818): header add
+[DEBUG] 12:44:33:260 Kernel.c/(3818:3818): Se recibio un ADD
+[DEBUG] 12:44:33:260 Kernel.c/(3818:3818): La memoria 0 se asoció al criterio SC
+
+[ERROR] 12:44:33:260 Kernel.c/(3818:3818): Se ingreso un header no valido
+[DEBUG] 12:44:40:612 Kernel.c/(3818:3818): header select
+[DEBUG] 12:44:40:612 Kernel.c/(3818:3818): Se recibio un SELECT
+[DEBUG] 12:46:49:703 Kernel.c/(3889:3889): Cargando configuracion
+[DEBUG] 12:46:49:704 Kernel.c/(3889:3889): Configuracion cargada con exito
+[DEBUG] 12:46:49:704 Kernel.c/(3889:3889): Inicializando semaforos
+[DEBUG] 12:46:49:704 Kernel.c/(3889:3889): Semaforos incializados con exito
+[DEBUG] 12:46:49:704 Kernel.c/(3889:3889): Inicializando sockets
+[DEBUG] 12:46:49:704 Kernel.c/(3889:3889): Sockets inicializados con exito
+[DEBUG] 12:46:49:704 Kernel.c/(3889:3889): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 12:46:49:704 Kernel.c/(3889:3889): Realizando describe general
+[DEBUG] 12:46:49:704 Kernel.c/(3889:3889): header describe
+
+[DEBUG] 12:46:49:704 Kernel.c/(3889:3889): Se recibio un DESCRIBE
+[DEBUG] 12:46:50:305 Kernel.c/(3889:3889): Cant tablas: 11
+[DEBUG] 12:46:50:305 Kernel.c/(3889:3889): Se agrego la tabla COSAS a la lista
+[DEBUG] 12:46:50:305 Kernel.c/(3889:3889): Se agrego la tabla BEBIDAS a la lista
+[DEBUG] 12:46:50:305 Kernel.c/(3889:3889): Se agrego la tabla POSTRES a la lista
+[DEBUG] 12:46:50:305 Kernel.c/(3889:3889): Se agrego la tabla AVES a la lista
+[DEBUG] 12:46:50:305 Kernel.c/(3889:3889): Se agrego la tabla TABLA1 a la lista
+[DEBUG] 12:46:50:305 Kernel.c/(3889:3889): Se agrego la tabla TABLA2 a la lista
+[DEBUG] 12:46:50:305 Kernel.c/(3889:3889): Se agrego la tabla COLORES a la lista
+[DEBUG] 12:46:50:305 Kernel.c/(3889:3889): Se agrego la tabla TABLA12 a la lista
+[DEBUG] 12:46:50:305 Kernel.c/(3889:3889): Se agrego la tabla MAMIFEROS a la lista
+[DEBUG] 12:46:50:305 Kernel.c/(3889:3889): Se agrego la tabla FRUTAS a la lista
+[DEBUG] 12:46:50:305 Kernel.c/(3889:3889): Se agrego la tabla MARINOS a la lista
+[DEBUG] 12:46:58:191 Kernel.c/(3889:3889): header select
+[DEBUG] 12:46:58:191 Kernel.c/(3889:3889): Se recibio un SELECT
+[DEBUG] 12:48:21:322 Kernel.c/(3984:3984): Cargando configuracion
+[DEBUG] 12:48:21:322 Kernel.c/(3984:3984): Configuracion cargada con exito
+[DEBUG] 12:48:21:322 Kernel.c/(3984:3984): Inicializando semaforos
+[DEBUG] 12:48:21:322 Kernel.c/(3984:3984): Semaforos incializados con exito
+[DEBUG] 12:48:21:322 Kernel.c/(3984:3984): Inicializando sockets
+[DEBUG] 12:48:21:322 Kernel.c/(3984:3984): Sockets inicializados con exito
+[DEBUG] 12:48:21:322 Kernel.c/(3984:3984): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 12:48:21:322 Kernel.c/(3984:3984): Realizando describe general
+[DEBUG] 12:48:21:322 Kernel.c/(3984:3984): header describe
+
+[DEBUG] 12:48:21:322 Kernel.c/(3984:3984): Se recibio un DESCRIBE
+[DEBUG] 12:49:13:963 Kernel.c/(4040:4040): Cargando configuracion
+[DEBUG] 12:49:13:963 Kernel.c/(4040:4040): Configuracion cargada con exito
+[DEBUG] 12:49:13:963 Kernel.c/(4040:4040): Inicializando semaforos
+[DEBUG] 12:49:13:963 Kernel.c/(4040:4040): Semaforos incializados con exito
+[DEBUG] 12:49:13:963 Kernel.c/(4040:4040): Inicializando sockets
+[DEBUG] 12:49:13:963 Kernel.c/(4040:4040): Sockets inicializados con exito
+[DEBUG] 12:49:13:964 Kernel.c/(4040:4040): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 12:49:13:964 Kernel.c/(4040:4040): Realizando describe general
+[DEBUG] 12:49:13:964 Kernel.c/(4040:4040): header describe
+
+[DEBUG] 12:49:13:964 Kernel.c/(4040:4040): Se recibio un DESCRIBE
+[DEBUG] 12:49:14:564 Kernel.c/(4040:4040): Cant tablas: 11
+[DEBUG] 12:49:26:219 Kernel.c/(4040:4040): Se agrego la tabla COSAS a la lista
+[DEBUG] 12:49:29:652 Kernel.c/(4040:4040): Se agrego la tabla BEBIDAS a la lista
+[DEBUG] 12:49:30:646 Kernel.c/(4040:4040): Se agrego la tabla POSTRES a la lista
+[DEBUG] 12:49:31:292 Kernel.c/(4040:4040): Se agrego la tabla AVES a la lista
+[DEBUG] 12:49:31:852 Kernel.c/(4040:4040): Se agrego la tabla TABLA1 a la lista
+[DEBUG] 12:49:32:516 Kernel.c/(4040:4040): Se agrego la tabla TABLA2 a la lista
+[DEBUG] 12:50:28:670 Kernel.c/(4107:4107): Cargando configuracion
+[DEBUG] 12:50:28:670 Kernel.c/(4107:4107): Configuracion cargada con exito
+[DEBUG] 12:50:28:670 Kernel.c/(4107:4107): Inicializando semaforos
+[DEBUG] 12:50:28:670 Kernel.c/(4107:4107): Semaforos incializados con exito
+[DEBUG] 12:50:28:670 Kernel.c/(4107:4107): Inicializando sockets
+[DEBUG] 12:50:28:670 Kernel.c/(4107:4107): Sockets inicializados con exito
+[DEBUG] 12:50:28:670 Kernel.c/(4107:4107): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 12:50:28:670 Kernel.c/(4107:4107): Realizando describe general
+[DEBUG] 12:50:28:670 Kernel.c/(4107:4107): header describe
+
+[DEBUG] 12:50:28:670 Kernel.c/(4107:4107): Se recibio un DESCRIBE
+[DEBUG] 12:50:29:271 Kernel.c/(4107:4107): Cant tablas: 11
+[DEBUG] 12:50:29:271 Kernel.c/(4107:4107): Se agrego la tabla COSAS a la lista
+[DEBUG] 12:50:29:271 Kernel.c/(4107:4107): Se agrego la tabla BEBIDAS a la lista
+[DEBUG] 12:50:29:271 Kernel.c/(4107:4107): Se agrego la tabla POSTRES a la lista
+[DEBUG] 12:50:29:271 Kernel.c/(4107:4107): Se agrego la tabla AVES a la lista
+[DEBUG] 12:50:29:271 Kernel.c/(4107:4107): Se agrego la tabla TABLA1 a la lista
+[DEBUG] 12:50:29:271 Kernel.c/(4107:4107): Se agrego la tabla TABLA2 a la lista
+[DEBUG] 12:50:29:271 Kernel.c/(4107:4107): Se agrego la tabla COLORES a la lista
+[DEBUG] 12:50:29:271 Kernel.c/(4107:4107): Se agrego la tabla TABLA12 a la lista
+[DEBUG] 12:50:29:271 Kernel.c/(4107:4107): Se agrego la tabla MAMIFEROS a la lista
+[DEBUG] 12:50:29:271 Kernel.c/(4107:4107): Se agrego la tabla FRUTAS a la lista
+[DEBUG] 12:50:29:272 Kernel.c/(4107:4107): Se agrego la tabla MARINOS a la lista
+[DEBUG] 12:50:37:733 Kernel.c/(4107:4107): header add
+[DEBUG] 12:50:37:733 Kernel.c/(4107:4107): Se recibio un ADD
+[DEBUG] 12:50:37:733 Kernel.c/(4107:4107): La memoria 0 se asoció al criterio SC
+
+[ERROR] 12:50:37:733 Kernel.c/(4107:4107): Se ingreso un header no valido
+[DEBUG] 12:50:41:853 Kernel.c/(4107:4107): header select
+[DEBUG] 12:50:41:853 Kernel.c/(4107:4107): Se recibio un SELECT
+[DEBUG] 12:51:49:55 Kernel.c/(4176:4176): Cargando configuracion
+[DEBUG] 12:51:49:56 Kernel.c/(4176:4176): Configuracion cargada con exito
+[DEBUG] 12:51:49:56 Kernel.c/(4176:4176): Inicializando semaforos
+[DEBUG] 12:51:49:56 Kernel.c/(4176:4176): Semaforos incializados con exito
+[DEBUG] 12:51:49:56 Kernel.c/(4176:4176): Inicializando sockets
+[DEBUG] 12:51:49:56 Kernel.c/(4176:4176): Sockets inicializados con exito
+[DEBUG] 12:51:49:56 Kernel.c/(4176:4176): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 12:51:49:56 Kernel.c/(4176:4176): Realizando describe general
+[DEBUG] 12:51:49:56 Kernel.c/(4176:4176): header describe
+
+[DEBUG] 12:51:49:56 Kernel.c/(4176:4176): Se recibio un DESCRIBE
+[DEBUG] 12:51:49:657 Kernel.c/(4176:4176): Cant tablas: 11
+[DEBUG] 12:51:49:657 Kernel.c/(4176:4176): Se agrego la tabla COSAS a la lista
+[DEBUG] 12:51:49:657 Kernel.c/(4176:4176): Se agrego la tabla BEBIDAS a la lista
+[DEBUG] 12:51:49:657 Kernel.c/(4176:4176): Se agrego la tabla POSTRES a la lista
+[DEBUG] 12:51:49:657 Kernel.c/(4176:4176): Se agrego la tabla AVES a la lista
+[DEBUG] 12:51:49:657 Kernel.c/(4176:4176): Se agrego la tabla TABLA1 a la lista
+[DEBUG] 12:51:49:660 Kernel.c/(4176:4176): Se agrego la tabla TABLA2 a la lista
+[DEBUG] 12:51:49:660 Kernel.c/(4176:4176): Se agrego la tabla COLORES a la lista
+[DEBUG] 12:51:49:660 Kernel.c/(4176:4176): Se agrego la tabla TABLA12 a la lista
+[DEBUG] 12:51:49:660 Kernel.c/(4176:4176): Se agrego la tabla MAMIFEROS a la lista
+[DEBUG] 12:51:49:660 Kernel.c/(4176:4176): Se agrego la tabla FRUTAS a la lista
+[DEBUG] 12:51:49:660 Kernel.c/(4176:4176): Se agrego la tabla MARINOS a la lista
+[DEBUG] 12:51:55:679 Kernel.c/(4176:4176): header add
+[DEBUG] 12:51:55:679 Kernel.c/(4176:4176): Se recibio un ADD
+[DEBUG] 12:51:55:679 Kernel.c/(4176:4176): La memoria 0 se asoció al criterio SC
+
+[ERROR] 12:51:55:679 Kernel.c/(4176:4176): Se ingreso un header no valido
+[DEBUG] 12:52:03:983 Kernel.c/(4176:4176): header select
+[DEBUG] 12:52:03:983 Kernel.c/(4176:4176): Se recibio un SELECT
+[DEBUG] 12:53:36:18 Kernel.c/(4238:4238): Cargando configuracion
+[DEBUG] 12:53:36:18 Kernel.c/(4238:4238): Configuracion cargada con exito
+[DEBUG] 12:53:36:18 Kernel.c/(4238:4238): Inicializando semaforos
+[DEBUG] 12:53:36:18 Kernel.c/(4238:4238): Semaforos incializados con exito
+[DEBUG] 12:53:36:18 Kernel.c/(4238:4238): Inicializando sockets
+[DEBUG] 12:53:36:18 Kernel.c/(4238:4238): Sockets inicializados con exito
+[DEBUG] 12:53:36:18 Kernel.c/(4238:4238): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 12:53:36:18 Kernel.c/(4238:4238): Realizando describe general
+[DEBUG] 12:53:36:18 Kernel.c/(4238:4238): header describe
+
+[DEBUG] 12:53:36:18 Kernel.c/(4238:4238): Se recibio un DESCRIBE
+[DEBUG] 12:53:36:619 Kernel.c/(4238:4238): Cant tablas: 11
+[DEBUG] 12:53:36:619 Kernel.c/(4238:4238): Se agrego la tabla COSAS a la lista
+[DEBUG] 12:53:36:619 Kernel.c/(4238:4238): Se agrego la tabla BEBIDAS a la lista
+[DEBUG] 12:53:36:619 Kernel.c/(4238:4238): Se agrego la tabla POSTRES a la lista
+[DEBUG] 12:53:36:619 Kernel.c/(4238:4238): Se agrego la tabla AVES a la lista
+[DEBUG] 12:53:36:619 Kernel.c/(4238:4238): Se agrego la tabla TABLA1 a la lista
+[DEBUG] 12:53:36:619 Kernel.c/(4238:4238): Se agrego la tabla TABLA2 a la lista
+[DEBUG] 12:53:36:619 Kernel.c/(4238:4238): Se agrego la tabla COLORES a la lista
+[DEBUG] 12:53:36:619 Kernel.c/(4238:4238): Se agrego la tabla TABLA12 a la lista
+[DEBUG] 12:53:36:619 Kernel.c/(4238:4238): Se agrego la tabla MAMIFEROS a la lista
+[DEBUG] 12:53:36:620 Kernel.c/(4238:4238): Se agrego la tabla FRUTAS a la lista
+[DEBUG] 12:53:36:620 Kernel.c/(4238:4238): Se agrego la tabla MARINOS a la lista
+[DEBUG] 12:53:49:362 Kernel.c/(4238:4238): header add
+[DEBUG] 12:53:49:362 Kernel.c/(4238:4238): Se recibio un ADD
+[DEBUG] 12:53:49:362 Kernel.c/(4238:4238): La memoria 0 se asoció al criterio SC
+
+[ERROR] 12:53:49:362 Kernel.c/(4238:4238): Se ingreso un header no valido
+[DEBUG] 12:54:01:858 Kernel.c/(4238:4238): header select
+[DEBUG] 12:54:01:858 Kernel.c/(4238:4238): Se recibio un SELECT
+[DEBUG] 12:54:31:668 Kernel.c/(4298:4298): Cargando configuracion
+[DEBUG] 12:54:31:668 Kernel.c/(4298:4298): Configuracion cargada con exito
+[DEBUG] 12:54:31:668 Kernel.c/(4298:4298): Inicializando semaforos
+[DEBUG] 12:54:31:668 Kernel.c/(4298:4298): Semaforos incializados con exito
+[DEBUG] 12:54:31:668 Kernel.c/(4298:4298): Inicializando sockets
+[DEBUG] 12:54:31:668 Kernel.c/(4298:4298): Sockets inicializados con exito
+[DEBUG] 12:54:31:668 Kernel.c/(4298:4298): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 12:54:31:668 Kernel.c/(4298:4298): Realizando describe general
+[DEBUG] 12:54:31:668 Kernel.c/(4298:4298): header describe
+
+[DEBUG] 12:54:31:668 Kernel.c/(4298:4298): Se recibio un DESCRIBE
+[DEBUG] 12:54:32:269 Kernel.c/(4298:4298): Cant tablas: 11
+[DEBUG] 12:54:32:269 Kernel.c/(4298:4298): Se agrego la tabla COSAS a la lista
+[DEBUG] 12:54:32:269 Kernel.c/(4298:4298): Se agrego la tabla BEBIDAS a la lista
+[DEBUG] 12:54:32:269 Kernel.c/(4298:4298): Se agrego la tabla POSTRES a la lista
+[DEBUG] 12:54:32:269 Kernel.c/(4298:4298): Se agrego la tabla AVES a la lista
+[DEBUG] 12:54:32:269 Kernel.c/(4298:4298): Se agrego la tabla TABLA1 a la lista
+[DEBUG] 12:54:32:269 Kernel.c/(4298:4298): Se agrego la tabla TABLA2 a la lista
+[DEBUG] 12:54:32:269 Kernel.c/(4298:4298): Se agrego la tabla COLORES a la lista
+[DEBUG] 12:54:32:269 Kernel.c/(4298:4298): Se agrego la tabla TABLA12 a la lista
+[DEBUG] 12:54:32:269 Kernel.c/(4298:4298): Se agrego la tabla MAMIFEROS a la lista
+[DEBUG] 12:54:32:269 Kernel.c/(4298:4298): Se agrego la tabla FRUTAS a la lista
+[DEBUG] 12:54:32:269 Kernel.c/(4298:4298): Se agrego la tabla MARINOS a la lista
+[DEBUG] 12:54:38:403 Kernel.c/(4298:4298): header add
+[DEBUG] 12:54:38:403 Kernel.c/(4298:4298): Se recibio un ADD
+[DEBUG] 12:54:38:403 Kernel.c/(4298:4298): La memoria 0 se asoció al criterio SC
+
+[ERROR] 12:54:38:403 Kernel.c/(4298:4298): Se ingreso un header no valido
+[DEBUG] 12:54:43:307 Kernel.c/(4298:4298): header select
+[DEBUG] 12:54:43:307 Kernel.c/(4298:4298): Se recibio un SELECT
+[DEBUG] 12:59:04:586 Kernel.c/(4546:4546): Cargando configuracion
+[DEBUG] 12:59:04:599 Kernel.c/(4546:4546): Configuracion cargada con exito
+[DEBUG] 12:59:04:599 Kernel.c/(4546:4546): Inicializando semaforos
+[DEBUG] 12:59:04:599 Kernel.c/(4546:4546): Semaforos incializados con exito
+[DEBUG] 12:59:04:599 Kernel.c/(4546:4546): Inicializando sockets
+[DEBUG] 12:59:04:599 Kernel.c/(4546:4546): Sockets inicializados con exito
+[DEBUG] 12:59:04:599 Kernel.c/(4546:4546): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 12:59:04:599 Kernel.c/(4546:4546): Realizando describe general
+[DEBUG] 12:59:04:599 Kernel.c/(4546:4546): header describe
+
+[DEBUG] 12:59:04:599 Kernel.c/(4546:4546): Se recibio un DESCRIBE
+[DEBUG] 12:59:05:200 Kernel.c/(4546:4546): Cant tablas: 11
+[DEBUG] 12:59:05:200 Kernel.c/(4546:4546): Se agrego la tabla COSAS a la lista
+[DEBUG] 12:59:05:200 Kernel.c/(4546:4546): Se agrego la tabla BEBIDAS a la lista
+[DEBUG] 12:59:05:201 Kernel.c/(4546:4546): Se agrego la tabla POSTRES a la lista
+[DEBUG] 12:59:05:201 Kernel.c/(4546:4546): Se agrego la tabla AVES a la lista
+[DEBUG] 12:59:05:201 Kernel.c/(4546:4546): Se agrego la tabla TABLA1 a la lista
+[DEBUG] 12:59:05:201 Kernel.c/(4546:4546): Se agrego la tabla TABLA2 a la lista
+[DEBUG] 12:59:05:201 Kernel.c/(4546:4546): Se agrego la tabla COLORES a la lista
+[DEBUG] 12:59:05:201 Kernel.c/(4546:4546): Se agrego la tabla TABLA12 a la lista
+[DEBUG] 12:59:05:201 Kernel.c/(4546:4546): Se agrego la tabla MAMIFEROS a la lista
+[DEBUG] 12:59:05:201 Kernel.c/(4546:4546): Se agrego la tabla FRUTAS a la lista
+[DEBUG] 12:59:05:201 Kernel.c/(4546:4546): Se agrego la tabla MARINOS a la lista
+[DEBUG] 12:59:11:370 Kernel.c/(4546:4546): header add
+[DEBUG] 12:59:11:370 Kernel.c/(4546:4546): Se recibio un ADD
+[DEBUG] 12:59:11:370 Kernel.c/(4546:4546): La memoria 0 se asoció al criterio SC
+
+[ERROR] 12:59:11:370 Kernel.c/(4546:4546): Se ingreso un header no valido
+[DEBUG] 12:59:22:666 Kernel.c/(4546:4546): header select
+[DEBUG] 12:59:22:666 Kernel.c/(4546:4546): Se recibio un SELECT
+[DEBUG] 13:00:52:373 Kernel.c/(4624:4624): Cargando configuracion
+[DEBUG] 13:00:52:373 Kernel.c/(4624:4624): Configuracion cargada con exito
+[DEBUG] 13:00:52:373 Kernel.c/(4624:4624): Inicializando semaforos
+[DEBUG] 13:00:52:373 Kernel.c/(4624:4624): Semaforos incializados con exito
+[DEBUG] 13:00:52:373 Kernel.c/(4624:4624): Inicializando sockets
+[DEBUG] 13:00:52:373 Kernel.c/(4624:4624): Sockets inicializados con exito
+[DEBUG] 13:00:52:373 Kernel.c/(4624:4624): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 13:00:52:373 Kernel.c/(4624:4624): Realizando describe general
+[DEBUG] 13:00:52:373 Kernel.c/(4624:4624): header describe
+
+[DEBUG] 13:00:52:373 Kernel.c/(4624:4624): Se recibio un DESCRIBE
+[DEBUG] 13:01:27:814 Kernel.c/(4624:4624): Cant tablas: 11
+[DEBUG] 13:01:28:334 Kernel.c/(4624:4624): Se agrego la tabla COSAS a la lista
+[DEBUG] 13:01:28:334 Kernel.c/(4624:4624): Se agrego la tabla BEBIDAS a la lista
+[DEBUG] 13:01:28:334 Kernel.c/(4624:4624): Se agrego la tabla POSTRES a la lista
+[DEBUG] 13:01:28:334 Kernel.c/(4624:4624): Se agrego la tabla AVES a la lista
+[DEBUG] 13:01:28:334 Kernel.c/(4624:4624): Se agrego la tabla TABLA1 a la lista
+[DEBUG] 13:01:28:334 Kernel.c/(4624:4624): Se agrego la tabla TABLA2 a la lista
+[DEBUG] 13:01:28:334 Kernel.c/(4624:4624): Se agrego la tabla COLORES a la lista
+[DEBUG] 13:01:28:334 Kernel.c/(4624:4624): Se agrego la tabla TABLA12 a la lista
+[DEBUG] 13:01:28:334 Kernel.c/(4624:4624): Se agrego la tabla MAMIFEROS a la lista
+[DEBUG] 13:01:28:334 Kernel.c/(4624:4624): Se agrego la tabla FRUTAS a la lista
+[DEBUG] 13:01:28:334 Kernel.c/(4624:4624): Se agrego la tabla MARINOS a la lista
