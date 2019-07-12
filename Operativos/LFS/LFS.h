@@ -7,12 +7,14 @@
 
 #ifndef LFS_H_
 #define LFS_H_
+#define EVENT_SIZE  ( sizeof (struct inotify_event) + 24 )
 
+#define BUF_LEN     ( 1024 * EVENT_SIZE )
 // TIPOS DE CONSISTENCIA
 #define SC 1 //Strong Consistency
 #define SHC 2 //Strong Hash Consistency
 #define EC 3 // Eventual Consistency
-
+#include <sys/inotify.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -134,4 +136,6 @@ int borrarDirectorio(char* directorio);
 
 // CIERRE
 void finalizarEjecutcion();
+void innotificar();
 #endif /* LFS_H_ */
+

@@ -25,6 +25,7 @@ int main(void) {
 	pthread_t hiloSocket;
 	pthread_t hiloCompactacion;
 	pthread_t hiloConsola;
+	pthread_t hiloInnotify;
 
 	// ---------------Inicializacion-----------------
 	memtable = inicializarMemtable();
@@ -51,6 +52,8 @@ int main(void) {
 // Abro hilo de socket
 	pthread_create(&hiloSocket, NULL, (void*) abrirHiloSockets, NULL);
 
+	pthread_create(&hiloInnotify, NULL, (void*) innotificar, NULL);
+	//todo: Abrir hilo dumpeo
 	signal(SIGINT, finalizarEjecutcion); //Comando de cierre al cortar con Ctrl+C
 	while (1) {
 	}
@@ -82,6 +85,7 @@ void levantarConfigLFS() {
 			config_get_string_value(aux, "PUNTO_MONTAJE"));
 
 	configLFS->retardo = config_get_int_value(aux, "RETARDO");
+	log_debug(logger,"%d",configLFS->retardo);
 	configLFS->tamanioValue = config_get_int_value(aux, "TAMANIO_VALUE");
 	configLFS->tiempoDumpeo = config_get_int_value(aux, "TIEMPO_DUMP");
 	config_destroy(aux);
@@ -92,6 +96,7 @@ void receptorDeSockets(int* socket) {
 	int errorHandler;
 	while (1) {
 		int bytes = recv(*socket, &header, sizeof(type), MSG_WAITALL);
+		usleep((configLFS->retardo)*1000);
 		if (0 > bytes) {
 			close(*socket);
 			log_debug(logger, "cerre los socket");
@@ -297,6 +302,7 @@ void abrirHiloConsola(void* params) {
 		log_debug(logger, "rompo aca");
 		int errorHandler;
 		bool leyoConsola = true;
+		usleep((configLFS->retardo)*1000);
 		type header = stringToHeader(tempSplit[0]);
 		switch (header) {
 		case SELECT:
@@ -363,8 +369,8 @@ void abrirHiloConsola(void* params) {
 			 errorHandler = Drop(packDrop->nombre_tabla);
 			 free(packDrop);
 			 */
-//				dumpeoMemoria();
-//				compactacion("FELO");
+			dumpeoMemoria();
+			compactacion("FELO");
 			free(packDropConsola);
 
 			break;
@@ -492,21 +498,19 @@ void hiloCompactar(char*nombre_tabla) {
 		if (!verificadorDeTabla(nombre_tabla)) {
 			pthread_exit(NULL);
 		}
-			char* tablas_path = string_new();
-			string_append(&tablas_path, configLFS->dirMontaje);
-			string_append(&tablas_path, "Tablas/");
-			string_append(&tablas_path, nombre_tabla);
-			string_append(&tablas_path, "/metadata");
-			t_config* configComp = config_create(tablas_path);
-			int retardoCompac = config_get_int_value(configComp,
-					"COMPACTION_TIME");
+		char* tablas_path = string_new();
+		string_append(&tablas_path, configLFS->dirMontaje);
+		string_append(&tablas_path, "Tablas/");
+		string_append(&tablas_path, nombre_tabla);
+		string_append(&tablas_path, "/metadata");
+		t_config* configComp = config_create(tablas_path);
+		int retardoCompac = config_get_int_value(configComp, "COMPACTION_TIME");
 
-			usleep(retardoCompac * 1000);
-			if (!verificadorDeTabla(nombre_tabla)) {
-				pthread_exit(NULL);
-			}
-				compactacion(nombre_tabla);
-
+		usleep(retardoCompac * 1000);
+		if (!verificadorDeTabla(nombre_tabla)) {
+			pthread_exit(NULL);
+		}
+		compactacion(nombre_tabla);
 
 	}
 }
@@ -677,6 +681,7 @@ int Drop(char* NOMBRE_TABLA) {
 		while (bloques_a_limpiar[i] != NULL) {
 			bitarray_clean_bit(bitmap, atoi(bloques_a_limpiar[i]));
 			i++;
+		//TODO: ELIMINAR EL BLOQUE PROPIAMENTE DICHO
 		}
 		free(bloques_a_limpiar);
 		free(binario_a_limpiar);
@@ -693,6 +698,7 @@ int Drop(char* NOMBRE_TABLA) {
 			int i = 0;
 			while (bloques_a_limpiar[i] != NULL) {
 				bitarray_clean_bit(bitmap, atoi(bloques_a_limpiar[i]));
+				//TODO: ELIMINAR EL BLOQUE PROPIAMENTE DICHO
 				i++;
 			}
 			free(bloques_a_limpiar);
@@ -853,19 +859,23 @@ int SelectFS(char* ruta, int KEY, registro* registro) {
 	int particiones = buscarEnMetadata(ruta, "PARTITIONS");
 	if (particiones < 0)
 		return particionesInvalidas;
-// ---- Calculo particion del KEY ----
+	// ---- Calculo particion del KEY ----
 	particiones = (KEY % particiones);
 	char* rutaFS = string_new();
 	string_append(&rutaFS, ruta);
 	string_append(&rutaFS, ("/"));
 	string_append(&rutaFS, string_itoa(particiones));
 	string_append(&rutaFS, ".bin");
+	log_debug(logger, rutaFS);
 	t_config* particion = config_create(rutaFS);
 	int size = config_get_int_value(particion, "SIZE");
+	log_debug(logger, "%d", size);
 	if (size > 0) {
 		char** bloquesABuscar = config_get_array_value(particion, "BLOCKS");
 		int i = 0;
 		log_debug(logger, "Voy a entrar al while");
+
+		char* bloquesUnificados = string_new();
 		while (bloquesABuscar[i] != NULL) {
 			char* bloque = string_new();
 			string_append(&bloque, configLFS->dirMontaje);
@@ -873,41 +883,41 @@ int SelectFS(char* ruta, int KEY, registro* registro) {
 			string_append(&bloque, bloquesABuscar[i]);
 			string_append(&bloque, ".bin");
 			int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
-			if (fd < 0)
-				return noAbreBIN;
-			log_debug(logger, "AbriBIN con bloque: %s", bloquesABuscar[i]);
 			struct stat s;
 			fstat(fd, &s);
 			size = s.st_size;
-			log_debug(logger, "voy a mapear fd %d, %s", fd, bloque);
-			char* f = mmap(0, size, PROT_READ, MAP_PRIVATE, fd, 0);
-			log_debug(logger, "MAPIE: %s", f);
-			int j = 0;
-			char** registros = string_split(f, "\n");
-			log_debug(logger, "ENTRO A WHILE");
-			while (registros[j] != NULL) {
-				char** datos_registro = string_split(registros[j], ";");
-				if (atoi(datos_registro[1]) == KEY) {
-					//	free(registro->value);
-					registro->timestamp = atol(datos_registro[0]);
-					registro->key = atoi(datos_registro[1]);
-					registro->value = malloc(strlen(datos_registro[2]) + 1);
-					if (!registro->value)
-						return errorDeMalloc;
-					strcpy(registro->value, datos_registro[2]);
-				}
-				string_iterate_lines(datos_registro, (void*) free);
-				free(datos_registro);
-				j++;
-			}
-			log_debug(logger, "SALGO DE WHILE");
-			string_iterate_lines(registros, (void*) free);
-			free(registros);
+			char* f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+			string_append(&bloquesUnificados, f);
 			close(fd);
+			munmap(f, size);
 			free(bloque);
 			i++;
-			free(bloquesABuscar);
 		}
+		int j = 0;
+		char** registros = string_split(bloquesUnificados, "\n");
+		log_debug(logger, "ENTRO A WHILE");
+		while (registros[j] != NULL) {
+			char** datos_registro = string_split(registros[j], ";");
+			if (atoi(datos_registro[1]) == KEY) {
+				//	free(registro->value);
+				registro->timestamp = atol(datos_registro[0]);
+				registro->key = atoi(datos_registro[1]);
+				registro->value = malloc(strlen(datos_registro[2]) + 1);
+				if (!registro->value)
+					return errorDeMalloc;
+				strcpy(registro->value, datos_registro[2]);
+			}
+			string_iterate_lines(datos_registro, (void*) free);
+			free(datos_registro);
+			j++;
+		}
+		log_debug(logger, "SALGO DE WHILE");
+		string_iterate_lines(registros, (void*) free);
+		free(registros);
+		i++;
+		free(bloquesUnificados);
+		free(bloquesABuscar);
+
 	} else
 		registro = NULL;
 	free(rutaFS);
@@ -1199,71 +1209,63 @@ int compactacion(char* nombre_tabla) {
 	char* binarios = string_new();
 	t_list* lista_bin = list_create();
 	t_list* lista_Temp = list_create();
-	log_debug(logger, "EMPIEZO A COMPACTAR:");
-	log_debug(logger, "voy a buscar los tmp");
+
 	int error = obtener_temporales(nombre_tabla, &temporales);
-	log_debug(logger, "Recibi esto de los temporales: %s", temporales);
-	log_debug(logger, "voy a buscar los bin");
+
 	int errorbinario = levantarbinarios(nombre_tabla, &binarios);
-	log_debug(logger, "voy a buscar los %s", binarios);
-	log_debug(logger, "creolistas");
+
 	if (!string_is_empty(temporales))
 		crearListaRegistros(&temporales, lista_Temp);
 	if (!string_is_empty(binarios))
 		crearListaRegistros(&binarios, lista_bin);
-	log_debug(logger, "%d", lista_Temp->elements_count);
-	void verQueHayEnList_Temp(registro* reg) {
-		log_debug(logger, "Estoy compactando el elemento: %s", reg->value);
-	}
-	list_iterate(lista_Temp, (void*) &verQueHayEnList_Temp);
-	log_debug(logger, "%d", lista_bin->elements_count);
+
 	free(temporales);
 	free(binarios);
-	log_debug(logger, "voy a compactar");
+
 	void compactar(registro* reg) {
 		bool esta_registro(registro* registroBin) {
 			if (reg->key == registroBin->key)
 				return true;
 			return false;
 		}
-
-		log_debug(logger, "Estoy compactando el elemento: %s", reg->value);
 		registro* encontrado = list_find(lista_bin, (void*) &esta_registro);
 
 		if (encontrado != NULL) { //replace
 			if (encontrado->timestamp < reg->timestamp)
-				encontrado = reg;
-		} else {
-			log_debug(logger, "%d;%d;%s\n", reg->timestamp, reg->key,
-					reg->value);
-			list_add(lista_bin, reg);
-		}
-
+				encontrado = &reg;
+		} else
+			log_debug(logger, "Llego un registro: %s", reg->value);
+		list_add(lista_bin, reg);
 	}
 //  TODO: no se porque las dos veces compacta el segundo elemento de la lista, crearListaRegistros se arma bien.
 //	Probado con dos INSERTS
 	list_iterate(lista_Temp, (void*) &compactar);
-	log_debug(logger, "ya compacte");
 	char* tabla = string_new();
 	string_append_with_format(&tabla, "%sTablas/%s/metadata",
 			configLFS->dirMontaje, nombre_tabla);
 	t_config* t = config_create(tabla);
 	int part = config_get_int_value(t, "PARTITIONS");
-	log_debug(logger, "voy a guardar en disco, %d", part);
-	log_debug(logger, "la lista_bin tiene %d elementos",
-			lista_bin->elements_count);
+
+	log_debug(logger, "%d", lista_bin->elements_count);
 	guardar_en_disco(lista_bin, part, nombre_tabla);
-	log_debug(logger, "guarde en disco");
+
 	return 0;
 }
 void guardar_en_disco(t_list* binarios, int cantParticiones, char* nombre_tabla) {
 	t_list* duplicada = list_create();
 	for (int i = 0; i < cantParticiones; i++) {
-		bool filtrarPorParticion(registro reg) {
-			if ((reg.key % cantParticiones) == i)
+		bool filtrarPorParticion(registro* reg) {
+			if ((reg->key % cantParticiones) == i)
 				return true;
 			return false;
 		}
+//		void destruidor(registro* reg) {
+//				free(reg->value);
+//				free(reg);
+//			}
+
+		if (i != 0)
+			list_clean(duplicada);
 
 		list_add_all(duplicada, binarios);
 		t_list* listaParticionada = list_filter(duplicada,
@@ -1271,38 +1273,57 @@ void guardar_en_disco(t_list* binarios, int cantParticiones, char* nombre_tabla)
 		char* tablaParaDumpeo = string_new();
 		string_append_with_format(&tablaParaDumpeo, "%sTablas/%s/%d.bin",
 				configLFS->dirMontaje, nombre_tabla, i);
-		log_debug(logger, tablaParaDumpeo);
-		log_debug(logger, "%d", binarios->elements_count);
-		log_debug(logger, "%d", listaParticionada->elements_count);
-		dumpearTabla(listaParticionada, tablaParaDumpeo);
+
+		char* registroParaEscribir = string_new();
+		void dumpearRegistros(registro* UnRegistro) {
+			string_append_with_format(&registroParaEscribir, "%d;%d;%s\n",
+					UnRegistro->timestamp, UnRegistro->key, UnRegistro->value);
+		}
+
+		list_iterate(listaParticionada, (void*) &dumpearRegistros);
+		t_config* tmp = config_create(tablaParaDumpeo);
+		char** bloques = config_get_array_value(tmp, "BLOCKS");
+		int s = 0;
+		while (bloques[s] != NULL)
+			s++;
+		char* bloque = string_new();
+		string_append_with_format(&bloque, "%sBloques/%s.bin",
+				configLFS->dirMontaje, bloques[s - 1]);
+		log_debug(logger, bloque);
+		int fd2 = open(bloque, O_RDWR, (mode_t) 0600);
+		log_debug(logger, "bajo a memoria");
+		bajarAMemoria(&fd2, registroParaEscribir, tmp);
+		close(fd2);
+		free(registroParaEscribir);
+
 	}
 	list_destroy_and_destroy_elements(binarios, free);
 }
 
 void crearListaRegistros(char** string, t_list* lista) {
 	int j = 0;
-	log_debug(logger, "entre a crear lista de registros");
+
 	if (*string != "") {
 		char** registros = string_split(*string, "\n");
 		char** datos_registro;
 //		Recorro y divido los datos unificado del archivos temporal, almacenando solo las keys que coincidan con la solicitada
 		while (registros[j] != NULL) {
-			log_debug(logger, "entre a while con: %s", registros[j]);
+
 			registro* reg = malloc(sizeof(registro));
 			datos_registro = string_split(registros[j], ";");
 			reg->timestamp = atoi(datos_registro[0]);
 			reg->key = atoi(datos_registro[1]);
 			reg->value = malloc(strlen(datos_registro[2]) + 1);
 			strcpy(reg->value, datos_registro[2]);
+			log_debug(logger, "%d;%d;%s", reg->timestamp, reg->key, reg->value);
 			list_add(lista, reg);
-			log_debug(logger, "Agregue un registro con: %d;%d;%s",
-					reg->timestamp, reg->key, reg->value);
+
 			j++;
 		}
-		log_debug(logger, "sali del while");
+
 		string_iterate_lines(datos_registro, (void*) free);
 		free(datos_registro);
-		log_debug(logger, "termine crear lista de registros");
+
 	}
 }
 
@@ -1315,36 +1336,35 @@ int levantarbinarios(char* nombre_tabla, char** bloquesUnificados) {
 	int cantParticiones =
 			(config_get_int_value(metadataTabla, "PARTITIONS") - 1);
 	for (int aux = 0; aux <= cantParticiones; aux++) {
-		log_debug(logger, "entre al for");
+
 		char* rutaBinario = string_new();
 		string_append_with_format(&rutaBinario, "%sTablas/%s/%d.bin",
 				configLFS->dirMontaje, nombre_tabla, aux);
 		t_config* particion = config_create(rutaBinario);
 		int size = config_get_int_value(particion, "SIZE");
-		log_debug(logger, "el tamaño de SIZE es: %d", size);
+
 		if (size > 0) {
 			char** bloquesABuscar = config_get_array_value(particion, "BLOCKS");
 			int i = 0;
-			log_debug(logger, "el primer bloque de BLOCKS es: %s",
-					bloquesABuscar[i]);
+
 			//		Unifico la informacion de todos los bloques en los que esta dividido el archivo .tmp
 			while (bloquesABuscar[i] != NULL) {
-				log_debug(logger, "entre al while");
+
 				char* bloque = string_new();
 				string_append_with_format(&bloque, "%sBloques/%s.bin",
 						configLFS->dirMontaje, bloquesABuscar[i]);
 				int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
-				log_debug(logger, "voy a mapear");
+
 				char* f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
 				string_append(bloquesUnificados, f);
-				log_debug(logger, "en binarios levante: %s",
-						*bloquesUnificados);
+
 				t_bitarray* bitmap = levantarBitmap();
 				bitarray_clean_bit(bitmap, atoi(bloquesABuscar[i]));
 				char* bloque_a_limpiar = string_new();
 				string_append_with_format(&bloque_a_limpiar,
-						"rm %sBloques/%d.bin", configLFS->dirMontaje,
+						"rm %sBloques/%s.bin", configLFS->dirMontaje,
 						bloquesABuscar[i]);
+
 				system(bloque_a_limpiar);
 				free(bloque_a_limpiar);
 				close(fd);
@@ -1357,6 +1377,7 @@ int levantarbinarios(char* nombre_tabla, char** bloquesUnificados) {
 			free(rutaBinario);
 		config_destroy(particion);
 	}
+	log_debug(logger, "en tmp encontre %s", *bloquesUnificados);
 	return todoJoya;
 }
 
@@ -1366,15 +1387,14 @@ int obtener_temporales(char* nombre_tabla, char** bloquesUnificados) {
 		char* rutaTemporal = string_new();
 		string_append_with_format(&rutaTemporal, "%sTablas/%s/%d.tmp",
 				configLFS->dirMontaje, nombre_tabla, (aux - 1));
-		log_debug(logger, "voy a buscar los temporales en: %s", rutaTemporal);
+
 		t_config* particion = config_create(rutaTemporal);
 		int size = config_get_int_value(particion, "SIZE");
-		log_debug(logger, "el SIZE es: %d", size);
+
 		if (size > 0) {
 			char** bloquesABuscar = config_get_array_value(particion, "BLOCKS");
 			int i = 0;
-			log_debug(logger, "el primer bloque de BLOCKS es: %s",
-					bloquesABuscar[i]);
+
 			//		Unifico la informacion de todos los bloques en los que esta dividido el archivo .tmp
 			while (bloquesABuscar[i] != NULL) {
 				char* bloque = string_new();
@@ -1388,20 +1408,21 @@ int obtener_temporales(char* nombre_tabla, char** bloquesUnificados) {
 				size = s.st_size;
 				char* f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
 				string_append(bloquesUnificados, f);
-				log_debug(logger, "en temporales levante: %s",
-						*bloquesUnificados);
+
 				t_bitarray* bitmap = levantarBitmap();
 				bitarray_clean_bit(bitmap, atoi(bloquesABuscar[i]));
 				char* bloque_a_limpiar = string_new();
 				string_append_with_format(&bloque_a_limpiar,
 						"rm %sBloques/%s.bin", configLFS->dirMontaje,
 						bloquesABuscar[i]);
+
 				system(bloque_a_limpiar);
 				free(bloque_a_limpiar);
 				close(fd);
 				free(bloque);
 				i++;
 			}
+			log_debug(logger, "en tmp encontre %s", *bloquesUnificados);
 			free(bloquesABuscar);
 		}
 		free(rutaTemporal);
@@ -1495,3 +1516,72 @@ void finalizarEjecutcion() {
 	free(configLFS->dirMontaje);
 	raise(SIGTERM);
 }
+
+void innotificar() {
+	log_debug(logger,"entre al hilo");
+
+	while (1) {
+		char buffer[BUF_LEN];
+
+
+			int file_descriptor = inotify_init();
+			if (file_descriptor < 0) {
+				perror("inotify_init");
+			}
+
+
+			int watch_descriptor = inotify_add_watch(file_descriptor, "../", IN_MODIFY | IN_CREATE | IN_DELETE);
+
+
+
+
+
+			int length = read(file_descriptor, buffer, BUF_LEN);
+			if (length < 0) {
+				perror("read");
+			}
+
+			int offset = 0;
+
+
+
+			while (offset < length) {
+
+
+
+
+				struct inotify_event *event = (struct inotify_event *) &buffer[offset];
+
+
+				if (event->len) {
+
+
+					if (event->mask & IN_CREATE) {
+						if (event->mask & IN_ISDIR) {
+							printf("The directory %s was created.\n", event->name);
+						} else {
+							printf("The file %s was created.\n", event->name);
+						}
+					} else if (event->mask & IN_DELETE) {
+						if (event->mask & IN_ISDIR) {
+							printf("The directory %s was deleted.\n", event->name);
+						} else {
+							printf("The file %s was deleted.\n", event->name);
+						}
+					} else if (event->mask & IN_MODIFY) {
+						if (event->mask & IN_ISDIR) {
+							printf("The directory %s was modified.\n", event->name);
+						} else {
+							printf("The file %s was modified.\n", event->name);
+							levantarConfigLFS();
+						}
+					}
+				}
+				offset += sizeof (struct inotify_event) + event->len;
+			}
+
+			inotify_rm_watch(file_descriptor, watch_descriptor);
+			close(file_descriptor);
+	}
+}
+
