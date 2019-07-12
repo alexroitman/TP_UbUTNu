@@ -170,6 +170,36 @@ void ejecutarConsulta(int socket) {
 		free(packDescribe->nombre_tabla);
 		free(packDescribe);
 		break;
+	case GOSSIPING:
+		packGossip = malloc(sizeof(tGossip));
+		desSerializarGossip(packGossip,socket);
+		actualizarTablaGossip(packGossip);
+		log_debug(logger,"cant elementos tabla: %d",tablaGossip->elements_count);
+		tGossip* gossipResp = malloc(sizeof(tGossip));
+		gossipResp->memorias = malloc(tablaGossip->elements_count * sizeof(tMemoria));
+		//FD_CLR(socket,&active_fd_set);
+		//close(socket);
+		//int socketResp = levantarCliente(packGossip->memorias[0].puerto , packGossip->memorias[0].ip);
+		devolverTablaGossip(gossipResp,socket);
+		free(packGossip);
+		free(gossipResp);
+		free(packGossip->memorias);
+		free(gossipResp->memorias);
+		break;
+	case RESPGOSS:
+		packGossip = malloc(sizeof(tGossip));
+		desSerializarGossip(packGossip,socket);
+		actualizarTablaGossip(packGossip);
+		//FD_CLR(socket,&active_fd_set);
+		//close(socket);
+		free(packGossip);
+		free(packGossip->memorias);
+		log_debug(logger,"cant elementos tabla: %d",tablaGossip->elements_count);
+		/*
+		desSerializarGossiping(RESPGOSS);
+		actualizarTablaGossip(tablaGossip);
+		*/
+		break;
 	case NIL:
 		log_error(logger, "No entendi la consulta");
 		break;
@@ -244,7 +274,6 @@ void journalAsincronico(){
 		ejecutarJournal();
 	}
 }
-
 
 void cargarPackSelect(tSelect* packSelect,bool leyoConsola,char consulta[], int socket){
 	if(leyoConsola){

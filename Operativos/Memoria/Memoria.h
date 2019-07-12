@@ -34,11 +34,12 @@ tDrop* packDrop;
 tJournal* packJournal;
 type* header;
 t_list* tablaSegmentos;
-
+t_list* tablaGossip;
 int tamanioMaxValue;
 int socket_lfs;
 int socket_kernel;
 int socket_sv;
+int socket_gossip;
 int encontroSeg;
 int indexPag;
 void* memoria;
@@ -46,6 +47,7 @@ int cantPagsMax;
 pthread_t hiloConsola;
 pthread_t hiloSocket;
 pthread_t hiloJournal;
+pthread_t hiloGossip;
 
 sem_t mutexJournal;
 
@@ -75,15 +77,35 @@ typedef struct {
 } tPagina;
 
 typedef struct {
+	int numeroMemoria;
 	int puerto_kernel;
 	int puerto_fs;
 	char* ip_fs;
+	char** ip_seeds;
+	char** puerto_seeds;
 	int tam_mem ;
 	int retardoMemoria;
 	int retardoJournal;
 	int retardoGossiping;
+	char* miPuerto;
+	char* mi_IP;
 } t_miConfig;
+
+typedef struct {
+	char puerto[5];
+	char ip[12];
+	int numeroMemoria;
+}tMemoria;
+
+typedef struct {
+	type header;
+	int cant_memorias;
+	tMemoria* memorias;
+}tGossip;
+
+tGossip* packGossip;
 t_miConfig* miConfig;
+fd_set active_fd_set, read_fd_set;
 char package[PACKAGESIZE];
 struct addrinfo hints;
 struct addrinfo *serverInfo;
@@ -115,6 +137,13 @@ void finalizarEjecucion();
 void enviarMensajeAKernel();
 t_miConfig* cargarConfig();
 void journalAsincronico();
+void inicializarTablaGossip();
+void realizarGossiping();
+void actualizarTablaGossip(tGossip* packGossip);
+void devolverTablaGossip(tGossip* packGossip,int socket);
+void cargarPackGossip(tGossip* packGossip, t_list* tablaGossip, type header);
+char* serializarGossip(tGossip* packGossip);
+int desSerializarGossip(tGossip* packGossip, int socket);
 int levantarCliente();
 
 int levantarServidor();

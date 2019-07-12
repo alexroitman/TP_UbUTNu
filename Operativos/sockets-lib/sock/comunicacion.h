@@ -21,7 +21,9 @@ JOURNAL,
 ADD,
 RUN,
 REGISTRO,
-NIL}type;
+NIL,
+GOSSIPING,
+RESPGOSS}type;
 
 
 typedef struct {
@@ -94,6 +96,7 @@ char* nombre_tabla;							//DESCRIBE
 int nombre_tabla_long;
 int length;
 } tDescribe;
+
 
 
 typedef struct {
