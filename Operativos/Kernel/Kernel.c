@@ -588,7 +588,7 @@ consistencias consTabla (char* nombre){
 		return (!strcmp(tabla->nombre_tabla,nombre));
 	}
 	t_metadata *tabla = list_find(listaTablas,mismoNombre);
-	return tabla->consistencia;
+	return obtCons(tabla->consistencia);
 }
 
 int SHC(int key){

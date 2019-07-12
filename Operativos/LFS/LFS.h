@@ -55,9 +55,28 @@ typedef struct{
 	t_tabla tabla;
 }t_memtable ;
 
+typedef struct{
+	int blockSize;
+	int blocks;
+	char* magicNumber;
+} metadataFS;
 
+typedef struct{
+	char* puerto;
+	char* dirMontaje;
+	int retardo;
+	int tamanioValue;
+	int tiempoDumpeo;
+} config_FS;
 
+//MAIN
+void levantarMetadataFS();
+void levantarConfigLFS();
 
+//HILOS
+void abrirHiloSockets();
+void abrirHiloConsola();
+void abrirHiloCompactacion();
 
 // MEMTABLE
 t_list* inicializarMemtable();
