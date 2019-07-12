@@ -54,6 +54,35 @@ void cargarPaqueteInsert(tInsert *pack, char* cons) {
 	string_iterate_lines(value,free);
 	free(value);
 }
+void cargarPaqueteInsertLFS(tInsert *pack, char* cons) {
+	char** spliteado;
+	char** value = string_split(cons, "\"");
+	spliteado = string_n_split(cons, 5, " "); //INTER T 3 "H" 23432?
+	if (strcmp(spliteado[1], "") && strcmp(spliteado[2], "")
+			&& strcmp(spliteado[3], "")) {
+		pack->type = INSERT;
+		pack->value = malloc(strlen(value[1]));
+		pack->nombre_tabla = malloc(strlen(spliteado[1]));
+		strcpy(pack->nombre_tabla,spliteado[1]);
+		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
+		pack->key = atoi(spliteado[2]);
+		if(spliteado[4]==NULL)
+			pack->timestamp=time(NULL);
+		else
+			pack->timestamp=atoi(spliteado[4]);
+		strcpy(pack->value, value[1]);
+		pack->value_long = strlen(value[1]) + 1;
+		pack->length = sizeof(pack->type) + sizeof(pack->nombre_tabla_long)
+				+ pack->nombre_tabla_long + sizeof(pack->key)
+				+ sizeof(pack->value_long) + pack->value_long;
+	} else {
+		printf("no entendi tu consulta\n");
+	}
+	string_iterate_lines(spliteado,free);
+	free(spliteado);
+	string_iterate_lines(value,free);
+	free(value);
+}
 
 void cargarPaqueteCreate(tCreate *pack, char* cons) {
 	char** spliteado;
@@ -82,16 +111,16 @@ void cargarPaqueteCreate(tCreate *pack, char* cons) {
 
 void cargarPaqueteDescribe(tDescribe *pack, char* cons) {
 	char** spliteado;
-	spliteado = string_n_split(cons, 2, " ");
+	spliteado = string_n_split(cons, 2, " ");//DESCRIBE\n
 		pack->type = DESCRIBE;
 		if(spliteado[1] != NULL){
 			pack->nombre_tabla = malloc(strlen(spliteado[1]));
 			strcpy(pack->nombre_tabla, spliteado[1]);
 			pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
 		}else{
-			pack->nombre_tabla = malloc(strlen(" "));
-			strcpy(pack->nombre_tabla, " ");
-			pack->nombre_tabla_long = strlen(" ") + 1;
+			pack->nombre_tabla = malloc(strlen(""));
+			strcpy(pack->nombre_tabla, "");
+			pack->nombre_tabla_long = strlen("") + 1;
 		}
 		pack->length = sizeof(pack->type)
 				+ sizeof(pack->nombre_tabla_long)

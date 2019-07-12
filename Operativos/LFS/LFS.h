@@ -69,6 +69,12 @@ typedef struct{
 	int tiempoDumpeo;
 } config_FS;
 
+typedef struct{
+	type* header;
+	char consulta[256];
+}tHiloConsola;
+tHiloConsola* paramsConsola;
+
 //MAIN
 void levantarMetadataFS();
 void levantarConfigLFS();
@@ -77,7 +83,8 @@ void levantarConfigLFS();
 void abrirHiloSockets();
 void abrirHiloConsola();
 void abrirHiloCompactacion();
-
+type stringToHeader(char* str);
+void hiloCompactar(char*nombre_tabla);
 // MEMTABLE
 t_list* inicializarMemtable();
 int insertarEnMemtable(tInsert* packinsert);
@@ -91,7 +98,7 @@ int Insert (char* NOMBRE_TABLA, int KEY, char* VALUE, int Timestamp);
 int Drop(char* NOMBRE_TABLA);
 int Select(registro* reg, char* NOMBRE_TABLA, int KEY);
 t_list* Describe();
-
+t_list* DESCRIBEespecifico(char* NOMBRE_TABLA) ;
 
 int consistency_to_int(char* cons);
 Metadata* obtener_metadata(char* ruta);

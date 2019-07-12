@@ -11,7 +11,7 @@
 #include "sockets-lib.h"
 
 typedef enum {
-	INSERT, SELECT, CREATE, DESCRIBE, DROP, JOURNAL, ADD, RUN, REGISTRO, NIL
+	INSERT, DESCRIBE, JOURNAL, DROP, SELECT, ADD, RUN, REGISTRO, NIL, CREATE
 } type;
 
 typedef struct {
@@ -57,6 +57,7 @@ typedef struct {
 	uint32_t value_long;
 	char* value;
 	uint32_t length;
+	int timestamp;
 } tInsert;
 
 typedef struct {
@@ -122,7 +123,7 @@ void cargarPaqueteSelect(tSelect *pack, char* cons);
 void cargarPaqueteInsert(tInsert *pack, char* cons);
 void cargarPaqueteCreate(tCreate *pack, char* cons);
 void cargarPaqueteDescribe(tDescribe *pack, char* cons);
-
+void cargarPaqueteInsertLFS(tInsert *pack, char* cons);
 void cargarPaqueteDrop(tDrop *pack, char* cons);
 void cargarPaqueteJournal(tJournal* pack, char* cons);
 

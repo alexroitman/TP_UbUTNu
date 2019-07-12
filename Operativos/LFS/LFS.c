@@ -7,8 +7,6 @@
 
 #include "LFS.h"
 
-#define PUERTOLFS "7879"
-
 // ---------------VARIABLES GLOBALES-----------------
 
 int socket_sv;
@@ -22,11 +20,11 @@ metadataFS* configMetadata;
 // ---------------MAIN-----------------
 
 int main(void) {
-	configLFS=malloc(sizeof(config_FS));
-	configMetadata=malloc(sizeof(metadataFS));
+	configLFS = malloc(sizeof(config_FS));
+	configMetadata = malloc(sizeof(metadataFS));
 	pthread_t hiloSocket;
-//	pthread_t hiloCompactacion;
-//	pthread_t hiloConsola;
+	pthread_t hiloCompactacion;
+	pthread_t hiloConsola;
 
 	// ---------------Inicializacion-----------------
 	memtable = inicializarMemtable();
@@ -43,16 +41,19 @@ int main(void) {
 	// Escribir inicio en consola
 
 	// Abro hilo de consola
-//	pthread_create(&hiloConsola, NULL, (void*) abrirHiloConsola, NULL);
+	paramsConsola = malloc(sizeof(tHiloConsola));
+	paramsConsola->header = NIL;
+	pthread_create(&hiloConsola, NULL, (void*) abrirHiloConsola, paramsConsola);
 
 	// Abro hilo de compactacion
 //	pthread_create(&hiloCompactacion, NULL, (void*) abrirHiloCompactacion,NULL);
 
-	// Abro hilo de socket
+// Abro hilo de socket
 	pthread_create(&hiloSocket, NULL, (void*) abrirHiloSockets, NULL);
 
 	signal(SIGINT, finalizarEjecutcion); //Comando de cierre al cortar con Ctrl+C
-	while(1){}
+	while (1) {
+	}
 //Rutina de cierre
 	log_destroy(logger);
 	close(socket_cli);
@@ -72,20 +73,31 @@ void levantarMetadataFS() {
 
 void levantarConfigLFS() {
 	t_config *aux = config_create("../LFS.config");
-	configLFS->puerto = config_get_string_value(aux, "PUERTO_ESCUCHA");
-	configLFS->dirMontaje = malloc(sizeof(config_get_string_value(aux, "PUNTO_MONTAJE")));
-	configLFS->dirMontaje = config_get_string_value(aux, "PUNTO_MONTAJE");
+	configLFS->puerto = malloc(
+			strlen(config_get_string_value(aux, "PUERTO_ESCUCHA")));
+	strcpy(configLFS->puerto, config_get_string_value(aux, "PUERTO_ESCUCHA"));
+	configLFS->dirMontaje = malloc(
+			strlen(config_get_string_value(aux, "PUNTO_MONTAJE")));
+	strcpy(configLFS->dirMontaje,
+			config_get_string_value(aux, "PUNTO_MONTAJE"));
+
 	configLFS->retardo = config_get_int_value(aux, "RETARDO");
 	configLFS->tamanioValue = config_get_int_value(aux, "TAMANIO_VALUE");
 	configLFS->tiempoDumpeo = config_get_int_value(aux, "TIEMPO_DUMP");
 	config_destroy(aux);
 }
 
-void receptorDeSockets() {
+void receptorDeSockets(int* socket) {
 	type header;
 	int errorHandler;
 	while (1) {
-		header = leerHeader(socket_cli);
+		int bytes = recv(*socket, &header, sizeof(type), MSG_WAITALL);
+		if (0 > bytes) {
+			close(*socket);
+			log_debug(logger, "cerre los socket");
+			return;
+		}
+		log_debug(logger, "RECIBO HEADER %d", header);
 		switch (header) {
 
 		case SELECT:
@@ -94,7 +106,7 @@ void receptorDeSockets() {
 			if (!packSelect)
 				logeoDeErroresLFS(errorDeMalloc, logger);
 			else {
-				desSerializarSelect(packSelect, socket_cli);
+				desSerializarSelect(packSelect, *socket);
 				//TODO: handlear error de desSerializarSelect
 				packSelect->type = header;
 				registro* reg = malloc(sizeof(registro));
@@ -115,7 +127,7 @@ void receptorDeSockets() {
 					registro->value_long = strlen(reg->value) + 1;
 					char* registroSerializado = serializarRegistro(registro);
 					//TODO: handlear error de serializarRegistro
-					enviarPaquete(socket_cli, registroSerializado,
+					enviarPaquete(*socket, registroSerializado,
 							registro->length);
 					//TODO: handlear error de enviarPaquete
 					free(registroSerializado);
@@ -132,7 +144,7 @@ void receptorDeSockets() {
 			if (!packInsert)
 				logeoDeErroresLFS(errorDeMalloc, logger);
 			else {
-				desSerializarInsert(packInsert, socket_cli);
+				desSerializarInsert(packInsert, *socket);
 				//TODO: handlear error de desSerializarInsert
 				packInsert->type = header;
 				log_debug(logger, "Tabla %s con key %d y value %s \n",
@@ -150,7 +162,7 @@ void receptorDeSockets() {
 				errorHandler = errorDeMalloc;
 				break;
 			}
-			desSerializarCreate(packCreate, socket_cli);
+			desSerializarCreate(packCreate, *socket);
 			//TODO: handlear error de desSerializarCreate
 			packCreate->type = header;
 			errorHandler = Create(packCreate->nombre_tabla,
@@ -169,6 +181,60 @@ void receptorDeSockets() {
 			t_metadata* metadata = malloc(sizeof(t_metadata));
 			if (!packCreate || !metadata)
 				logeoDeErroresLFS(errorDeMalloc, logger);
+			t_list* metadatas = (t_list*) Describe();
+			if (metadatas != NULL) {
+				t_describe* describe = malloc(sizeof(t_describe));
+				if (!describe)
+					logeoDeErroresLFS(errorDeMalloc, logger);
+				int cantidad_de_tablas = metadatas->elements_count;
+				describe->cant_tablas = cantidad_de_tablas;
+				describe->tablas = malloc(
+						cantidad_de_tablas * sizeof(t_metadata));
+				for (int i = 0; i < cantidad_de_tablas; i++) {
+					Metadata* a_metadata = (Metadata*) list_get(metadatas, i);
+					t_metadata meta;
+					meta.consistencia = a_metadata->consistency;
+					strcpy(meta.nombre_tabla, a_metadata->nombre_tabla);
+					describe->tablas[i] = meta;
+				}
+				char* serializedPackage;
+				serializedPackage = serializarDescribe_Response(describe);
+				char* cantidad_de_tablas_string = string_itoa(
+						cantidad_de_tablas);
+				log_debug(logger, serializedPackage);
+				log_debug(logger, cantidad_de_tablas_string);
+				free(cantidad_de_tablas_string);
+				int b = send(*socket, serializedPackage,
+						cantidad_de_tablas * sizeof(t_metadata)
+								+ sizeof(describe->cant_tablas), 0);
+				log_debug(logger, "envie %d bytes", b);
+				dispose_package(&serializedPackage);
+				free(describe->tablas);
+				free(describe);
+				for (int i = 0; i < metadatas->elements_count; i++) {
+					free(list_get(metadatas, i));
+				}
+				list_destroy(metadatas);
+
+			} else {
+				t_describe* describe = malloc(sizeof(t_describe));
+				if (!describe)
+					logeoDeErroresLFS(errorDeMalloc, logger);
+				describe->tablas = malloc(sizeof(t_metadata));
+				if (!describe->tablas)
+					logeoDeErroresLFS(errorDeMalloc, logger);
+				describe->cant_tablas = 1;
+				t_metadata meta;
+				meta.consistencia = SC;
+				strcpy(meta.nombre_tabla, "NO_TABLE");
+				describe->tablas[0] = meta;
+				char* serializedPackage;
+				serializedPackage = serializarDescribe_Response(describe);
+				send(*socket, serializedPackage,
+						sizeof(t_metadata) + sizeof(describe->cant_tablas), 0);
+				dispose_package(&serializedPackage);
+				//list_destroy(metadatas);
+			}
 			/*	else {
 			 desSerializarDescribe(packDescribe, socket_cli);
 			 if (string_equals_ignore_case(packDescribe->nombre_tabla, " "))
@@ -219,90 +285,231 @@ void receptorDeSockets() {
 }
 
 //-----------------HILOS-------------------
-void abrirHiloSockets() {
-	log_debug(logger, "entre al primer hilo");
-	int errorHandler;
-	pthread_t hiloSocket;
-	socket_sv = levantarServidor(configLFS->puerto);
-	if (socket_sv < 0)
-		logeoDeErroresLFS(noLevantoServidor, logger);
+void abrirHiloConsola(void* params) {
+
 	while (1) {
-		socket_cli = aceptarCliente(socket_sv);
-		//tread para recibir consultas
+		tHiloConsola* parametros = (tHiloConsola*) params;
 
-		errorHandler = send(socket_cli, &configLFS->tamanioValue, 4, 0);
-		if (errorHandler < 0)
-			logeoDeErroresLFS(errorTamanioValue, logger);
+		fgets(parametros->consulta, 256, stdin);
 
-		//Inicializo memtable y verifico la recepcion de comandos
-		//TODO: VER COMO ACOMODAR DESCRIBE Y METER EN EL CASE CORRESPONDIENTE
-		send(socket_cli, &configLFS->tamanioValue, 4, 0);
-		t_list* metadatas = (t_list*) Describe();
-		if (metadatas != NULL) {
-			t_describe* describe = malloc(sizeof(t_describe));
-			if (!describe)
+		char** tempSplit;
+		tempSplit = string_n_split(parametros->consulta, 2, " ");
+		log_debug(logger, "rompo aca");
+		int errorHandler;
+		bool leyoConsola = true;
+		type header = stringToHeader(tempSplit[0]);
+		switch (header) {
+		case SELECT:
+			log_debug(logger, "Recibi un SELECT por consola");
+			tSelect* packSelectConsola;
+			registro* reg = malloc(sizeof(registro));
+			if (!reg)
 				logeoDeErroresLFS(errorDeMalloc, logger);
-			int cantidad_de_tablas = metadatas->elements_count;
-			describe->cant_tablas = cantidad_de_tablas;
-			describe->tablas = malloc(cantidad_de_tablas * sizeof(t_metadata));
-			for (int i = 0; i < cantidad_de_tablas; i++) {
-				Metadata* a_metadata = (Metadata*) list_get(metadatas, i);
-				t_metadata meta;
-				meta.consistencia = a_metadata->consistency;
-				strcpy(meta.nombre_tabla, a_metadata->nombre_tabla);
-				describe->tablas[i] = meta;
+			packSelectConsola = malloc(sizeof(tSelect));
+			cargarPaqueteSelect(packSelectConsola, paramsConsola->consulta);
+			errorHandler = Select(reg, packSelectConsola->nombre_tabla,
+					packSelectConsola->key);
+
+			free(reg);
+			free(packSelectConsola->nombre_tabla);
+			free(packSelectConsola);
+			break;
+		case INSERT:
+			log_debug(logger, "Recibi un INSERT por consola");
+			tInsert* packInsertConsola = malloc(sizeof(tInsert));
+			if (!packInsertConsola)
+				logeoDeErroresLFS(errorDeMalloc, logger);
+			cargarPaqueteInsertLFS(packInsertConsola, paramsConsola->consulta);
+			log_debug(logger, "%d", packInsertConsola->timestamp);
+			errorHandler = insertarEnMemtable(packInsertConsola);
+			free(packInsertConsola->value);
+			free(packInsertConsola->nombre_tabla);
+			free(packInsertConsola);
+
+			break;
+		case CREATE:
+			log_debug(logger, "Recibi un CREATE por consola");
+			tCreate* packCreateConsola = malloc(sizeof(tCreate));
+			if (!packCreateConsola)
+				errorHandler = errorDeMalloc;
+			cargarPaqueteCreate(packCreateConsola, paramsConsola->consulta);
+
+			errorHandler = Create(packCreateConsola->nombre_tabla,
+					packCreateConsola->consistencia,
+					packCreateConsola->particiones,
+					packCreateConsola->compaction_time);
+
+			free(packCreateConsola->nombre_tabla);
+			free(packCreateConsola->consistencia);
+			free(packCreateConsola);
+			break;
+
+		case DROP:
+			log_debug(logger, "Recibi un DROP por consola");
+			tDrop* packDropConsola = malloc(sizeof(tDrop));
+			cargarPaqueteDrop(packDropConsola, paramsConsola->consulta);
+			packDropConsola->type = DROP;
+
+			/* log_debug(logger, "Comando DROP recibido");
+			 tDrop* packDrop = malloc(sizeof(tDrop));
+			 if (!packDrop) {
+			 errorHandler = errorDeMalloc;
+			 break;
+			 }
+			 errorHandler = desSerializarDrop(packDrop, socket_cli);
+			 if (errorHandler)
+
+			 packDrop->type = header;
+			 errorHandler = Drop(packDrop->nombre_tabla);
+			 free(packDrop);
+			 */
+//				dumpeoMemoria();
+//				compactacion("FELO");
+			free(packDropConsola);
+
+			break;
+		case DESCRIBE:
+
+			log_debug(logger, "Recibi un DESCRIBE por consola");
+			t_list* lista;
+			tDescribe* packDescribeConsola = malloc(sizeof(tDescribe));
+			cargarPaqueteDescribe(packDescribeConsola, paramsConsola->consulta);
+			log_debug(logger, packDescribeConsola->nombre_tabla);
+
+			if (!tempSplit[1]) {
+				log_debug(logger, "entre al global");
+				lista = Describe();
 			}
-			char* serializedPackage;
-			serializedPackage = serializarDescribe_Response(describe);
-			char* cantidad_de_tablas_string = string_itoa(cantidad_de_tablas);
-			log_debug(logger, serializedPackage);
-			log_debug(logger, cantidad_de_tablas_string);
-			free(cantidad_de_tablas_string);
-			int b = send(socket_cli, serializedPackage,
-					cantidad_de_tablas * sizeof(t_metadata)
-							+ sizeof(describe->cant_tablas), 0);
-			log_debug(logger, "envie %d bytes", b);
-			dispose_package(&serializedPackage);
-			free(describe->tablas);
-			free(describe);
-			for (int i = 0; i < metadatas->elements_count; i++) {
-				free(list_get(metadatas, i));
-			}
-			list_destroy(metadatas);
 
-		} else {
-			t_describe* describe = malloc(sizeof(t_describe));
-			if (!describe)
-				logeoDeErroresLFS(errorDeMalloc, logger);
-			describe->tablas = malloc(sizeof(t_metadata));
-			if (!describe->tablas)
-				logeoDeErroresLFS(errorDeMalloc, logger);
-			describe->cant_tablas = 1;
-			t_metadata meta;
-			meta.consistencia = SC;
-			strcpy(meta.nombre_tabla, "NO_TABLE");
-			describe->tablas[0] = meta;
-			char* serializedPackage;
-			serializedPackage = serializarDescribe_Response(describe);
-			send(socket_cli, serializedPackage,
-					sizeof(t_metadata) + sizeof(describe->cant_tablas), 0);
-			dispose_package(&serializedPackage);
-			//list_destroy(metadatas);
+			else {
+				log_debug(logger, "entre al Especifico");
+//				lista = DESCRIBEespecifico(sinFin);
+
+			}
+
+			for (int i = 0; i < lista->elements_count; i++) {
+				Metadata* m = list_get(lista, i);
+				log_debug(logger, "%d", m->consistency);
+			}
+
+			free(packDescribeConsola->nombre_tabla);
+			free(packDescribeConsola);
+			break;
+		case NIL:
+			log_error(logger, "No entendi la consulta");
+			break;
+
 		}
 
-		receptorDeSockets();
+		free(tempSplit[0]);
+		free(tempSplit[1]);
+		free(tempSplit);
 
 	}
 }
 
-void abrirHiloConsola() {
+void abrirHiloSockets() {
+	log_debug(logger, "entre al primer hilo");
+//	int errorHandler;
+	pthread_t* threadPrincipal;
+	socket_sv = levantarServidor(configLFS->puerto);
+	if (socket_sv < 0)
+		logeoDeErroresLFS(noLevantoServidor, logger);
+	socket_cli = aceptarCliente(socket_sv);
+	send(socket_cli, &configLFS->tamanioValue, 4, 0);
+	pthread_create(&threadPrincipal, NULL, (void*) receptorDeSockets,
+			&socket_cli);
 
+	while (1) {
+		log_debug(logger, "entre al while para crear una nueva memoria");
+		int socketNuevo;
+		pthread_t* threadNuevo;
+		socketNuevo = aceptarCliente(socket_sv);
+		send(socketNuevo, &configLFS->tamanioValue, 4, 0);
+		pthread_create(&threadNuevo, NULL, (void*) receptorDeSockets,
+				&socketNuevo);
+		log_debug(logger, "levante cliente");
+
+		//		if (errorHandler < 0)
+		//			logeoDeErroresLFS(errorTamanioValue, logger);
+	}
+}
+
+type stringToHeader(char* str) {
+	if (!strcmp(str, "SELECT")) {
+		return SELECT;
+	}
+	if (!strcmp(str, "INSERT")) {
+		return INSERT;
+	}
+	if (!strcmp(str, "CREATE")) {
+		return CREATE;
+	}
+	if (!strcmp(str, "DROP")) {
+		return DROP;
+	}
+	if (!strcmp(str, "DESCRIBE")) {
+		return DESCRIBE;
+	}
+	if (!strcmp(str, "DESCRIBE\n")) {
+		return DESCRIBE;
+	}
+	return NIL;
 }
 
 void abrirHiloCompactacion() {
+	DIR *tables_directory;
+	struct dirent *a_directory;
+	char* tablas_path = string_new();
+	string_append(&tablas_path, configLFS->dirMontaje);
+	string_append(&tablas_path, "Tablas/");
+	log_debug(logger, tablas_path);
+	tables_directory = opendir(tablas_path);
+	if (tables_directory) {
+		log_debug(logger, "Entre al if");
+		while ((a_directory = readdir(tables_directory)) != NULL) {
+			log_debug(logger, "Entre al while");
+			if (strcmp(a_directory->d_name, ".")
+					&& strcmp(a_directory->d_name, "..")) {
+				char* a_table_path = string_new();
+				char* table_name = malloc(strlen(a_directory->d_name));
+				memcpy(table_name, a_directory->d_name,
+						strlen(a_directory->d_name) + 1);
+				pthread_t* threadComp;
+				pthread_create(&threadComp, NULL, (void*) hiloCompactar,
+						&table_name);
+				free(table_name);
 
+			}
+		}
+		closedir(tables_directory);
+	}
+	free(tablas_path);
 }
+void hiloCompactar(char*nombre_tabla) {
 
+	while (1) {
+		if (!verificadorDeTabla(nombre_tabla)) {
+			pthread_exit(NULL);
+		}
+			char* tablas_path = string_new();
+			string_append(&tablas_path, configLFS->dirMontaje);
+			string_append(&tablas_path, "Tablas/");
+			string_append(&tablas_path, nombre_tabla);
+			string_append(&tablas_path, "/metadata");
+			t_config* configComp = config_create(tablas_path);
+			int retardoCompac = config_get_int_value(configComp,
+					"COMPACTION_TIME");
+
+			usleep(retardoCompac * 1000);
+			if (!verificadorDeTabla(nombre_tabla)) {
+				pthread_exit(NULL);
+			}
+				compactacion(nombre_tabla);
+
+
+	}
+}
 // ---------------MEMTABLE-----------------
 
 t_list* inicializarMemtable() {
@@ -328,7 +535,8 @@ int insertarEnMemtable(tInsert *packinsert) {
 		return errorDeMalloc;
 	registro_insert->key = packinsert->key;
 //	log_debug(logger, string_itoa(registro_insert->key));
-	registro_insert->timestamp = time(NULL);
+
+	registro_insert->timestamp = packinsert->timestamp;
 //	log_debug(logger, (packinsert->value));
 	char* value = malloc(packinsert->value_long);
 	if (!value) {
@@ -391,6 +599,7 @@ int existe_tabla_en_memtable(char* posible_tabla) {
 
 int Create(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES,
 		int COMPACTATION_TIME) {
+
 // ---- Verifico que la tabla no exista ----
 	int errorHandler = verificadorDeTabla(NOMBRE_TABLA);
 	if (errorHandler)
@@ -413,6 +622,8 @@ int Create(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES,
 // ---- Creo los archivos binarios ----
 	crearBinarios(ruta, NUMERO_PARTICIONES);
 	free(ruta);
+	pthread_t* threadComp;
+	pthread_create(&threadComp, NULL, (void*) hiloCompactar, &NOMBRE_TABLA);
 	return todoJoya;
 }
 
@@ -535,44 +746,22 @@ int Select(registro* reg, char* NOMBRE_TABLA, int KEY) {
 		return noExisteKey;
 	return todoJoya;
 }
-/*
- int DESCRIBEespecifico(char* NOMBRE_TABLA, t_metadata* metadata) {
 
- // ---- Verifico que la tabla exista ----
- if (verificadorDeTabla(NOMBRE_TABLA) != 0)
- return noExisteTabla;
+t_list* DESCRIBEespecifico(char* NOMBRE_TABLA) {
 
- // ---- Obtengo la metadata ----
- metadata->particiones = buscarEnMetadata(NOMBRE_TABLA, "PARTITIONS");
- if (metadata->particiones <= 0)
- return particionesInvalidas;
- metadata->consistencia = buscarEnMetadata(NOMBRE_TABLA, "CONSISTENCY");
- if (metadata->consistencia < 1 || metadata->consistencia > 3)
- return particionesInvalidas;
- metadata->tiempo_compactacion = buscarEnMetadata(NOMBRE_TABLA, "COMPACTION_TIME");
- if (metadata->tiempo_compactacion <= 0)
- return particionesInvalidas;
+	// ---- Verifico que la tabla exista ----
+	if (verificadorDeTabla(NOMBRE_TABLA) != 0)
+		return noExisteTabla;
+	char* ruta = string_new();
+	string_append_with_format(&ruta, "%sTablas/%s", configLFS->dirMontaje,
+			NOMBRE_TABLA);
 
- return 1;
- }
-
- int DESCRIBEmultiple(t_metadata* metadata) {
- struct dirent *dp;
- DIR *dir = opendir("tables");
-
- // Unable to open directory stream
- if (!dir)
- return -1;
-
- while ((dp = readdir(dir)) != 0){
- DESCRIBE(dp->d_name);
- }
-
- // Close directory stream
- closedir(dir);
-
- return todoJoya;
- }*/
+	t_list* metadatas = list_create();
+	Metadata* metadata = obtener_metadata(NOMBRE_TABLA);
+	strcpy(metadata->nombre_tabla, NOMBRE_TABLA);
+	list_add(metadatas, metadata);
+	return metadatas;
+}
 
 t_list* Describe() {
 	t_list* metadatas = list_create();
@@ -699,7 +888,7 @@ int SelectFS(char* ruta, int KEY, registro* registro) {
 			while (registros[j] != NULL) {
 				char** datos_registro = string_split(registros[j], ";");
 				if (atoi(datos_registro[1]) == KEY) {
-					free(registro->value);
+					//	free(registro->value);
 					registro->timestamp = atol(datos_registro[0]);
 					registro->key = atoi(datos_registro[1]);
 					registro->value = malloc(strlen(datos_registro[2]) + 1);
@@ -1234,12 +1423,15 @@ char* direccionarTabla(char* tabla) {
 }
 
 void crearBitmapNuestro() {
-	log_debug(logger, "%d", configMetadata->blocks);
+
 	log_debug(logger, "%s", configLFS->dirMontaje);
 	int size = configMetadata->blocks / 8;
 	if (configMetadata->blocks % 8 != 0)
 		size++;
+	log_debug(logger, "%s", configLFS->dirMontaje);
+	log_debug(logger, "%d", configMetadata->blocks / 8);
 	char* bitarray = calloc(configMetadata->blocks / 8, sizeof(char));
+	log_debug(logger, "hola que tal señor");
 	t_bitarray* structBitarray = bitarray_create_with_mode(bitarray, size,
 			MSB_FIRST);
 	for (int i = 0; i < configMetadata->blocks; i++) {
@@ -1248,9 +1440,12 @@ void crearBitmapNuestro() {
 		else
 			bitarray_clean_bit(structBitarray, i);
 	}
+	log_debug(logger, "%s", configLFS->dirMontaje);
 	char* path = string_from_format("%s/Metadata/Bitmap.bin",
 			configLFS->dirMontaje);
+
 	FILE* file = fopen(path, "wb+");
+	log_debug(logger, "%s", configLFS->dirMontaje);
 	fwrite(structBitarray->bitarray, sizeof(char), configMetadata->blocks / 8,
 			file);
 	fclose(file);

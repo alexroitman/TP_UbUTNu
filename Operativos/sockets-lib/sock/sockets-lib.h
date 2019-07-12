@@ -9,7 +9,7 @@
 #define SOCKETS_LIB_H_
 
 #include <unistd.h>
-#define BACKLOG 5			// Define cuantas conexiones vamos a mantener pendientes al mismo tiempo
+#define BACKLOG 10			// Define cuantas conexiones vamos a mantener pendientes al mismo tiempo
 #define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
 #define MAX_BUFFER 1024
 char package[PACKAGESIZE];
@@ -23,6 +23,7 @@ char package[PACKAGESIZE];
 #include <netdb.h>
 #include <semaphore.h>
 #include <commons/log.h>
+#include <time.h>
 struct addrinfo hints;
 struct addrinfo *serverInfo;
 

@@ -61,8 +61,6 @@ int aceptarCliente(int serverSocket) {
 }
 
 
-
-
 void llenarPaqueteRequest(t_Package_Request *package,char* msg){
 	// Me guardo los datos del usuario y el mensaje que manda
  	// Me guardo lugar para el \0
