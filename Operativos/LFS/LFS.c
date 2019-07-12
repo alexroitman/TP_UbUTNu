@@ -193,8 +193,7 @@ void receptorDeSockets(int* socket) {
 					logeoDeErroresLFS(errorDeMalloc, logger);
 				int cantidad_de_tablas = metadatas->elements_count;
 				describe->cant_tablas = cantidad_de_tablas;
-				describe->tablas = malloc(
-						cantidad_de_tablas * sizeof(t_metadata));
+				describe->tablas = malloc(cantidad_de_tablas * sizeof(t_metadata));
 				for (int i = 0; i < cantidad_de_tablas; i++) {
 					Metadata* a_metadata = (Metadata*) list_get(metadatas, i);
 					t_metadata meta;
@@ -204,14 +203,11 @@ void receptorDeSockets(int* socket) {
 				}
 				char* serializedPackage;
 				serializedPackage = serializarDescribe_Response(describe);
-				char* cantidad_de_tablas_string = string_itoa(
-						cantidad_de_tablas);
+				char* cantidad_de_tablas_string = string_itoa(cantidad_de_tablas);
 				log_debug(logger, serializedPackage);
 				log_debug(logger, cantidad_de_tablas_string);
 				free(cantidad_de_tablas_string);
-				int b = send(*socket, serializedPackage,
-						cantidad_de_tablas * sizeof(t_metadata)
-								+ sizeof(describe->cant_tablas), 0);
+				int b = send(*socket, serializedPackage, cantidad_de_tablas * sizeof(t_metadata) + sizeof(describe->cant_tablas), 0);
 				log_debug(logger, "envie %d bytes", b);
 				dispose_package(&serializedPackage);
 				free(describe->tablas);
@@ -228,7 +224,7 @@ void receptorDeSockets(int* socket) {
 				describe->tablas = malloc(sizeof(t_metadata));
 				if (!describe->tablas)
 					logeoDeErroresLFS(errorDeMalloc, logger);
-				describe->cant_tablas = 1;
+				describe->cant_tablas = 0;
 				t_metadata meta;
 				meta.consistencia = SC;
 				strcpy(meta.nombre_tabla, "NO_TABLE");
@@ -779,15 +775,11 @@ t_list* Describe() {
 	log_debug(logger, tablas_path);
 	tables_directory = opendir(tablas_path);
 	if (tables_directory) {
-		log_debug(logger, "Entre al if");
 		while ((a_directory = readdir(tables_directory)) != NULL) {
-			log_debug(logger, "Entre al while");
-			if (strcmp(a_directory->d_name, ".")
-					&& strcmp(a_directory->d_name, "..")) {
+			if (strcmp(a_directory->d_name, ".") && strcmp(a_directory->d_name, "..")) {
 				char* a_table_path = string_new();
 				char* table_name = malloc(strlen(a_directory->d_name));
-				memcpy(table_name, a_directory->d_name,
-						strlen(a_directory->d_name) + 1);
+				memcpy(table_name, a_directory->d_name, strlen(a_directory->d_name) + 1);
 				string_append(&a_table_path, tablas_path);
 				string_append(&a_table_path, table_name);
 				Metadata* metadata = obtener_metadata(a_table_path);
@@ -797,7 +789,12 @@ t_list* Describe() {
 				free(a_table_path);
 			}
 		}
+		if(!metadatas->elements_count)
+			metadatas = NULL;
 		closedir(tables_directory);
+	}
+	else{
+		metadatas = NULL;
 	}
 	free(tablas_path);
 	return metadatas;
@@ -1259,11 +1256,6 @@ void guardar_en_disco(t_list* binarios, int cantParticiones, char* nombre_tabla)
 				return true;
 			return false;
 		}
-//		void destruidor(registro* reg) {
-//				free(reg->value);
-//				free(reg);
-//			}
-
 		if (i != 0)
 			list_clean(duplicada);
 
