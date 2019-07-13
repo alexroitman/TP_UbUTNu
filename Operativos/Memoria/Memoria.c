@@ -15,21 +15,23 @@ int main() {
 
 
 	socket_lfs = levantarClienteNoBloqueante((char*) miConfig->puerto_fs, miConfig->ip_fs);
-	if(socket_lfs <= 0){
-		log_error(logger,"No se pudo conectar a LFS");
-		raise(SIGTERM);
+
+	if (miConfig->numeroMemoria == 1) {
+		if (socket_lfs <= 0) {
+			log_error(logger, "No se pudo conectar a LFS");
+			raise(SIGTERM);
+		}else{
+			tamanioMaxValue = handshakeLFS(socket_lfs);
+			log_debug(logger,
+					"Handshake con LFS realizado. Tamanio max del value: %d",
+					tamanioMaxValue);
+			log_debug(logger,"Levanta conexion con LFS");
+			socket_sv = levantarServidor((char*) miConfig->puerto_kernel);
+		}
 	}
-	socket_sv = levantarServidor((char*) miConfig->puerto_kernel);
-
-	//socket_gossip = levantarServidor((char*) miConfig->miPuerto);
 
 
-	log_debug(logger, "Levanta conexion con kernel");
-	tamanioMaxValue = handshakeLFS(socket_lfs);
-	log_debug(logger,"socket lfs: %d",socket_lfs);
-	log_debug(logger,"socket sv: %d",socket_sv);
-	log_debug(logger, "Handshake con LFS realizado. Tamanio max del value: %d",
-			tamanioMaxValue);
+	socket_gossip = levantarServidor((char*) miConfig->miPuerto);
 
 	memoria = calloc(miConfig->tam_mem,6 + tamanioMaxValue);
 	cantPagsMax = miConfig->tam_mem / (6 + tamanioMaxValue);
@@ -42,17 +44,17 @@ int main() {
 	*header = NIL;
 	paramsConsola = malloc(sizeof(tHiloConsola));
 	paramsConsola->header = header;
-	//inicializarTablaGossip();
+	inicializarTablaGossip();
 	pthread_create(&hiloSocket, NULL, (void*) recibirHeader, (void*) header);
 	pthread_create(&hiloConsola, NULL, (void*) leerQuery,
 			(void*) paramsConsola);
 	pthread_create(&hiloJournal, NULL, (void*) journalAsincronico, NULL);
 	pthread_create(&hiloInnotify, NULL, (void*) innotificar, NULL);
-	//pthread_create(&hiloGossip, NULL, (void*) realizarGossiping, NULL);
+	pthread_create(&hiloGossip, NULL, (void*) realizarGossiping, NULL);
 	pthread_join(hiloSocket, NULL);
 	pthread_join(hiloConsola, NULL);
 	pthread_join(hiloJournal, NULL);
-	//pthread_join(hiloGossip, NULL);
+	pthread_join(hiloGossip, NULL);
 }
 
 void* recibirHeader(void* arg) {
@@ -60,7 +62,7 @@ void* recibirHeader(void* arg) {
 		int listener = socket_sv;
 		FD_ZERO(&active_fd_set);
 		FD_SET(socket_sv, &active_fd_set);
-		//FD_SET(socket_gossip, &active_fd_set);
+		FD_SET(socket_gossip, &active_fd_set);
 		int flagError = 0;
 
 		while (flagError != 1) {
@@ -68,7 +70,6 @@ void* recibirHeader(void* arg) {
 			recibioSocket = false;
 			if (select(FD_SETSIZE, &read_fd_set, NULL, NULL, NULL) < 0) {
 				log_error(logger, "error de socket");
-				flagError = 1;
 			} else {
 				for (int i = 0; i < FD_SETSIZE; ++i) {
 					if (FD_ISSET(i, &read_fd_set)) {
@@ -151,7 +152,9 @@ void realizarGossiping() {
 					//log_debug(logger, "llego algo del cliente %d", clienteGossip);
 					recibioSocket = true;
 					usleep(miConfig->retardoMemoria * 1000);
+					sem_wait(&mutexJournal);
 					ejecutarConsulta(clienteGossip);
+					sem_post(&mutexJournal);
 				}else{
 					error = -1;
 				}
@@ -262,12 +265,12 @@ int actualizarPaginaEnMemoria(tSegmento* segmento, int index, char* newValue) {
 		int timestamp = (int) time(NULL);
 		memcpy(memoria + offsetMemoria + 2, &(timestamp), 4);
 		memcpy(memoria + offsetMemoria + 6, newValue, tamanioMaxValue);
-		elemTablaPag->modificado = true; //PARA PROBARRRRR ! TIENE QUE SER TRUE
+		elemTablaPag->modificado = true;
 		elemTablaPag->ultimoTime = (int) time(NULL);
 		log_debug(logger, "Pagina encontrada y actualizada.");
 		return 1;
 	} else {
-		log_debug(logger, "El tamanio del value es muy grande");
+		log_error(logger, "Tamanio de value demasiado grande");
 		return -2;
 	}
 }
@@ -309,7 +312,7 @@ int agregarPaginaAMemoria(tSegmento* seg, tPagina* pagina, bool modificado) {
 		memcpy((memoria + offset + 6), pagina->value, tamanioMaxValue);
 
 		elem_tabla_pag* pagTabla = malloc(sizeof(elem_tabla_pag));
-		pagTabla->modificado = modificado; //PARA PROBARRRRRRRRRRRR!!! TIENE QUE SERTRUE
+		pagTabla->modificado = modificado;
 		pagTabla->offsetMemoria = offset;
 		pagTabla->index = list_size(seg->tablaPaginas);
 		pagTabla->ultimoTime = (int) time(NULL);
@@ -317,7 +320,7 @@ int agregarPaginaAMemoria(tSegmento* seg, tPagina* pagina, bool modificado) {
 		log_debug(logger, "Pagina cargada en memoria.");
 		return 1;
 	} else {
-		log_debug(logger, "Tamanio de value demasiado grande");
+		log_error(logger, "Tamanio de value demasiado grande");
 		return -2;
 	}
 }
@@ -568,7 +571,7 @@ void pedirPathConfig(){
 		char* buffer = malloc(256);
 		char* pathConfig = malloc(256);
 		log_info(logger,
-				"Por favor ingrese el path de su archivo de configuracion (Memoria.config): ");
+				"Por favor ingrese el path de su archivo de configuracion");
 		fgets(buffer, 256, stdin);
 		strncpy(pathConfig, buffer, strlen(buffer) - 1);
 		config = config_create(pathConfig);
@@ -594,14 +597,13 @@ t_miConfig* cargarConfig() {
 	miConfig->tam_mem = config_get_int_value(config, "TAM_MEM");
 	miConfig->retardoJournal = config_get_int_value(config,"RETARDO_JOURNAL");
 	miConfig->retardoMemoria = config_get_int_value(config,"RETARDO_MEM");
+	miConfig->retardoFS = config_get_int_value(config,"RETARDO_FS");
 	miConfig->ip_seeds = config_get_array_value(config,"IP_SEEDS");
 	miConfig->puerto_seeds = config_get_array_value(config,"PUERTO_SEEDS");
 	miConfig->retardoGossiping = config_get_int_value(config,"RETARDO_GOSSIPING");
 	miConfig->numeroMemoria = config_get_int_value(config,"MEMORY_NUMBER");
 	miConfig->miPuerto = config_get_string_value(config,"MI_PUERTO");
 	miConfig->mi_IP = config_get_string_value(config, "MI_IP");
-	log_debug(logger,"retardo mem: %d", miConfig->retardoMemoria);
-	log_debug(logger,"retardo mem: %d", miConfig->retardoGossiping);
 	log_debug(logger, "Levanta archivo de config");
 	return miConfig;
 }
@@ -638,10 +640,12 @@ void finalizarEjecucion() {
 	printf("------------------------\n");
 	log_destroy(logger);
 	config_destroy(config);
+	free(miConfig);
 	close(socket_lfs);
 	close(socket_kernel);
 	close(socket_sv);
 	list_iterate(tablaSegmentos, free);
+	list_iterate(tablaGossip,free);
 	free(header);
 	free(memoria);
 	free(paramsConsola);

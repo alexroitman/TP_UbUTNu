@@ -163,12 +163,14 @@ void ejecutarConsulta(int socket) {
 		desSerializarDescribe(packDescribe, socket);
 		char* serializado = serializarDescribe(packDescribe);
 		enviarPaquete(socket_lfs,serializado,packDescribe->length);
-		type header = leerHeader(socket_lfs);
+		//type header = leerHeader(socket_lfs);
 		desserializarDescribe_Response(packDescResp,socket_lfs);
 		char* respSerializada = serializarDescribe_Response(packDescResp);
 		int length = packDescResp->cant_tablas * sizeof(t_metadata) + sizeof(uint16_t);
 		enviarPaquete(socket,respSerializada,length);
 		free(packDescResp->tablas);
+		free(respSerializada);
+		free(serializado);
 		free(packDescResp);
 		free(packDescribe->nombre_tabla);
 		free(packDescribe);
@@ -205,7 +207,7 @@ void ejecutarConsulta(int socket) {
 		break;
 	case GOSSIPKERNEL:
 		gossipKernel= malloc(sizeof(tGossip));
-		gossipResp->memorias = malloc(
+		gossipKernel->memorias = malloc(
 				tablaGossip->elements_count * sizeof(tMemoria));
 		devolverTablaGossip(gossipKernel, socket);
 		free(gossipKernel);
@@ -225,9 +227,11 @@ void ejecutarConsulta(int socket) {
 }
 
 void pedirRegistroALFS(int socket, tSelect* packSelect, tRegistroRespuesta* reg) {
+	usleep(miConfig->retardoFS * 1000);
+	log_debug(logger,"Pido registro a LFS");
 	char* selectAEnviar = serializarSelect(packSelect);
 	enviarPaquete(socket, selectAEnviar, packSelect->length);
-
+	free(selectAEnviar);
 	type header = leerHeader(socket);
 	if (header == REGISTRO) {
 		desSerializarRegistro(reg, socket);
@@ -366,21 +370,21 @@ void innotificar() {
 
 				if (event->mask & IN_CREATE) {
 					if (event->mask & IN_ISDIR) {
-						printf("The directory %s was created.\n", event->name);
+						log_debug(logger,"El directorio %s se creo", event->name);
 					} else {
-						printf("The file %s was created.\n", event->name);
+						log_debug(logger,"El archivo %s se creo", event->name);
 					}
 				} else if (event->mask & IN_DELETE) {
 					if (event->mask & IN_ISDIR) {
-						printf("The directory %s was deleted.\n", event->name);
+						log_debug(logger,"El directorio %s se elimino", event->name);
 					} else {
-						printf("The file %s was deleted.\n", event->name);
+						log_debug(logger,"El archivo %s se elimino", event->name);
 					}
 				} else if (event->mask & IN_MODIFY) {
 					if (event->mask & IN_ISDIR) {
-						log_debug(logger,"El archivo %s se modifico", event->name);
+						log_debug(logger,"El directorio %s se modifico", event->name);
 					} else {
-						printf("The file %s was modified.\n", event->name);
+						log_debug(logger,"El archivo %s se modifico", event->name);
 						cargarConfig();
 					}
 				}

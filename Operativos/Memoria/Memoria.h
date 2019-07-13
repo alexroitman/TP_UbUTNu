@@ -88,6 +88,7 @@ typedef struct {
 	char** puerto_seeds;
 	int tam_mem ;
 	int retardoMemoria;
+	int retardoFS;
 	int retardoJournal;
 	int retardoGossiping;
 	char* miPuerto;
