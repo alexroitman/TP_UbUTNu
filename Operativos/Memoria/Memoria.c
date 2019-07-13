@@ -317,7 +317,7 @@ int listMinTimestamp(t_list* listaPaginas,elem_tabla_pag* pagina){
 
 
 void ejecutarJournal(){
-	sem_wait(&mutexJournal);
+	//sem_wait(&mutexJournal);
 	log_debug(logger,"Realizando Journal");
 	int index = 0;
 	tSegmento* miSegmento = list_get(tablaSegmentos, 0);
@@ -332,7 +332,7 @@ void ejecutarJournal(){
 	}
 
 	log_debug(logger, "Journal finalizado");
-	sem_post(&mutexJournal);
+	//sem_post(&mutexJournal);
 }
 
 void mandarInsertDePaginasModificadas(t_list* paginasModificadas,char* nombreTabla, int socket_lfs){
