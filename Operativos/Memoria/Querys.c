@@ -88,7 +88,7 @@ void ejecutarConsulta(int socket) {
 				log_debug(logger,
 						"Encontre la pagina buscada en el segmento %s ",
 						packInsert->nombre_tabla);
-				actualizarPaginaEnMemoria(miSegmento, indexPag, packInsert->value);
+				error = actualizarPaginaEnMemoria(miSegmento, indexPag, packInsert->value);
 
 
 			} else {

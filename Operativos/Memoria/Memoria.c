@@ -252,16 +252,24 @@ void devolverTablaGossip(tGossip* packGossip, int socket) {
 
 
 
-void actualizarPaginaEnMemoria(tSegmento* segmento,int index, char* newValue) {
-	elem_tabla_pag* elemTablaPag =  malloc(sizeof(elem_tabla_pag));
-	elemTablaPag = (elem_tabla_pag*)list_get(segmento->tablaPaginas, index);
-	int offsetMemoria = elemTablaPag->offsetMemoria;
-	int timestamp = (int) time(NULL);
-	memcpy(memoria + offsetMemoria + 2, &(timestamp),4);
-	memcpy(memoria + offsetMemoria + 6,newValue,tamanioMaxValue);
-	elemTablaPag->modificado = true; //PARA PROBARRRRR ! TIENE QUE SER TRUE
-	elemTablaPag->ultimoTime = (int) time (NULL);
-	log_debug(logger, "Pagina encontrada y actualizada.");
+int actualizarPaginaEnMemoria(tSegmento* segmento, int index, char* newValue) {
+
+	if (verificarTamanioValue(newValue)) {
+		elem_tabla_pag* elemTablaPag = malloc(sizeof(elem_tabla_pag));
+		elemTablaPag = (elem_tabla_pag*) list_get(segmento->tablaPaginas,
+				index);
+		int offsetMemoria = elemTablaPag->offsetMemoria;
+		int timestamp = (int) time(NULL);
+		memcpy(memoria + offsetMemoria + 2, &(timestamp), 4);
+		memcpy(memoria + offsetMemoria + 6, newValue, tamanioMaxValue);
+		elemTablaPag->modificado = true; //PARA PROBARRRRR ! TIENE QUE SER TRUE
+		elemTablaPag->ultimoTime = (int) time(NULL);
+		log_debug(logger, "Pagina encontrada y actualizada.");
+		return 1;
+	} else {
+		log_debug(logger, "El tamanio del value es muy grande");
+		return -2;
+	}
 }
 
 tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg) {
@@ -272,7 +280,7 @@ tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg) {
 }
 
 bool verificarTamanioValue(char* value){
-	return strlen(value) <= tamanioMaxValue;
+	return strlen(value) < tamanioMaxValue;
 }
 
 int agregarPaginaAMemoria(tSegmento* seg, tPagina* pagina, bool modificado) {
