@@ -45,7 +45,7 @@ int main(){
 	log_debug(logger,"Sockets inicializados con exito");
 	log_debug(logger,"Se tendra un nivel de multiprocesamiento de: %d cpus", miConfig->MULT_PROC);
 	pthread_t cpus[miConfig->MULT_PROC];
-	despacharQuery("describe\n",socket_memoria);
+	//despacharQuery("describe\n",socket_memoria);
 	if(levantarCpus(socket_memoria,cpus)){
 		colaReady = queue_create();
 		colaNew = queue_create();
@@ -186,7 +186,7 @@ int despacharQuery(char* consulta, int socket_memoria) {
 				recv(socket_memoria, &error, sizeof(error), 0);
 				if(error == 1){
 					log_debug(logger, "Se inserto el valor: %s", paqueteInsert->value);
-				} else {
+				} else if(error == -1){
 					log_error(logger, "Memoria llena, hago JOURNAL");
 					cargarPaqueteJournal(paqueteJournal, "JOURNAL");
 					serializado = serializarJournal(paqueteJournal);
@@ -200,6 +200,8 @@ int despacharQuery(char* consulta, int socket_memoria) {
 					sem_post(&mutexSocket);
 					recv(socket_memoria, &error, sizeof(error), 0);
 					consultaOk = 1;
+				}else{
+					log_debug(logger,"Tamanio de value demasiado grande");
 				}
 				free(serializado);
 				free(paqueteInsert->nombre_tabla);

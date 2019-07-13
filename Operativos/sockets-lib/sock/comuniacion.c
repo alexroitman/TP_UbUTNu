@@ -177,7 +177,7 @@ int desSerializarSelect(tSelect* packageSelect, int socket) {
 
 	if (!status)
 		return 0;
-	packageSelect->key = malloc(sizeof(uint16_t));
+	//packageSelect->key = malloc(sizeof(uint16_t));
 	status = recv(socket, &packageSelect->key, sizeof(packageSelect->key), 0); //recibo el nombre de la key
 	if (!status)
 		return 0;
@@ -344,13 +344,13 @@ int desSerializarCreate(tCreate* packageCreate, int socket) {
 
 	if (!status)
 		return 0;
-	packageCreate->particiones = malloc(sizeof(int));
+	//packageCreate->particiones = malloc(sizeof(int));
 	status = recv(socket, &packageCreate->particiones,
 			sizeof(packageCreate->particiones), 0); //recibo particiones
 	if (!status)
 		return 0;
 
-	packageCreate->compaction_time = malloc(sizeof(int));
+	//packageCreate->compaction_time = malloc(sizeof(int));
 	status = recv(socket, &packageCreate->compaction_time,
 			sizeof(packageCreate->compaction_time), 0); //recibo particiones
 	if (!status)

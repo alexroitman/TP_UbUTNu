@@ -55,7 +55,7 @@ void ejecutarConsulta(int socket) {
 					miSegmento = obtenerUltimoSegmentoDeTabla(tablaSegmentos);
 				}
 				error = agregarPaginaAMemoria(miSegmento, pagina,false);
-				send(socket, &error, sizeof(error), 0);
+				//send(socket, &error, sizeof(error), 0);
 			}else{
 				error = 1;
 				log_error(logger,"No existe el registro");
@@ -63,13 +63,14 @@ void ejecutarConsulta(int socket) {
 			//SI NO LO ENCONTRO IGUALMENTE SE LO MANDO A KERNEL PARA QUE TAMBIEN MANEJE EL ERROR
 			//enviarRegistroAKernel(reg, socket_kernel, leyoConsola);
 		}
-		chequearMemoriaFull(leyoConsola, error ,socket, miSegmento, pagina, false);
+		validarAgregadoDePagina(leyoConsola, error ,socket, miSegmento, pagina, false);
 		if(error == 1){
 			enviarRegistroAKernel(reg, socket, leyoConsola);
 		}
 		free(reg->value);
 		free(reg);
 		free(packSelect);
+		free(packSelect->nombre_tabla);
 		break;
 	case INSERT:
 		packInsert = malloc(sizeof(tInsert));
@@ -112,7 +113,7 @@ void ejecutarConsulta(int socket) {
 
 		}
 
-		chequearMemoriaFull(leyoConsola,error,socket, miSegmento, pagina,true);
+		validarAgregadoDePagina(leyoConsola,error,socket, miSegmento, pagina,true);
 
 		free(packInsert);
 		free(packInsert->nombre_tabla);
@@ -127,6 +128,8 @@ void ejecutarConsulta(int socket) {
 		log_debug(logger, "Mando la consulta a LFS");
 		free(packCreate);
 		free(createAEnviar);
+		free(packCreate->consistencia);
+		free(packCreate->nombre_tabla);
 		break;
 
 	case DROP:
@@ -200,6 +203,14 @@ void ejecutarConsulta(int socket) {
 		actualizarTablaGossip(tablaGossip);
 		*/
 		break;
+	case GOSSIPKERNEL:
+		gossipKernel= malloc(sizeof(tGossip));
+		gossipResp->memorias = malloc(
+				tablaGossip->elements_count * sizeof(tMemoria));
+		devolverTablaGossip(gossipKernel, socket);
+		free(gossipKernel);
+		free(gossipKernel->memorias);
+		break;
 	case NIL:
 		log_error(logger, "No entendi la consulta");
 		break;
@@ -272,7 +283,9 @@ void* leerQuery(void* params) {
 void journalAsincronico(){
 	while (1) {
 		usleep(miConfig->retardoJournal * 1000);
+		sem_wait(&mutexJournal);
 		ejecutarJournal();
+		sem_post(&mutexJournal);
 	}
 }
 
@@ -322,4 +335,61 @@ int handshakeLFS(int socket_lfs){
 	int buffer;
 	recv(socket_lfs,&buffer,4,MSG_WAITALL);
 	return buffer;
+}
+
+void innotificar() {
+	log_debug(logger, "entre al hilo");
+	int length;
+
+	while (1) {
+		char buffer[BUF_LEN];
+
+		int file_descriptor = inotify_init();
+		if (file_descriptor < 0) {
+			perror("inotify_init");
+		}
+
+		int watch_descriptor = inotify_add_watch(file_descriptor, "../Debug", IN_MODIFY);
+
+		length = read(file_descriptor, buffer, BUF_LEN);
+		if (length < 0) {
+			perror("read");
+		}
+
+		int offset = 0;
+
+		while (offset < length) {
+
+			struct inotify_event *event = (struct inotify_event *) &buffer[offset];
+
+			if (event->len) {
+
+				if (event->mask & IN_CREATE) {
+					if (event->mask & IN_ISDIR) {
+						printf("The directory %s was created.\n", event->name);
+					} else {
+						printf("The file %s was created.\n", event->name);
+					}
+				} else if (event->mask & IN_DELETE) {
+					if (event->mask & IN_ISDIR) {
+						printf("The directory %s was deleted.\n", event->name);
+					} else {
+						printf("The file %s was deleted.\n", event->name);
+					}
+				} else if (event->mask & IN_MODIFY) {
+					if (event->mask & IN_ISDIR) {
+						log_debug(logger,"El archivo %s se modifico", event->name);
+					} else {
+						printf("The file %s was modified.\n", event->name);
+						cargarConfig();
+					}
+				}
+
+			}
+			offset += sizeof (struct inotify_event) + event->len;
+		}
+
+		inotify_rm_watch(file_descriptor, watch_descriptor);
+		close(file_descriptor);
+	}
 }

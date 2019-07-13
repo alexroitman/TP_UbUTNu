@@ -8,8 +8,9 @@
 int main() {
 	tamanioMaxValue = 10;
 	signal(SIGINT, finalizarEjecucion);
-	logger = log_create("Memoria.log", "Memoria.c", 1, LOG_LEVEL_DEBUG);
-	miConfig = cargarConfig();
+	logger = log_create("../Memoria.log", "Memoria.c", 1, LOG_LEVEL_DEBUG);
+	miConfig = malloc(sizeof(t_miConfig));
+    pedirPathConfig();
 	log_debug(logger,"Tamanio Memoria: %d",miConfig->tam_mem);
 
 
@@ -46,6 +47,7 @@ int main() {
 	pthread_create(&hiloConsola, NULL, (void*) leerQuery,
 			(void*) paramsConsola);
 	pthread_create(&hiloJournal, NULL, (void*) journalAsincronico, NULL);
+	pthread_create(&hiloInnotify, NULL, (void*) innotificar, NULL);
 	//pthread_create(&hiloGossip, NULL, (void*) realizarGossiping, NULL);
 	pthread_join(hiloSocket, NULL);
 	pthread_join(hiloConsola, NULL);
@@ -149,9 +151,7 @@ void realizarGossiping() {
 					//log_debug(logger, "llego algo del cliente %d", clienteGossip);
 					recibioSocket = true;
 					usleep(miConfig->retardoMemoria * 1000);
-					//sem_wait(&mutexJournal);
 					ejecutarConsulta(clienteGossip);
-					//sem_post(&mutexJournal);
 				}else{
 					error = -1;
 				}
@@ -271,36 +271,47 @@ tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg) {
 	return seg;
 }
 
-int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina, bool modificado) {
-	int cantPags = 0;
-	int timeAux;
-	memcpy(&timeAux,memoria + 2,4);
-	while (timeAux != 0) {
-		cantPags++;
-		if (cantPags < cantPagsMax) {
-			memcpy(&timeAux,memoria + cantPags*(6 + tamanioMaxValue) + 2,4);
-		} else {
+bool verificarTamanioValue(char* value){
+	return strlen(value) <= tamanioMaxValue;
+}
 
-			return -1;
-			//no hay mas lugar en memoria
+int agregarPaginaAMemoria(tSegmento* seg, tPagina* pagina, bool modificado) {
+
+	if (verificarTamanioValue(pagina->value)) {
+
+		int cantPags = 0;
+		int timeAux;
+		memcpy(&timeAux, memoria + 2, 4);
+		while (timeAux != 0) {
+			cantPags++;
+			if (cantPags < cantPagsMax) {
+				memcpy(&timeAux, memoria + cantPags * (6 + tamanioMaxValue) + 2,
+						4);
+			} else {
+
+				return -1;
+				//no hay mas lugar en memoria
+			}
 		}
+		int offset = (cantPags * (6 + tamanioMaxValue));
+		memcpy((memoria + offset), &(pagina->key), sizeof(uint16_t));
+
+		memcpy((memoria + offset + 2), &(pagina->timestamp), sizeof(int));
+
+		memcpy((memoria + offset + 6), pagina->value, tamanioMaxValue);
+
+		elem_tabla_pag* pagTabla = malloc(sizeof(elem_tabla_pag));
+		pagTabla->modificado = modificado; //PARA PROBARRRRRRRRRRRR!!! TIENE QUE SERTRUE
+		pagTabla->offsetMemoria = offset;
+		pagTabla->index = list_size(seg->tablaPaginas);
+		pagTabla->ultimoTime = (int) time(NULL);
+		list_add(seg->tablaPaginas, (elem_tabla_pag*) pagTabla);
+		log_debug(logger, "Pagina cargada en memoria.");
+		return 1;
+	} else {
+		log_debug(logger, "Tamanio de value demasiado grande");
+		return -2;
 	}
-	int offset = (cantPags * (6 + tamanioMaxValue));
-	memcpy((memoria + offset),&(pagina->key),sizeof(uint16_t));
-
-	memcpy((memoria + offset + 2),&(pagina->timestamp),sizeof(int));
-
-	memcpy((memoria + offset + 6),pagina->value,tamanioMaxValue);
-
-	elem_tabla_pag* pagTabla = malloc(sizeof(elem_tabla_pag));
-	pagTabla->modificado = modificado;//PARA PROBARRRRRRRRRRRR!!! TIENE QUE SERTRUE
-	pagTabla->offsetMemoria = offset;
-	pagTabla->index = list_size(seg->tablaPaginas);
-	pagTabla->ultimoTime = (int) time (NULL);
-	list_add(seg->tablaPaginas, (elem_tabla_pag*)pagTabla);
-	log_debug(logger, "Pagina cargada en memoria.");
-	return 1;
-
 }
 
 void cargarSegmentoEnTabla(char* path, t_list* listaSeg) {
@@ -543,15 +554,31 @@ void actualizarIndexLista(t_list* lista){
 	list_iterate(lista, cambiarIndice);
 }
 
+void pedirPathConfig(){
+	int error = 1;
+	while (error == 1) {
+		char* buffer = malloc(256);
+		char* pathConfig = malloc(256);
+		log_info(logger,
+				"Por favor ingrese el path de su archivo de configuracion (Memoria.config): ");
+		fgets(buffer, 256, stdin);
+		strncpy(pathConfig, buffer, strlen(buffer) - 1);
+		config = config_create(pathConfig);
+		free(buffer);
+		free(pathConfig);
+		if (config != NULL) {
+			miConfig = cargarConfig();
+			error = 0;
+		}else{
+			log_info(logger, "Error de apertura de config ");
+			error = 1;
+		}
+	}
+
+}
+
 t_miConfig* cargarConfig() {
-	char* buffer = malloc(256);
-	char* pathConfig = malloc(256);
-	log_info(logger,
-			"Por favor ingrese el path de su archivo de configuracion (Memoria.config): ");
-	fgets(buffer, 256, stdin);
-	strncpy(pathConfig, buffer, strlen(buffer) - 1);
-	t_miConfig* miConfig = malloc(sizeof(t_miConfig));
-	config = config_create(pathConfig);
+
 	miConfig->puerto_kernel = (int) config_get_string_value(config,
 			"PUERTO_KERNEL");
 	miConfig->puerto_fs = (int) config_get_string_value(config, "PUERTO_FS");
@@ -565,16 +592,15 @@ t_miConfig* cargarConfig() {
 	miConfig->numeroMemoria = config_get_int_value(config,"MEMORY_NUMBER");
 	miConfig->miPuerto = config_get_string_value(config,"MI_PUERTO");
 	miConfig->mi_IP = config_get_string_value(config, "MI_IP");
-	log_debug(logger,"puerto: %s", miConfig->miPuerto);
-	log_debug(logger,"ip: %s", miConfig->mi_IP);
+	log_debug(logger,"retardo mem: %d", miConfig->retardoMemoria);
+	log_debug(logger,"retardo mem: %d", miConfig->retardoGossiping);
 	log_debug(logger, "Levanta archivo de config");
-	free(buffer);
-	free(pathConfig);
 	return miConfig;
 }
 
-void chequearMemoriaFull(bool leyoConsola, int error,int socket, tSegmento* miSegmento,
+void validarAgregadoDePagina(bool leyoConsola, int error,int socket, tSegmento* miSegmento,
 		tPagina* pagina, bool modificado) {
+
 	int errorLRU;
 	if (error == -1) {
 		errorLRU = ejecutarLRU();

@@ -22,7 +22,8 @@ RUN,
 REGISTRO,
 NIL,
 GOSSIPING,
-RESPGOSS}type;
+RESPGOSS,
+GOSSIPKERNEL}type;
 
 typedef struct {
 

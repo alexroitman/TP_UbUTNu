@@ -12,7 +12,10 @@
 #include <commons/config.h>
 #include <commons/log.h>
 #include <signal.h>
+#include <sys/inotify.h>
+#define EVENT_SIZE  ( sizeof (struct inotify_event) + 24 )
 
+#define BUF_LEN     ( 1024 * EVENT_SIZE )
 #ifndef MEMORIA_MEMORIA_H_
 #define MEMORIA_MEMORIA_H_
 #define IP "127.0.0.1"
@@ -24,7 +27,6 @@ t_config* config;
 
 bool leyoConsola;
 bool recibioSocket;
-
 tSelect* packSelect;
 tInsert* packInsert;
 tCreate* packCreate;
@@ -47,6 +49,7 @@ int cantPagsMax;
 pthread_t hiloConsola;
 pthread_t hiloSocket;
 pthread_t hiloJournal;
+pthread_t hiloInnotify;
 pthread_t hiloGossip;
 
 sem_t mutexJournal;
@@ -104,6 +107,7 @@ typedef struct {
 }tGossip;
 
 tGossip* packGossip;
+tGossip* gossipKernel;
 t_miConfig* miConfig;
 fd_set active_fd_set, read_fd_set;
 char package[PACKAGESIZE];
@@ -131,12 +135,13 @@ void eliminarDeMemoria(void* elemento);
 void liberarPaginasDelSegmento(tSegmento* miSegmento, t_list* tablaSegmentos);
 void mandarInsertDePaginasModificadas(t_list* paginasModificadas,char* nombreTabla, int socket_lfs);
 void borrarPaginasModificadas(t_list* paginasModificadas, t_list* tablaPaginasMiSegmento);
-void chequearMemoriaFull(bool leyoConsola, int error,int socket, tSegmento* miSegmento,
+void validarAgregadoDePagina(bool leyoConsola, int error,int socket, tSegmento* miSegmento,
 		tPagina* pagina, bool modificado);
 void finalizarEjecucion();
 void enviarMensajeAKernel();
 t_miConfig* cargarConfig();
 void journalAsincronico();
+void pedirPathConfig();
 void inicializarTablaGossip();
 void realizarGossiping();
 void actualizarTablaGossip(tGossip* packGossip);
@@ -145,6 +150,7 @@ void cargarPackGossip(tGossip* packGossip, t_list* tablaGossip, type header);
 char* serializarGossip(tGossip* packGossip);
 int desSerializarGossip(tGossip* packGossip, int socket);
 int levantarCliente();
+bool verificarTamanioValue(char* value);
 
 int levantarServidor();
 void cerrarConexiones();
