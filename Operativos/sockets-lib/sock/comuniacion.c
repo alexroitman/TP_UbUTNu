@@ -414,6 +414,7 @@ char* serializarDescribe(tDescribe* packageDescribe) {
 			size_to_send);
 	offset += size_to_send;
 
+	printf("tamanio del serialized: %d",offset);
 	return serializedPackage;
 }
 
