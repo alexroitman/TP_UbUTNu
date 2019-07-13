@@ -699,6 +699,7 @@ void cargarConfig(t_config* config){
 	miConfig->puerto_mem = config_get_string_value(config,"PUERTO_MEMORIA");
 	miConfig->sleep = config_get_int_value(config,"SLEEP_EJECUCION");
 	miConfig->quantum = config_get_int_value(config,"QUANTUM");
+
 }
 
 void inicializarTodo(){

@@ -214,3 +214,21 @@
 [INFO] 15:48:58:966 Memoria.c/(9538:9538): Por favor ingrese el path de su archivo de configuracion
 [INFO] 15:50:14:414 Memoria.c/(9608:9608): Por favor ingrese el path de su archivo de configuracion
 [INFO] 15:50:25:590 Memoria.c/(9614:9614): Por favor ingrese el path de su archivo de configuracion
+[INFO] 15:53:48:578 Memoria.c/(9677:9677): Por favor ingrese el path de su archivo de configuracion
+[INFO] 15:55:30:831 Memoria.c/(9783:9783): Por favor ingrese el path de su archivo de configuracion
+[DEBUG] 15:55:33:611 Memoria.c/(9783:9783): Levanta archivo de config
+[DEBUG] 15:55:33:611 Memoria.c/(9783:9783): Tamanio Memoria: 50
+[DEBUG] 15:55:33:611 Memoria.c/(9783:9783): Handshake con LFS realizado. Tamanio max del value: 8
+[DEBUG] 15:55:33:612 Memoria.c/(9783:9783): Levanta conexion con LFS
+[DEBUG] 15:55:33:612 Memoria.c/(9783:9783): Cantidad maxima de paginas en memoria: 3
+[DEBUG] 15:55:33:613 Memoria.c/(9783:9788): entre al hilo
+[DEBUG] 15:55:38:613 Memoria.c/(9783:9789): No me pude conectar con mi seed
+[DEBUG] 15:55:39:258 Memoria.c/(9783:9785): cliente nuevo: 10
+[DEBUG] 15:55:39:274 Memoria.c/(9783:9785): llego algo del cliente 10
+[DEBUG] 15:55:39:927 Memoria.c/(9783:9785): cliente nuevo: 11
+[DEBUG] 15:55:39:928 Memoria.c/(9783:9785): cliente nuevo: 12
+[DEBUG] 15:55:39:928 Memoria.c/(9783:9785): cliente nuevo: 13
+[DEBUG] 15:55:43:613 Memoria.c/(9783:9789): No me pude conectar con mi seed
+[DEBUG] 15:55:48:614 Memoria.c/(9783:9789): No me pude conectar con mi seed
+[DEBUG] 15:55:52:947 Memoria.c/(9783:9785): Se ha cortado la conexion
+[DEBUG] 15:55:53:614 Memoria.c/(9783:9789): No me pude conectar con mi seed
