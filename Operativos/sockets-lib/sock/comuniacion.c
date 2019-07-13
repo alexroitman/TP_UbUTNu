@@ -11,6 +11,47 @@ type leerHeader(int socket) {
 	return header;
 }
 
+char* serializarGossip(tGossip* packGossip) {
+	char* serializedPackage = malloc(sizeof(type) +
+			sizeof(packGossip->cant_memorias)
+					+ packGossip->cant_memorias * sizeof(tMemoria));
+	int offset = 0;
+	int size_to_send;
+
+	size_to_send = sizeof(type);
+	memcpy(serializedPackage + offset, &(packGossip->header),size_to_send);
+	offset+= size_to_send;
+
+	size_to_send = sizeof(int);
+	memcpy(serializedPackage + offset,&(packGossip->cant_memorias), size_to_send);
+	offset+= size_to_send;
+
+	for(int x =0;x<packGossip->cant_memorias;x++){
+		size_to_send = sizeof(tMemoria);
+		memcpy(serializedPackage + offset, &(packGossip->memorias[x]),size_to_send);
+		offset += size_to_send;
+	}
+
+	return serializedPackage;
+}
+
+int desSerializarGossip(tGossip* packGossip, int socket){
+
+
+	int status = recv(socket,&(packGossip->cant_memorias),sizeof(int),0);
+	if(!status){
+		return 0;
+	}
+	printf("cant memorias: %d",packGossip->cant_memorias);
+
+
+	packGossip->memorias = malloc(packGossip->cant_memorias * sizeof(tMemoria));
+	for(int x = 0; x< packGossip->cant_memorias; x++){
+		status = recv(socket,&(packGossip->memorias[x]),sizeof(tMemoria),0);
+	}
+	return status;
+}
+
 void cargarPaqueteSelect(tSelect *pack, char* cons) {
 	char** spliteado;
 	spliteado = string_n_split(cons, 3, " ");
@@ -418,8 +459,6 @@ char* serializarDescribe(tDescribe* packageDescribe) {
 	memcpy(serializedPackage + offset, (packageDescribe->nombre_tabla),
 			size_to_send);
 	offset += size_to_send;
-
-	printf("tamanio del serialized: %d",offset);
 	return serializedPackage;
 }
 

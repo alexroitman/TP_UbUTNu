@@ -25,13 +25,13 @@ t_contMetrics metricsSC;
 t_contMetrics metricsSHC;
 t_contMetrics metricsEC;
 pthread_t planificador_t;
-t_infoMem *SC;
+pthread_t hiloGossip;
 t_log *logger;
 t_log *loggerError;
 t_log *loggerWarning;
 t_queue *colaReady;
 t_queue *colaNew;
-t_infoMem *SC;
+tMemoria *SC;
 t_list *listaMemsEC;
 t_list *listaMemsSHC;
 t_list *mems;
@@ -42,6 +42,7 @@ t_config* config;
 int contScript;
 bool continuar = true;
 int contMult = 0;
+int cantMemorias = 1;
 
 // Define cual va a ser el size maximo del paquete a enviar
 
@@ -64,6 +65,7 @@ int main(){
 		colaReady = queue_create();
 		colaNew = queue_create();
 		pthread_create(&planificador_t, NULL, (void*) planificador, NULL);
+		pthread_create(&hiloGossip,NULL,(void*) gossip,NULL);
 		char consulta[256] = "";
 		for(int i = 0; i < miConfig->MULT_PROC; i++){
 					pthread_detach(cpus[i]);
@@ -364,6 +366,7 @@ void CPU(){
 	contMult++;
 	sem_post(&mutexContMult);
 	while(continuar){
+
 		script *unScript;
 		char* consulta = malloc(256);
 		sem_wait(&semReady);
@@ -436,6 +439,52 @@ void planificador(){
 		sem_post(&semReady);
 		sem_post(&mutexReady);
 	}
+}
+void actualizarTablaGossip(tGossip* packGossip){
+	void actualizarTabla(void* elemento){
+		tMemoria* mem = (tMemoria*) elemento;
+		bool compararNumeroMem(void* elem){
+			tMemoria* mem2 = (tMemoria*) elem;
+			return mem2->numeroMemoria == mem->numeroMemoria;
+		}
+
+		if(list_filter(mems,compararNumeroMem)->elements_count == 0){
+			list_add(mems,mem);
+		}
+	}
+
+
+	t_list* listaRecv = list_create();
+	for(int i = 0; i < packGossip->cant_memorias; i++){
+		tMemoria* mem = malloc(sizeof(tMemoria));
+		*mem = packGossip->memorias[i];
+		list_add(listaRecv,mem);
+	}
+	list_iterate(listaRecv,actualizarTabla);
+    list_destroy(listaRecv);
+}
+
+
+
+void gossip(){
+	int socket_gossip = levantarCliente(miConfig->puerto_mem,miConfig->ip_mem);
+	int size_to_send = sizeof(type);
+	char* serializedPackage = malloc(size_to_send);
+	type gossip = GOSSIPKERNEL;
+	memcpy(serializedPackage,&(gossip),size_to_send);
+	while(socket_gossip > 0){
+		usleep(miConfig->t_gossip*1000);
+		enviarPaquete(socket_gossip,serializedPackage,size_to_send);
+		gossip = leerHeader(socket_gossip);
+		log_debug(logger,"%d",gossip);
+		tGossip *packGossip = malloc(sizeof(tGossip));
+		desSerializarGossip(packGossip,socket_gossip);
+		actualizarTablaGossip(packGossip);
+		log_debug(logger,"cant de memorias: %d",mems->elements_count);
+		free(packGossip);
+	}
+	log_error(loggerError,"No ha sido posible establecer la conexion con la memoria");
+
 }
 
 int levantarCpus(pthread_t cpus[]){
@@ -541,7 +590,7 @@ int validarAdd(char* consulta){
 
 void ejecutarAdd(char* consulta){
 	char** split = string_split(consulta," ");
-	t_infoMem* memAdd = generarMem(consulta);
+	tMemoria* memAdd = generarMem(consulta);
 	bool mismoId(void* elemento) {
 			t_infoMem* mem = malloc(sizeof(t_infoMem));
 			mem = (t_infoMem*) elemento;
@@ -553,16 +602,16 @@ void ejecutarAdd(char* consulta){
 	case sc:
 		sem_wait(&mutexSC);
 		SC = memAdd;
-		log_debug(logger,"La memoria %d se asoció al criterio %s",memAdd->id,split[4]);
+		log_debug(logger,"La memoria %d se asoció al criterio %s",memAdd->numeroMemoria,split[4]);
 		sem_post(&mutexSC);
 		break;
 	case shc:
 		sem_wait(&mutexSHC);
 		if(list_is_empty(list_filter(listaMemsSHC, mismoId))){
 						list_add(listaMemsSHC, memAdd);
-						log_debug(logger,"La memoria %d se asoció al criterio %s",memAdd->id,split[4]);
+						log_debug(logger,"La memoria %d se asoció al criterio %s",memAdd->numeroMemoria,split[4]);
 					}else{
-						log_error(loggerError,"Ya se encuentra asociada la memoria %d al criterio",memAdd->id);
+						log_error(loggerError,"Ya se encuentra asociada la memoria %d al criterio",memAdd->numeroMemoria);
 					}
 		sem_post(&mutexSHC);
 		//despacharQuery("journal\n",)
@@ -571,9 +620,9 @@ void ejecutarAdd(char* consulta){
 		sem_wait(&mutexEC);
 		if(list_is_empty(list_filter(listaMemsEC, mismoId))){
 						list_add(listaMemsEC, memAdd);
-						log_debug(logger,"La memoria %d se asoció al criterio %s",memAdd->id,split[4]);
+						log_debug(logger,"La memoria %d se asoció al criterio %s",memAdd->numeroMemoria,split[4]);
 					}else{
-						log_error(loggerError,"Ya se encuentra asociada la memoria %d al criterio",memAdd->id);
+						log_error(loggerError,"Ya se encuentra asociada la memoria %d al criterio",memAdd->numeroMemoria);
 					}
 		sem_post(&mutexEC);
 		break;
@@ -642,7 +691,7 @@ int* devolverSocket(consistencias cons, t_list* sockets, int key){
 	int* pos = malloc(sizeof(int));
 	switch(cons){
 	case sc:
-		return (int*)list_get(sockets,SC->id);
+		return (int*)list_get(sockets,SC->numeroMemoria);
 		break;
 	case shc:
 		pos[0] = SHC(key);
@@ -673,8 +722,8 @@ int SHC(int key){
 	int tamanio = list_size(listaMemsSHC);
 	sem_post(&mutexSHC);
 	if(tamanio != 0){
-		t_infoMem* mem= list_get(listaMemsSHC,(tamanio % key));
-		return mem->id;
+		tMemoria* mem= list_get(listaMemsSHC,(tamanio % key));
+		return mem->numeroMemoria;
 	}else{
 		return -1;
 	}
@@ -685,8 +734,8 @@ int EC(int time){
 	int tamanio = list_size(listaMemsEC);
 	sem_post(&mutexEC);
 	if(tamanio != 0){
-		t_infoMem* mem= list_get(listaMemsEC,(tamanio % time));
-		return mem->id;
+		tMemoria* mem= list_get(listaMemsEC,(tamanio % time));
+		return mem->numeroMemoria;
 	}else{
 		return -1;
 	}
@@ -700,6 +749,7 @@ void cargarConfig(t_config* config){
 	miConfig->puerto_mem = config_get_string_value(config,"PUERTO_MEMORIA");
 	miConfig->sleep = config_get_int_value(config,"SLEEP_EJECUCION");
 	miConfig->quantum = config_get_int_value(config,"QUANTUM");
+	miConfig->t_gossip = config_get_int_value(config,"TIEMPO_GOSSIP");
 
 }
 
@@ -721,14 +771,13 @@ void inicializarTodo(){
 	sem_init(&mutexSC,0,1);
 	sem_init(&mutexSHC,0,1);
 	sem_init(&mutexContMult,0,1);
-	listaMemsEC = list_create();
-	listaMemsSHC = list_create();
-	listaTablas = list_create();
 	log_debug(logger,"Semaforos incializados con exito");
 	log_debug(logger,"Inicializando sockets");
 	listaMemsEC = list_create();
 	listaMemsSHC = list_create();
 	listaTablas = list_create();
+	mems = list_create();
+
 }
 
 void finalizarEjecucion() {
@@ -740,6 +789,7 @@ void finalizarEjecucion() {
 	free(SC);
 	list_iterate(listaMemsEC,free);
 	list_iterate(listaMemsSHC,free);
+	list_iterate(mems,free);
 	sem_destroy(&semReady);
 	sem_destroy(&semNew);
 	sem_destroy(&mutexNew);

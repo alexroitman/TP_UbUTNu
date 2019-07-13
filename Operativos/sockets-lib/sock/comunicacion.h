@@ -60,6 +60,8 @@ typedef struct {
 	int length;
 } tRegistroRespuesta;
 
+
+
 typedef struct {
 	type type;
 	uint32_t nombre_tabla_long;
@@ -129,6 +131,16 @@ typedef struct {
 	int criterio;
 } tAdd;
 
+typedef struct {
+	char puerto[5];
+	char ip[12];
+	int numeroMemoria;
+}tMemoria;
+typedef struct {
+	type header;
+	int cant_memorias;
+	tMemoria* memorias;
+}tGossip;
 type leerHeader(int socket);
 
 void cargarPaqueteSelect(tSelect *pack, char* cons);
@@ -138,6 +150,10 @@ void cargarPaqueteDescribe(tDescribe *pack, char* cons);
 void cargarPaqueteInsertLFS(tInsert *pack, char* cons);
 void cargarPaqueteDrop(tDrop *pack, char* cons);
 void cargarPaqueteJournal(tJournal* pack, char* cons);
+void cargarPackGossip(tGossip* packGossip, t_list* tablaGossip, type header);
+
+char* serializarGossip(tGossip* packGossip);
+int desSerializarGossip(tGossip* packGossip, int socket);
 
 int desSerializarRegistro(tRegistroRespuesta* reg, int socket);
 char* serializarRegistro(tRegistroRespuesta* reg);

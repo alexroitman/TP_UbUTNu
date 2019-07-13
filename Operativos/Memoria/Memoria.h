@@ -95,17 +95,9 @@ typedef struct {
 	char* mi_IP;
 } t_miConfig;
 
-typedef struct {
-	char puerto[5];
-	char ip[12];
-	int numeroMemoria;
-}tMemoria;
 
-typedef struct {
-	type header;
-	int cant_memorias;
-	tMemoria* memorias;
-}tGossip;
+
+
 
 tGossip* packGossip;
 tGossip* gossipKernel;
@@ -147,9 +139,7 @@ void inicializarTablaGossip();
 void realizarGossiping();
 void actualizarTablaGossip(tGossip* packGossip);
 void devolverTablaGossip(tGossip* packGossip,int socket);
-void cargarPackGossip(tGossip* packGossip, t_list* tablaGossip, type header);
-char* serializarGossip(tGossip* packGossip);
-int desSerializarGossip(tGossip* packGossip, int socket);
+
 int levantarCliente();
 bool verificarTamanioValue(char* value);
 

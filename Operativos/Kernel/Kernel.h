@@ -59,6 +59,7 @@ typedef struct{
 	int MULT_PROC;
 	int metadata_refresh;
 	int sleep;
+	int t_gossip;
 }configKernel;
 
 type leerConsola(); //Lee la consulta y devuelve el string
@@ -87,7 +88,9 @@ void finalizarEjecucion();
 consistencias consTabla (char* nombre);
 int* devolverSocket(consistencias cons, t_list* sockets, int key);
 void ejecutarDescribe(t_describe *response);
+void actualizarTablaGossip(tGossip* packGossip);
 void ejecutarAdd(char* consulta);
+void gossip();
 
 #endif /* KERNEL_KERNEL_H_ */
 

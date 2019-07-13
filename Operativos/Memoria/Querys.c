@@ -204,6 +204,7 @@ void ejecutarConsulta(int socket) {
 		*/
 		break;
 	case GOSSIPKERNEL:
+		log_debug(logger,"Llego gossip kernel");
 		gossipKernel= malloc(sizeof(tGossip));
 		gossipKernel->memorias = malloc(
 				tablaGossip->elements_count * sizeof(tMemoria));

@@ -23,8 +23,8 @@ int levantarCliente(char* puerto,char* ip) {
 				serverInfo->ai_protocol);
 
 
-		while(connect(serverSocket, serverInfo->ai_addr, serverInfo->ai_addrlen) != 0){
-			connect(serverSocket, serverInfo->ai_addr, serverInfo->ai_addrlen);
+		while(connect(serverSocket, serverInfo->ai_addr, serverInfo->ai_addrlen) == -1){
+			usleep(500*1000);
 		}
 		freeaddrinfo(serverInfo);	// No lo necesitamos mas
 		return serverSocket;

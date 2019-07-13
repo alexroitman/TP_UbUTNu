@@ -259,3 +259,55 @@
 [ERROR] 22:07:57:978 Kernel.c/(973:973): Se ingreso un header no valido
 [DEBUG] 22:08:06:1 Kernel.c/(973:973): header select
 [DEBUG] 22:08:06:2 Kernel.c/(973:973): Se recibio un SELECT
+[DEBUG] 17:59:14:713 Kernel.c/(6310:6310): Cargando configuracion
+[DEBUG] 17:59:14:734 Kernel.c/(6310:6310): Configuracion cargada con exito
+[DEBUG] 17:59:14:734 Kernel.c/(6310:6310): Inicializando semaforos
+[DEBUG] 17:59:14:734 Kernel.c/(6310:6310): Semaforos incializados con exito
+[DEBUG] 17:59:14:734 Kernel.c/(6310:6310): Inicializando sockets
+[DEBUG] 17:59:14:734 Kernel.c/(6310:6310): Sockets inicializados con exito
+[DEBUG] 17:59:14:734 Kernel.c/(6310:6310): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 17:59:14:734 Kernel.c/(6310:6310): Realizando describe general
+[DEBUG] 17:59:14:734 Kernel.c/(6310:6310): header describe
+
+[DEBUG] 17:59:14:734 Kernel.c/(6310:6310): Se recibio un DESCRIBE
+[DEBUG] 17:59:15:386 Kernel.c/(6310:6310): Cant tablas: 4
+[DEBUG] 17:59:15:386 Kernel.c/(6310:6310): UNTER
+[DEBUG] 17:59:15:386 Kernel.c/(6310:6310): Se agrego la tabla UNTER a la lista con
+[DEBUG] 17:59:15:386 Kernel.c/(6310:6310): SARAZA
+[DEBUG] 17:59:15:386 Kernel.c/(6310:6310): Se agrego la tabla SARAZA a la lista con
+[DEBUG] 17:59:15:386 Kernel.c/(6310:6310): PAPA
+[DEBUG] 17:59:15:386 Kernel.c/(6310:6310): Se agrego la tabla PAPA a la lista con
+[DEBUG] 17:59:15:386 Kernel.c/(6310:6310): GUIDO
+[DEBUG] 17:59:15:386 Kernel.c/(6310:6310): Se agrego la tabla GUIDO a la lista con
+[DEBUG] 18:18:06:121 Kernel.c/(6995:6995): Cargando configuracion
+[DEBUG] 18:18:06:121 Kernel.c/(6995:6995): Configuracion cargada con exito
+[DEBUG] 18:18:06:121 Kernel.c/(6995:6995): Inicializando semaforos
+[DEBUG] 18:18:06:121 Kernel.c/(6995:6995): Semaforos incializados con exito
+[DEBUG] 18:18:06:121 Kernel.c/(6995:6995): Inicializando sockets
+[DEBUG] 18:18:06:122 Kernel.c/(6995:6995): Sockets inicializados con exito
+[DEBUG] 18:18:06:122 Kernel.c/(6995:6995): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 18:18:06:122 Kernel.c/(6995:6995): Realizando describe general
+[DEBUG] 18:18:06:122 Kernel.c/(6995:6995): header describe
+
+[DEBUG] 18:18:06:122 Kernel.c/(6995:6995): Se recibio un DESCRIBE
+[DEBUG] 18:19:56:835 Kernel.c/(7068:7068): Cargando configuracion
+[DEBUG] 18:19:56:835 Kernel.c/(7068:7068): Configuracion cargada con exito
+[DEBUG] 18:19:56:835 Kernel.c/(7068:7068): Inicializando semaforos
+[DEBUG] 18:19:56:836 Kernel.c/(7068:7068): Semaforos incializados con exito
+[DEBUG] 18:19:56:836 Kernel.c/(7068:7068): Inicializando sockets
+[DEBUG] 18:19:56:837 Kernel.c/(7068:7068): Sockets inicializados con exito
+[DEBUG] 18:19:56:837 Kernel.c/(7068:7068): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 18:19:56:837 Kernel.c/(7068:7068): Realizando describe general
+[DEBUG] 18:19:56:837 Kernel.c/(7068:7068): header describe
+
+[DEBUG] 18:19:56:837 Kernel.c/(7068:7068): Se recibio un DESCRIBE
+[DEBUG] 18:19:57:489 Kernel.c/(7068:7068): Cant tablas: 4
+[DEBUG] 18:19:57:489 Kernel.c/(7068:7068): UNTER
+[DEBUG] 18:19:57:489 Kernel.c/(7068:7068): Se agrego la tabla UNTER a la lista con
+[DEBUG] 18:19:57:489 Kernel.c/(7068:7068): SARAZA
+[DEBUG] 18:19:57:489 Kernel.c/(7068:7068): Se agrego la tabla SARAZA a la lista con
+[DEBUG] 18:19:57:489 Kernel.c/(7068:7068): PAPA
+[DEBUG] 18:19:57:489 Kernel.c/(7068:7068): Se agrego la tabla PAPA a la lista con
+[DEBUG] 18:19:57:489 Kernel.c/(7068:7068): GUIDO
+[DEBUG] 18:19:57:489 Kernel.c/(7068:7068): Se agrego la tabla GUIDO a la lista con
+[DEBUG] 18:20:03:124 Kernel.c/(7068:7087): 11
