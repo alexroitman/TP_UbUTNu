@@ -614,7 +614,7 @@ void ejecutarDescribe(t_describe *response){
 					}
 		if(list_is_empty(list_filter(listaTablas,mismoNombre))){
 			list_add(listaTablas,metadata);
-			log_debug(logger, "Se agrego la tabla %s a la lista", nombre);
+			log_debug(logger, "Se agrego la tabla %s a la lista con: %s", nombre, metadata->consistencia);
 		}
 	}
 }
@@ -622,10 +622,13 @@ consistencias consTabla (char* nombre){
 	bool mismoNombre(void* elemento) {
 		t_metadata* tabla = malloc(sizeof(t_metadata));
 		tabla = (t_metadata*) elemento;
+		log_debug(logger,"nombre tabla: %s",tabla->nombre_tabla);
+		log_debug(logger,"nombre que quiero: %s", nombre);
 		return (!strcmp(tabla->nombre_tabla,nombre));
 	}
 	if(list_any_satisfy(listaTablas,mismoNombre)){
-		t_metadata *tabla = list_find(listaTablas,mismoNombre);
+		t_metadata *tabla = (t_metadata*) list_find(listaTablas,mismoNombre);
+		log_debug(logger,"esta es la consistencia de la tabla: %s",tabla->nombre_tabla);
 		return obtCons(tabla->consistencia);
 	}else{
 		return nada;

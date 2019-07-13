@@ -197,7 +197,10 @@ void receptorDeSockets(int* socket) {
 				for (int i = 0; i < cantidad_de_tablas; i++) {
 					Metadata* a_metadata = (Metadata*) list_get(metadatas, i);
 					t_metadata meta;
-					meta.consistencia = a_metadata->consistency;
+					char* cons;
+					int_to_consistency(cons,a_metadata->consistency);
+					meta.consistencia = malloc(sizeof(cons));
+					meta.consistencia = cons*;
 					strcpy(meta.nombre_tabla, a_metadata->nombre_tabla);
 					describe->tablas[i] = meta;
 				}
@@ -829,6 +832,23 @@ int consistency_to_int(char* cons) {
 	else if (!strcmp(cons, "EC"))
 		return 2;
 	return errorDeConsistencia;
+}
+
+void int_to_consistency(char* cons, int value){
+	switch(value){
+	case 0:
+		cons = malloc(sizeof("SC"));
+		strcpy(cons,"SC");
+		break;
+	case 1:
+		cons = malloc(sizeof("SHC"));
+		strcpy(cons,"SHC");
+		break;
+	case 2:
+		cons = malloc(sizeof("EC"));
+		strcpy(cons,"EC");
+		break;
+	}
 }
 
 // ---------------AUXILIARES DE SELECT-----------------
