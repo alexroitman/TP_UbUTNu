@@ -5,22 +5,34 @@
 
 
 
-
 int main() {
 	tamanioMaxValue = 10;
 	signal(SIGINT, finalizarEjecucion);
-	logger = log_create("Memoria.log", "Memoria.c", 1, LOG_LEVEL_DEBUG);
-	miConfig = cargarConfig();
+	logger = log_create("../Memoria.log", "Memoria.c", 1, LOG_LEVEL_DEBUG);
+	miConfig = malloc(sizeof(t_miConfig));
+    pedirPathConfig();
 	log_debug(logger,"Tamanio Memoria: %d",miConfig->tam_mem);
-	socket_lfs = levantarCliente((char*) miConfig->puerto_fs, miConfig->ip_fs);
-	socket_sv = levantarServidor((char*) miConfig->puerto_kernel);
-	//socket_kernel = aceptarCliente(socket_sv);
-	log_debug(logger, "Levanta conexion con kernel");
-	tamanioMaxValue = handshakeLFS(socket_lfs);
-	log_debug(logger,"socket lfs: %d",socket_lfs);
-	log_debug(logger,"socket sv: %d",socket_sv);
-	log_debug(logger, "Handshake con LFS realizado. Tamanio max del value: %d",
-			tamanioMaxValue);
+
+
+	socket_lfs = levantarClienteNoBloqueante((char*) miConfig->puerto_fs, miConfig->ip_fs);
+
+	if (miConfig->numeroMemoria == 1) {
+		if (socket_lfs <= 0) {
+			log_error(logger, "No se pudo conectar a LFS");
+			raise(SIGTERM);
+		}else{
+			tamanioMaxValue = handshakeLFS(socket_lfs);
+			log_debug(logger,
+					"Handshake con LFS realizado. Tamanio max del value: %d",
+					tamanioMaxValue);
+			log_debug(logger,"Levanta conexion con LFS");
+			socket_sv = levantarServidor((char*) miConfig->puerto_kernel);
+		}
+	}
+
+
+	socket_gossip = levantarServidor((char*) miConfig->miPuerto);
+
 	memoria = calloc(miConfig->tam_mem,6 + tamanioMaxValue);
 	cantPagsMax = miConfig->tam_mem / (6 + tamanioMaxValue);
 	log_debug(logger,"Cantidad maxima de paginas en memoria: %d",cantPagsMax);
@@ -32,21 +44,25 @@ int main() {
 	*header = NIL;
 	paramsConsola = malloc(sizeof(tHiloConsola));
 	paramsConsola->header = header;
+	inicializarTablaGossip();
 	pthread_create(&hiloSocket, NULL, (void*) recibirHeader, (void*) header);
 	pthread_create(&hiloConsola, NULL, (void*) leerQuery,
 			(void*) paramsConsola);
 	pthread_create(&hiloJournal, NULL, (void*) journalAsincronico, NULL);
+	pthread_create(&hiloInnotify, NULL, (void*) innotificar, NULL);
+	pthread_create(&hiloGossip, NULL, (void*) realizarGossiping, NULL);
 	pthread_join(hiloSocket, NULL);
 	pthread_join(hiloConsola, NULL);
 	pthread_join(hiloJournal, NULL);
+	pthread_join(hiloGossip, NULL);
 }
 
 void* recibirHeader(void* arg) {
 	while (1) {
 		int listener = socket_sv;
-		fd_set active_fd_set, read_fd_set;
 		FD_ZERO(&active_fd_set);
 		FD_SET(socket_sv, &active_fd_set);
+		FD_SET(socket_gossip, &active_fd_set);
 		int flagError = 0;
 
 		while (flagError != 1) {
@@ -59,13 +75,13 @@ void* recibirHeader(void* arg) {
 					if (FD_ISSET(i, &read_fd_set)) {
 						//El cliente quiere algo!!, vamos a ver quien es primero y que quiere
 
-						if (i == listener) {
+						if (i == listener || i == socket_gossip) {
 							/*
 							 El socket i resultó ser el listener! o sea el socket del servidor. Cuando el que quiere algo es el propio servidor
 							 significa que tenemos un nuevo cliente QUE SE QUIERE CONECTAR. Por lo que tenemos que hacer un accept() para generar un nuevo socket para ese lciente
 							 y guardar dicho nuevo cliente en nuestra lista general de sockets
 							 */
-							int clienteNuevo = aceptarCliente(listener);
+							int clienteNuevo = aceptarCliente(i);
 							log_debug(logger, "cliente nuevo: %d",
 									clienteNuevo);
 							FD_SET(clienteNuevo, &active_fd_set);
@@ -96,16 +112,167 @@ void* recibirHeader(void* arg) {
 }
 
 
-void actualizarPaginaEnMemoria(tSegmento* segmento,int index, char* newValue) {
-	elem_tabla_pag* elemTablaPag =  malloc(sizeof(elem_tabla_pag));
-	elemTablaPag = (elem_tabla_pag*)list_get(segmento->tablaPaginas, index);
-	int offsetMemoria = elemTablaPag->offsetMemoria;
-	int timestamp = (int) time(NULL);
-	memcpy(memoria + offsetMemoria + 2, &(timestamp),4);
-	memcpy(memoria + offsetMemoria + 6,newValue,tamanioMaxValue);
-	elemTablaPag->modificado = true; //PARA PROBARRRRR ! TIENE QUE SER TRUE
-	elemTablaPag->ultimoTime = (int) time (NULL);
-	log_debug(logger, "Pagina encontrada y actualizada.");
+void inicializarTablaGossip(){
+	tablaGossip = list_create();
+	tMemoria* yo = malloc(sizeof(tMemoria));
+	strcpy(yo->ip,miConfig->mi_IP);
+	strcpy(yo->puerto,miConfig->miPuerto);
+	yo->numeroMemoria = miConfig->numeroMemoria;
+	list_add(tablaGossip,yo);
+}
+
+void realizarGossiping() {
+	if ((miConfig->puerto_seeds) != NULL && (miConfig->ip_seeds)[0] != NULL) {
+
+		while (1) {
+			int clienteGossip;
+			do {
+				usleep(miConfig->retardoGossiping * 1000);
+				//log_debug(logger, "pruebo conectarme");
+				clienteGossip = levantarClienteNoBloqueante(
+						(miConfig->puerto_seeds)[0], (miConfig->ip_seeds)[0]);
+				if (clienteGossip == -1) {
+					log_debug(logger, "No me pude conectar con mi seed");
+				}
+			} while (clienteGossip <= 0);
+			log_debug(logger, "me pude conectar a mi seed");
+			//FD_SET(clienteGossip,&active_fd_set);
+			int error = 0;
+			while (error != -1) {
+				usleep(miConfig->retardoGossiping * 1000);
+				int cantMemorias = tablaGossip->elements_count;
+				tGossip* packGossip = malloc(sizeof(tGossip));
+				packGossip->memorias = malloc(cantMemorias * sizeof(tMemoria));
+				cargarPackGossip(packGossip, tablaGossip, GOSSIPING);
+				char* serializado = serializarGossip(packGossip);
+				int tam_tot = cantMemorias * sizeof(tMemoria) + sizeof(type)
+						+ sizeof(int);
+				error = enviarPaquete(clienteGossip, serializado, tam_tot);
+				if (recv(clienteGossip, &(*header), sizeof(type), MSG_WAITALL) > 0) {
+					//log_debug(logger, "llego algo del cliente %d", clienteGossip);
+					recibioSocket = true;
+					usleep(miConfig->retardoMemoria * 1000);
+					sem_wait(&mutexJournal);
+					ejecutarConsulta(clienteGossip);
+					sem_post(&mutexJournal);
+				}else{
+					error = -1;
+				}
+
+				free(packGossip);
+				free(packGossip->memorias);
+				free(serializado);
+			}
+		}
+	}
+
+}
+
+void cargarPackGossip(tGossip* packGossip, t_list* tablaGossip, type header){
+	packGossip->cant_memorias = tablaGossip->elements_count;
+	packGossip->header = header;
+	for(int i = 0; i < tablaGossip->elements_count; i++){
+		tMemoria* miMemoria;
+		miMemoria = (tMemoria*) list_get(tablaGossip, i);
+		packGossip->memorias[i] = *miMemoria;
+	}
+}
+
+char* serializarGossip(tGossip* packGossip) {
+	char* serializedPackage = malloc(sizeof(type) +
+			sizeof(packGossip->cant_memorias)
+					+ packGossip->cant_memorias * sizeof(tMemoria));
+	int offset = 0;
+	int size_to_send;
+
+	size_to_send = sizeof(type);
+	memcpy(serializedPackage + offset, &(packGossip->header),size_to_send);
+	offset+= size_to_send;
+
+	size_to_send = sizeof(int);
+	memcpy(serializedPackage + offset,&(packGossip->cant_memorias), size_to_send);
+	offset+= size_to_send;
+
+	for(int x =0;x<packGossip->cant_memorias;x++){
+		size_to_send = sizeof(tMemoria);
+		memcpy(serializedPackage + offset, &(packGossip->memorias[x]),size_to_send);
+		offset += size_to_send;
+	}
+
+	return serializedPackage;
+}
+
+int desSerializarGossip(tGossip* packGossip, int socket){
+
+
+	int status = recv(socket,&(packGossip->cant_memorias),sizeof(int),0);
+	if(!status){
+		log_debug(logger,"no llego nada wacho");
+		return 0;
+	}
+	//log_debug(logger,"cant memorias: %d",packGossip->cant_memorias);
+
+
+	packGossip->memorias = malloc(packGossip->cant_memorias * sizeof(tMemoria));
+	for(int x = 0; x< packGossip->cant_memorias; x++){
+		status = recv(socket,&(packGossip->memorias[x]),sizeof(tMemoria),0);
+	}
+	return status;
+}
+
+void actualizarTablaGossip(tGossip* packGossip){
+	void actualizarTabla(void* elemento){
+		tMemoria* mem = (tMemoria*) elemento;
+		bool compararNumeroMem(void* elem){
+			tMemoria* mem2 = (tMemoria*) elem;
+			return mem2->numeroMemoria == mem->numeroMemoria;
+		}
+
+		if(list_filter(tablaGossip,compararNumeroMem)->elements_count == 0){
+			list_add(tablaGossip,mem);
+		}
+	}
+
+
+	t_list* listaRecv = list_create();
+	for(int i = 0; i < packGossip->cant_memorias; i++){
+		tMemoria* mem = malloc(sizeof(tMemoria));
+		*mem = packGossip->memorias[i];
+		list_add(listaRecv,mem);
+	}
+	list_iterate(listaRecv,actualizarTabla);
+    list_destroy(listaRecv);
+}
+
+void devolverTablaGossip(tGossip* packGossip, int socket) {
+
+	cargarPackGossip(packGossip, tablaGossip, RESPGOSS);
+	char* serializado = serializarGossip(packGossip);
+	int tam_tot = packGossip->cant_memorias * sizeof(tMemoria) + sizeof(type)
+			+ sizeof(int);
+	enviarPaquete(socket, serializado, tam_tot);
+}
+
+
+
+int actualizarPaginaEnMemoria(tSegmento* segmento, int index, char* newValue) {
+
+	if (verificarTamanioValue(newValue)) {
+		elem_tabla_pag* elemTablaPag = malloc(sizeof(elem_tabla_pag));
+		elemTablaPag = (elem_tabla_pag*) list_get(segmento->tablaPaginas,
+				index);
+		int offsetMemoria = elemTablaPag->offsetMemoria;
+		int timestamp = (int) time(NULL);
+		memcpy(memoria + offsetMemoria + 2, &(timestamp), 4);
+		memcpy(memoria + offsetMemoria + 6, newValue, tamanioMaxValue);
+		elemTablaPag->modificado = true;
+		elemTablaPag->ultimoTime = (int) time(NULL);
+		log_debug(logger, "Pagina encontrada y actualizada.");
+		return 1;
+	} else {
+		log_error(logger, "Tamanio de value demasiado grande");
+		return -2;
+	}
 }
 
 tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg) {
@@ -115,36 +282,47 @@ tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg) {
 	return seg;
 }
 
-int agregarPaginaAMemoria(tSegmento* seg,tPagina* pagina) {
-	int cantPags = 0;
-	int timeAux;
-	memcpy(&timeAux,memoria + 2,4);
-	while (timeAux != 0) {
-		cantPags++;
-		if (cantPags < cantPagsMax) {
-			memcpy(&timeAux,memoria + cantPags*(6 + tamanioMaxValue) + 2,4);
-		} else {
+bool verificarTamanioValue(char* value){
+	return strlen(value) < tamanioMaxValue;
+}
 
-			return -1;
-			//no hay mas lugar en memoria
+int agregarPaginaAMemoria(tSegmento* seg, tPagina* pagina, bool modificado) {
+
+	if (verificarTamanioValue(pagina->value)) {
+
+		int cantPags = 0;
+		int timeAux;
+		memcpy(&timeAux, memoria + 2, 4);
+		while (timeAux != 0) {
+			cantPags++;
+			if (cantPags < cantPagsMax) {
+				memcpy(&timeAux, memoria + cantPags * (6 + tamanioMaxValue) + 2,
+						4);
+			} else {
+
+				return -1;
+				//no hay mas lugar en memoria
+			}
 		}
+		int offset = (cantPags * (6 + tamanioMaxValue));
+		memcpy((memoria + offset), &(pagina->key), sizeof(uint16_t));
+
+		memcpy((memoria + offset + 2), &(pagina->timestamp), sizeof(int));
+
+		memcpy((memoria + offset + 6), pagina->value, tamanioMaxValue);
+
+		elem_tabla_pag* pagTabla = malloc(sizeof(elem_tabla_pag));
+		pagTabla->modificado = modificado;
+		pagTabla->offsetMemoria = offset;
+		pagTabla->index = list_size(seg->tablaPaginas);
+		pagTabla->ultimoTime = (int) time(NULL);
+		list_add(seg->tablaPaginas, (elem_tabla_pag*) pagTabla);
+		log_debug(logger, "Pagina cargada en memoria.");
+		return 1;
+	} else {
+		log_error(logger, "Tamanio de value demasiado grande");
+		return -2;
 	}
-	int offset = (cantPags * (6 + tamanioMaxValue));
-	memcpy((memoria + offset),&(pagina->key),sizeof(uint16_t));
-
-	memcpy((memoria + offset + 2),&(pagina->timestamp),sizeof(int));
-
-	memcpy((memoria + offset + 6),pagina->value,tamanioMaxValue);
-
-	elem_tabla_pag* pagTabla = malloc(sizeof(elem_tabla_pag));
-	pagTabla->modificado = true;//PARA PROBARRRRRRRRRRRR!!! TIENE QUE SERTRUE
-	pagTabla->offsetMemoria = offset;
-	pagTabla->index = list_size(seg->tablaPaginas);
-	pagTabla->ultimoTime = (int) time (NULL);
-	list_add(seg->tablaPaginas, (elem_tabla_pag*)pagTabla);
-	log_debug(logger, "Pagina cargada en memoria.");
-	return 1;
-
 }
 
 void cargarSegmentoEnTabla(char* path, t_list* listaSeg) {
@@ -317,8 +495,8 @@ int listMinTimestamp(t_list* listaPaginas,elem_tabla_pag* pagina){
 
 
 void ejecutarJournal(){
-	sem_wait(&mutexJournal);
 	log_debug(logger,"Realizando Journal");
+
 	int index = 0;
 	tSegmento* miSegmento = list_get(tablaSegmentos, 0);
 
@@ -332,7 +510,6 @@ void ejecutarJournal(){
 	}
 
 	log_debug(logger, "Journal finalizado");
-	sem_post(&mutexJournal);
 }
 
 void mandarInsertDePaginasModificadas(t_list* paginasModificadas,char* nombreTabla, int socket_lfs){
@@ -388,15 +565,31 @@ void actualizarIndexLista(t_list* lista){
 	list_iterate(lista, cambiarIndice);
 }
 
+void pedirPathConfig(){
+	int error = 1;
+	while (error == 1) {
+		char* buffer = malloc(256);
+		char* pathConfig = malloc(256);
+		log_info(logger,
+				"Por favor ingrese el path de su archivo de configuracion");
+		fgets(buffer, 256, stdin);
+		strncpy(pathConfig, buffer, strlen(buffer) - 1);
+		config = config_create(pathConfig);
+		free(buffer);
+		free(pathConfig);
+		if (config != NULL) {
+			miConfig = cargarConfig();
+			error = 0;
+		}else{
+			log_info(logger, "Error de apertura de config ");
+			error = 1;
+		}
+	}
+
+}
+
 t_miConfig* cargarConfig() {
-	char* buffer = malloc(256);
-	char* pathConfig = malloc(256);
-	log_info(logger,
-			"Por favor ingrese el path de su archivo de configuracion (Memoria.config): ");
-	fgets(buffer, 256, stdin);
-	strncpy(pathConfig, buffer, strlen(buffer) - 1);
-	t_miConfig* miConfig = malloc(sizeof(t_miConfig));
-	config = config_create(pathConfig);
+
 	miConfig->puerto_kernel = (int) config_get_string_value(config,
 			"PUERTO_KERNEL");
 	miConfig->puerto_fs = (int) config_get_string_value(config, "PUERTO_FS");
@@ -404,27 +597,33 @@ t_miConfig* cargarConfig() {
 	miConfig->tam_mem = config_get_int_value(config, "TAM_MEM");
 	miConfig->retardoJournal = config_get_int_value(config,"RETARDO_JOURNAL");
 	miConfig->retardoMemoria = config_get_int_value(config,"RETARDO_MEM");
+	miConfig->retardoFS = config_get_int_value(config,"RETARDO_FS");
+	miConfig->ip_seeds = config_get_array_value(config,"IP_SEEDS");
+	miConfig->puerto_seeds = config_get_array_value(config,"PUERTO_SEEDS");
+	miConfig->retardoGossiping = config_get_int_value(config,"RETARDO_GOSSIPING");
+	miConfig->numeroMemoria = config_get_int_value(config,"MEMORY_NUMBER");
+	miConfig->miPuerto = config_get_string_value(config,"MI_PUERTO");
+	miConfig->mi_IP = config_get_string_value(config, "MI_IP");
 	log_debug(logger, "Levanta archivo de config");
-	free(buffer);
-	free(pathConfig);
 	return miConfig;
 }
 
-void chequearMemoriaFull(bool leyoConsola, int error,int socket, tSegmento* miSegmento,
-		tPagina* pagina) {
+void validarAgregadoDePagina(bool leyoConsola, int error,int socket, tSegmento* miSegmento,
+		tPagina* pagina, bool modificado) {
+
 	int errorLRU;
 	if (error == -1) {
 		errorLRU = ejecutarLRU();
 		if (errorLRU == -1) {
 			if (leyoConsola) {
 				ejecutarJournal();
-				agregarPaginaAMemoria(miSegmento, pagina);
+				agregarPaginaAMemoria(miSegmento, pagina,modificado);
 			} else {
 				//le envio el error a kernel para que me devuelva un JOURNAL y la consulta denuevo
 				send(socket, &error, sizeof(int), 0);
 			}
 		} else {
-			agregarPaginaAMemoria(miSegmento, pagina);
+			agregarPaginaAMemoria(miSegmento, pagina,modificado);
 		}
 	}else{
 		if(!leyoConsola){
@@ -441,10 +640,12 @@ void finalizarEjecucion() {
 	printf("------------------------\n");
 	log_destroy(logger);
 	config_destroy(config);
+	free(miConfig);
 	close(socket_lfs);
 	close(socket_kernel);
 	close(socket_sv);
 	list_iterate(tablaSegmentos, free);
+	list_iterate(tablaGossip,free);
 	free(header);
 	free(memoria);
 	free(paramsConsola);

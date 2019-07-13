@@ -32,12 +32,15 @@
 								<option id="gnu.c.compiler.option.include.paths.891412082" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sockets-lib}&quot;"/>
 								</option>
+								<option id="gnu.c.compiler.option.dialect.std.1405116298" superClass="gnu.c.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.c.compiler.dialect.default" valueType="enumerated"/>
+								<option id="gnu.c.compiler.option.pthread.337362774" superClass="gnu.c.compiler.option.pthread" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.931420569" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.1505422452" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.1562525176" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base">
 								<option id="gnu.cpp.link.option.libs.407182416" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" useByScannerDiscovery="false" valueType="libs">
-									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="sockets-lib"/>
+									<listOptionValue builtIn="false" value="sockets-lib"/>
+									<listOptionValue builtIn="false" value="pthread"/>
 									<listOptionValue builtIn="false" value="commons"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.639172278" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">

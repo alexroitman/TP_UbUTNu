@@ -1,0 +1,68 @@
+[INFO] 16:11:16:630 Memoria.c/(10285:10285): Por favor ingrese el path de su archivo de configuracion
+[DEBUG] 16:11:17:674 Memoria.c/(10285:10285): Levanta archivo de config
+[DEBUG] 16:11:17:675 Memoria.c/(10285:10285): Tamanio Memoria: 50
+[DEBUG] 16:11:17:675 Memoria.c/(10285:10285): Handshake con LFS realizado. Tamanio max del value: 8
+[DEBUG] 16:11:17:675 Memoria.c/(10285:10285): Levanta conexion con LFS
+[DEBUG] 16:11:17:675 Memoria.c/(10285:10285): Cantidad maxima de paginas en memoria: 3
+[DEBUG] 16:11:17:677 Memoria.c/(10285:10291): entre al hilo
+[DEBUG] 16:11:19:916 Memoria.c/(10285:10288): cliente nuevo: 9
+[DEBUG] 16:11:19:917 Memoria.c/(10285:10288): llego algo del cliente 9
+[DEBUG] 16:11:21:998 Memoria.c/(10285:10288): Se ha cortado la conexion
+[DEBUG] 16:11:22:677 Memoria.c/(10285:10292): No me pude conectar con mi seed
+[DEBUG] 16:11:27:677 Memoria.c/(10285:10292): No me pude conectar con mi seed
+[DEBUG] 16:11:32:678 Memoria.c/(10285:10292): No me pude conectar con mi seed
+[INFO] 16:11:38:186 Memoria.c/(10300:10300): Por favor ingrese el path de su archivo de configuracion
+[DEBUG] 16:11:39:364 Memoria.c/(10300:10300): Levanta archivo de config
+[DEBUG] 16:11:39:364 Memoria.c/(10300:10300): Tamanio Memoria: 50
+[ERROR] 16:11:39:364 Memoria.c/(10300:10300): No se pudo conectar a LFS
+[INFO] 16:11:44:527 Memoria.c/(10305:10305): Por favor ingrese el path de su archivo de configuracion
+[DEBUG] 16:11:45:700 Memoria.c/(10305:10305): Levanta archivo de config
+[DEBUG] 16:11:45:700 Memoria.c/(10305:10305): Tamanio Memoria: 50
+[ERROR] 16:11:45:700 Memoria.c/(10305:10305): No se pudo conectar a LFS
+[INFO] 16:11:48:873 Memoria.c/(10306:10306): Por favor ingrese el path de su archivo de configuracion
+[DEBUG] 16:11:50:84 Memoria.c/(10306:10306): Levanta archivo de config
+[DEBUG] 16:11:50:84 Memoria.c/(10306:10306): Tamanio Memoria: 50
+[ERROR] 16:11:50:84 Memoria.c/(10306:10306): No se pudo conectar a LFS
+[INFO] 16:18:34:608 Memoria.c/(10481:10481): Por favor ingrese el path de su archivo de configuracion
+[DEBUG] 16:18:35:964 Memoria.c/(10481:10481): Levanta archivo de config
+[DEBUG] 16:18:35:964 Memoria.c/(10481:10481): Tamanio Memoria: 50
+[DEBUG] 16:18:35:964 Memoria.c/(10481:10481): Handshake con LFS realizado. Tamanio max del value: 8
+[DEBUG] 16:18:35:964 Memoria.c/(10481:10481): Levanta conexion con LFS
+[DEBUG] 16:18:35:965 Memoria.c/(10481:10481): Cantidad maxima de paginas en memoria: 3
+[DEBUG] 16:18:35:967 Memoria.c/(10481:10486): entre al hilo
+[DEBUG] 16:18:39:264 Memoria.c/(10481:10483): cliente nuevo: 9
+[DEBUG] 16:18:39:264 Memoria.c/(10481:10483): llego algo del cliente 9
+[DEBUG] 16:18:40:914 Memoria.c/(10481:10483): Se ha cortado la conexion
+[DEBUG] 16:18:40:967 Memoria.c/(10481:10487): No me pude conectar con mi seed
+[DEBUG] 16:18:45:967 Memoria.c/(10481:10487): No me pude conectar con mi seed
+[INFO] 16:20:14:316 Memoria.c/(10565:10565): Por favor ingrese el path de su archivo de configuracion
+[DEBUG] 16:20:15:547 Memoria.c/(10565:10565): Levanta archivo de config
+[DEBUG] 16:20:15:547 Memoria.c/(10565:10565): Tamanio Memoria: 50
+[DEBUG] 16:20:15:547 Memoria.c/(10565:10565): Handshake con LFS realizado. Tamanio max del value: 8
+[DEBUG] 16:20:15:547 Memoria.c/(10565:10565): Levanta conexion con LFS
+[DEBUG] 16:20:15:547 Memoria.c/(10565:10565): Cantidad maxima de paginas en memoria: 3
+[DEBUG] 16:20:15:549 Memoria.c/(10565:10570): entre al hilo
+[DEBUG] 16:20:17:348 Memoria.c/(10565:10567): cliente nuevo: 9
+[DEBUG] 16:20:17:348 Memoria.c/(10565:10567): llego algo del cliente 9
+[DEBUG] 16:20:19:33 Memoria.c/(10565:10567): Se ha cortado la conexion
+[DEBUG] 16:20:20:549 Memoria.c/(10565:10571): No me pude conectar con mi seed
+[INFO] 16:21:17:274 Memoria.c/(10635:10635): Por favor ingrese el path de su archivo de configuracion
+[DEBUG] 16:21:19:121 Memoria.c/(10635:10635): Levanta archivo de config
+[DEBUG] 16:21:19:121 Memoria.c/(10635:10635): Tamanio Memoria: 50
+[ERROR] 16:21:19:122 Memoria.c/(10635:10635): No se pudo conectar a LFS
+[INFO] 16:21:24:733 Memoria.c/(10640:10640): Por favor ingrese el path de su archivo de configuracion
+[DEBUG] 16:21:25:817 Memoria.c/(10640:10640): Levanta archivo de config
+[DEBUG] 16:21:25:817 Memoria.c/(10640:10640): Tamanio Memoria: 50
+[DEBUG] 16:21:25:818 Memoria.c/(10640:10640): Handshake con LFS realizado. Tamanio max del value: 8
+[DEBUG] 16:21:25:818 Memoria.c/(10640:10640): Levanta conexion con LFS
+[DEBUG] 16:21:25:818 Memoria.c/(10640:10640): Cantidad maxima de paginas en memoria: 3
+[DEBUG] 16:21:25:820 Memoria.c/(10640:10650): entre al hilo
+[DEBUG] 16:21:27:588 Memoria.c/(10640:10647): cliente nuevo: 9
+[DEBUG] 16:21:27:589 Memoria.c/(10640:10647): llego algo del cliente 9
+[DEBUG] 16:21:28:299 Memoria.c/(10640:10647): cliente nuevo: 10
+[DEBUG] 16:21:28:299 Memoria.c/(10640:10647): cliente nuevo: 11
+[DEBUG] 16:21:28:299 Memoria.c/(10640:10647): cliente nuevo: 12
+[DEBUG] 16:21:30:821 Memoria.c/(10640:10651): No me pude conectar con mi seed
+[DEBUG] 16:21:35:821 Memoria.c/(10640:10651): No me pude conectar con mi seed
+[DEBUG] 16:21:40:370 Memoria.c/(10640:10647): Se ha cortado la conexion
+[DEBUG] 16:21:40:821 Memoria.c/(10640:10651): No me pude conectar con mi seed

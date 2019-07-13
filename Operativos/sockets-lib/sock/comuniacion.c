@@ -37,10 +37,39 @@ void cargarPaqueteInsert(tInsert *pack, char* cons) {
 			&& strcmp(spliteado[3], "")) {
 		pack->type = INSERT;
 		pack->value = malloc(strlen(value[1]));
+		pack->nombre_tabla = malloc(strlen(spliteado[1]) + 1);
+		strcpy(pack->nombre_tabla,spliteado[1]);
+		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
+		pack->key = atoi(spliteado[2]);
+		strcpy(pack->value, value[1]);
+		pack->value_long = strlen(value[1]) + 1;
+		pack->length = sizeof(pack->type) + sizeof(pack->nombre_tabla_long)
+				+ pack->nombre_tabla_long + sizeof(pack->key)
+				+ sizeof(pack->value_long) + pack->value_long;
+	} else {
+		printf("no entendi tu consulta\n");
+	}
+	string_iterate_lines(spliteado,free);
+	free(spliteado);
+	string_iterate_lines(value,free);
+	free(value);
+}
+void cargarPaqueteInsertLFS(tInsert *pack, char* cons) {
+	char** spliteado;
+	char** value = string_split(cons, "\"");
+	spliteado = string_n_split(cons, 5, " "); //INTER T 3 "H" 23432?
+	if (strcmp(spliteado[1], "") && strcmp(spliteado[2], "")
+			&& strcmp(spliteado[3], "")) {
+		pack->type = INSERT;
+		pack->value = malloc(strlen(value[1]));
 		pack->nombre_tabla = malloc(strlen(spliteado[1]));
 		strcpy(pack->nombre_tabla,spliteado[1]);
 		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
 		pack->key = atoi(spliteado[2]);
+		if(spliteado[4]==NULL)
+			pack->timestamp=time(NULL);
+		else
+			pack->timestamp=atoi(spliteado[4]);
 		strcpy(pack->value, value[1]);
 		pack->value_long = strlen(value[1]) + 1;
 		pack->length = sizeof(pack->type) + sizeof(pack->nombre_tabla_long)
@@ -79,18 +108,19 @@ void cargarPaqueteCreate(tCreate *pack, char* cons) {
 	string_iterate_lines(spliteado,free);
 	free(spliteado);
 }
+
 void cargarPaqueteDescribe(tDescribe *pack, char* cons) {
 	char** spliteado;
-	spliteado = string_n_split(cons, 2, " ");
+	spliteado = string_n_split(cons, 2, " ");//DESCRIBE\n
 		pack->type = DESCRIBE;
 		if(spliteado[1] != NULL){
 			pack->nombre_tabla = malloc(strlen(spliteado[1]));
 			strcpy(pack->nombre_tabla, spliteado[1]);
 			pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
 		}else{
-			pack->nombre_tabla = malloc(strlen(" "));
-			strcpy(pack->nombre_tabla, " ");
-			pack->nombre_tabla_long = strlen(" ") + 1;
+			pack->nombre_tabla = malloc(strlen(""));
+			strcpy(pack->nombre_tabla, "");
+			pack->nombre_tabla_long = strlen("") + 1;
 		}
 		pack->length = sizeof(pack->type)
 				+ sizeof(pack->nombre_tabla_long)
@@ -102,16 +132,22 @@ void cargarPaqueteDescribe(tDescribe *pack, char* cons) {
 void cargarPaqueteDrop(tDrop*pack, char* cons) {
 	char** spliteado;
 	spliteado = string_n_split(cons, 2, " ");
-		pack->type = DROP;
-		pack->nombre_tabla = malloc(strlen(spliteado[1]));
-		strcpy(pack->nombre_tabla, spliteado[1]);
-		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
+	pack->type = DROP;
+	char** name_tabla = string_split(spliteado[1],"\n");
+	pack->nombre_tabla = malloc(strlen(spliteado[1])+1);
+	strcpy(pack->nombre_tabla,name_tabla[0]);
+	strcat(pack->nombre_tabla,"\0");
+	//strcat(name_tabla[0],name_tabla[1]);
+	//strcpy(pack->nombre_tabla,);
+	//strcpy(pack->nombre_tabla, spliteado[1]);
+		pack->nombre_tabla_long = strlen(pack->nombre_tabla);
 		pack->length = sizeof(pack->type)
 				+ sizeof(pack->nombre_tabla_long)
 				+ pack->nombre_tabla_long;
 	string_iterate_lines(spliteado,free);
 	free(spliteado);
 }
+
 void cargarPaqueteJournal(tJournal* pack, char* cons){
 	char** spliteado;
 	spliteado = string_n_split(cons, 0, " ");
@@ -119,6 +155,7 @@ void cargarPaqueteJournal(tJournal* pack, char* cons){
 		pack->length = sizeof(pack->type);
 		free(spliteado);
 }
+
 char* serializarSelect(tSelect* packageSelect) {
 	packageSelect->length = sizeof(packageSelect->type)
 			+ sizeof(packageSelect->nombre_tabla_long)
@@ -169,7 +206,7 @@ int desSerializarSelect(tSelect* packageSelect, int socket) {
 
 	if (!status)
 		return 0;
-	packageSelect->key = malloc(sizeof(uint16_t));
+	//packageSelect->key = malloc(sizeof(uint16_t));
 	status = recv(socket, &packageSelect->key, sizeof(packageSelect->key), 0); //recibo el nombre de la key
 	if (!status)
 		return 0;
@@ -179,6 +216,7 @@ int desSerializarSelect(tSelect* packageSelect, int socket) {
 	return status;
 
 }
+
 char* serializarInsert(tInsert* packageInsert) {
 
 	char* serializedPackage = malloc(packageInsert->length);
@@ -260,6 +298,7 @@ int desSerializarInsert(tInsert* packageInsert, int socket) {
 	return status;
 
 }
+
 char* serializarCreate(tCreate* packageCreate) {
 
 	char* serializedPackage = malloc(packageCreate->length);
@@ -334,13 +373,13 @@ int desSerializarCreate(tCreate* packageCreate, int socket) {
 
 	if (!status)
 		return 0;
-	packageCreate->particiones = malloc(sizeof(int));
+	//packageCreate->particiones = malloc(sizeof(int));
 	status = recv(socket, &packageCreate->particiones,
 			sizeof(packageCreate->particiones), 0); //recibo particiones
 	if (!status)
 		return 0;
 
-	packageCreate->compaction_time = malloc(sizeof(int));
+	//packageCreate->compaction_time = malloc(sizeof(int));
 	status = recv(socket, &packageCreate->compaction_time,
 			sizeof(packageCreate->compaction_time), 0); //recibo particiones
 	if (!status)
@@ -380,32 +419,29 @@ char* serializarDescribe(tDescribe* packageDescribe) {
 			size_to_send);
 	offset += size_to_send;
 
+	printf("tamanio del serialized: %d",offset);
 	return serializedPackage;
 }
 
 int desSerializarDescribe(tDescribe* packageDescribe, int socket) {
-
 	int status;
 	int buffer_size;
 	char *buffer = malloc(buffer_size = sizeof(uint32_t));
 
 	uint32_t nombrelong;
-	status = recv(socket, buffer, sizeof((packageDescribe->nombre_tabla_long)),
-			0); //recibo la longitud
+	status = recv(socket, buffer, sizeof((packageDescribe->nombre_tabla_long)), 0); //recibo la longitud
 	memcpy(&(packageDescribe->nombre_tabla_long), buffer, buffer_size);
 	if (!status)
 		return 0;
 	packageDescribe->nombre_tabla = malloc(packageDescribe->nombre_tabla_long);
 
-	status = recv(socket, packageDescribe->nombre_tabla,
-			packageDescribe->nombre_tabla_long, 0); //recibo el nombre de la tabla
+	status = recv(socket, packageDescribe->nombre_tabla, packageDescribe->nombre_tabla_long, 0); //recibo el nombre de la tabla
 	free(buffer);
 	packageDescribe->length = sizeof(packageDescribe->type)
 			+ sizeof(packageDescribe->nombre_tabla_long)
 			+ packageDescribe->nombre_tabla_long;
 	packageDescribe->type = DESCRIBE;
 	return status;
-
 }
 
 char* serializarDescribe_Response(t_describe *package) {

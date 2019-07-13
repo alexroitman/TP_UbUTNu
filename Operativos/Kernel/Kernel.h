@@ -1,10 +1,3 @@
-/*
- * Kernel.h
- *
- *  Created on: 11 abr. 2019
- *      Author: utnso
- */
-
 #include <stdio.h>
 #include <ctype.h>
 
@@ -92,5 +85,9 @@ consistencias obtCons(char* criterio);
 void inicializarTodo();
 void finalizarEjecucion();
 consistencias consTabla (char* nombre);
+int* devolverSocket(consistencias cons, t_list* sockets, int key);
+void ejecutarDescribe(t_describe *response);
+void ejecutarAdd(char* consulta);
 
 #endif /* KERNEL_KERNEL_H_ */
+

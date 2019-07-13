@@ -30,6 +30,28 @@ int levantarCliente(char* puerto,char* ip) {
 		return serverSocket;
 }
 
+int levantarClienteNoBloqueante(char* puerto, char* ip) {
+	memset(&hints, 0, sizeof(hints));
+
+	hints.ai_family = AF_UNSPEC; // Permite que la maquina se encargue de verificar si usamos IPv4 o IPv6
+	hints.ai_socktype = SOCK_STREAM; // Indica que usaremos el protocolo TCP
+	struct addrinfo *serverInfo;
+	getaddrinfo(ip, puerto, &hints, &serverInfo); // Carga en serverInfo los datos de la conexion
+
+	int serverSocket;
+	serverSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype,
+			serverInfo->ai_protocol);
+	if(connect(serverSocket, serverInfo->ai_addr, serverInfo->ai_addrlen) != 0){
+		freeaddrinfo(serverInfo);
+		return -1;
+	}else{
+		freeaddrinfo(serverInfo);
+		return serverSocket;
+	}
+
+
+}
+
 int levantarServidor(char* puerto) {
 
 	memset(&hints, 0, sizeof(hints));
@@ -59,8 +81,6 @@ int aceptarCliente(int serverSocket) {
 
 		return socketCliente;
 }
-
-
 
 
 void llenarPaqueteRequest(t_Package_Request *package,char* msg){

@@ -20,6 +20,7 @@ sem_t semNew;
 sem_t mutexSC;
 sem_t mutexSHC;
 sem_t mutexEC;
+sem_t mutexContMult;
 t_contMetrics metricsSC;
 t_contMetrics metricsSHC;
 t_contMetrics metricsEC;
@@ -35,12 +36,15 @@ t_list *listaMemsEC;
 t_list *listaMemsSHC;
 t_list *mems;
 t_list *listaTablas;
+t_list *listaDeLSockets;
 configKernel *miConfig;
 t_config* config;
 int contScript;
 bool continuar = true;
+int contMult = 0;
 
 // Define cual va a ser el size maximo del paquete a enviar
+
 
 int main(){
 	signal(SIGINT, finalizarEjecucion);
@@ -52,7 +56,9 @@ int main(){
 	log_debug(logger, "Realizando describe general");
 	pthread_t cpus[miConfig->MULT_PROC];
 	t_list *sockets = list_create();
-	list_add_in_index(sockets,0,socket_memoria);
+	listaDeLSockets = list_create();
+	list_add_in_index(sockets,0,&(socket_memoria));
+	list_add_in_index(listaDeLSockets,contMult,sockets);
 	despacharQuery("describe\n",sockets);
 	if(levantarCpus(cpus)){
 		colaReady = queue_create();
@@ -65,7 +71,7 @@ int main(){
 				pthread_detach(planificador_t);
 		while (continuar) {
 			fgets(consulta, 256, stdin);
-			int consultaOk = despacharQuery(consulta, socket_memoria);
+			int consultaOk = despacharQuery(consulta, sockets);
 			if (!consultaOk) {
 				printf("no entendi tu header \n");
 				log_error(loggerError,"Se ingreso un header no valido");
@@ -121,9 +127,8 @@ type validarSegunHeader(char* header) {
 
 
 
-
 int despacharQuery(char* consulta, t_list* sockets) {
-	int socket_memoria;
+	int* socket_memoria = malloc(sizeof(int));
 	char** tempSplit;
 	tSelect* paqueteSelect=malloc(sizeof(tSelect));
 	tInsert* paqueteInsert=malloc(sizeof(tInsert));
@@ -148,24 +153,24 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				serializado = serializarSelect(paqueteSelect);
 				consistencias cons = consTabla(paqueteSelect->nombre_tabla);
 				socket_memoria = devolverSocket(cons,sockets,paqueteSelect->key);
-				if(socket_memoria != -1){
-					enviarPaquete(socket_memoria, serializado, paqueteSelect->length);
-					recv(socket_memoria, &error, sizeof(error), 0);
+				if(socket_memoria[0] != -1){
+					enviarPaquete(socket_memoria[0], serializado, paqueteSelect->length);
+					recv(socket_memoria[0], &error, sizeof(error), 0);
 					if (error == -1) {
 						log_error(logger, "Memoria llena, hago JOURNAL");
 						cargarPaqueteJournal(paqueteJournal, "JOURNAL");
 						serializado = serializarJournal(paqueteJournal);
-						enviarPaquete(socket_memoria, serializado,
+						enviarPaquete(socket_memoria[0], serializado,
 								paqueteJournal->length);
 						serializado = serializarSelect(paqueteSelect);
-						enviarPaquete(socket_memoria, serializado,
+						enviarPaquete(socket_memoria[0], serializado,
 								paqueteSelect->length);
-						recv(socket_memoria, &error, sizeof(error), 0);
+						recv(socket_memoria[0], &error, sizeof(error), 0);
 						consultaOk = 1;
 					}
-					type header = leerHeader(socket_memoria);
+					type header = leerHeader(socket_memoria[0]);
 					tRegistroRespuesta* reg = malloc(sizeof(tRegistroRespuesta));
-					desSerializarRegistro(reg,socket_memoria);
+					desSerializarRegistro(reg,socket_memoria[0]);
 					log_debug(logger,"Value: %s",reg->value);
 					free(reg->value);
 					free(reg);
@@ -192,22 +197,24 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				serializado = serializarInsert(paqueteInsert);
 				consistencias cons = consTabla(paqueteInsert->nombre_tabla);
 				socket_memoria = devolverSocket(cons,sockets,paqueteInsert->key);
-				if(socket_memoria != -1){
+				if(socket_memoria[0] != -1){
 				log_debug(logger,"%s",paqueteInsert->value);
-				enviarPaquete(socket_memoria, serializado, paqueteInsert->length);
-				recv(socket_memoria, &error, sizeof(error), 0);
+				enviarPaquete(socket_memoria[0], serializado, paqueteInsert->length);
+				recv(socket_memoria[0], &error, sizeof(error), 0);
 				if(error == 1){
 					log_debug(logger, "Se inserto el valor: %s", paqueteInsert->value);
-				} else {
+				} else if(error == -1){
 					log_error(logger, "Memoria llena, hago JOURNAL");
 					cargarPaqueteJournal(paqueteJournal, "JOURNAL");
 					serializado = serializarJournal(paqueteJournal);
-					enviarPaquete(socket_memoria, serializado,
+					enviarPaquete(socket_memoria[0], serializado,
 							paqueteJournal->length);
 					serializado = serializarInsert(paqueteInsert);
-					enviarPaquete(socket_memoria, serializado, paqueteInsert->length);
-					recv(socket_memoria, &error, sizeof(error), 0);
+					enviarPaquete(socket_memoria[0], serializado, paqueteInsert->length);
+					recv(socket_memoria[0], &error, sizeof(error), 0);
 					consultaOk = 1;
+				}else{
+					log_debug(logger,"Tamanio de value demasiado grande");
 				}
 				}else{
 					if(cons != nada){
@@ -233,7 +240,11 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				serializado = serializarCreate(paqueteCreate);
 				socket_memoria = devolverSocket(obtCons(paqueteCreate->consistencia)
 						,sockets,1);
-				enviarPaquete(socket_memoria, serializado, paqueteCreate->length);
+				if(socket_memoria[0] != -1){
+					enviarPaquete(socket_memoria[0], serializado, paqueteCreate->length);
+				}else{
+					log_error(loggerError,"No existen memorias disponibles para el criterio de la tabla");
+				}
 				free(serializado);
 				free(paqueteCreate->consistencia);
 				free(paqueteCreate->nombre_tabla);
@@ -272,13 +283,17 @@ int despacharQuery(char* consulta, t_list* sockets) {
 					string_substring_until(consulta,string_length(consulta)-1  ) );
 			serializado = serializarDescribe(paqueteDescribe);
 			socket_memoria = list_get(sockets,0);
-			enviarPaquete(socket_memoria,serializado,paqueteDescribe->length);
-			//type header = leerHeader(socket_memoria);
+			enviarPaquete(socket_memoria[0],serializado,paqueteDescribe->length);
 			t_describe* response = malloc(sizeof(t_describe));
-			desserializarDescribe_Response(response,socket_memoria);
-			log_debug(logger,"Cant tablas: %d", response->cant_tablas);
-			ejecutarDescribe(response);
-
+			desserializarDescribe_Response(response,socket_memoria[0]);
+			if(response->cant_tablas != 0){
+				log_debug(logger,"Cant tablas: %d", response->cant_tablas);
+				ejecutarDescribe(response);
+			}else{
+				log_error(loggerWarning, "No se recibio ninguna tabla");
+			}
+			free(response->tablas);
+			free(response);
 			free(serializado);
 			free(paqueteDescribe->nombre_tabla);
 			consultaOk = 1;
@@ -291,8 +306,8 @@ int despacharQuery(char* consulta, t_list* sockets) {
 			consistencias cons = consTabla(
 					string_substring_until(tempSplit[1],string_length(tempSplit[1])-1  ));
 			socket_memoria = devolverSocket(cons,sockets,1);
-			if(socket_memoria != -1){
-				enviarPaquete(socket_memoria, serializado, paqueteJournal->length);
+			if(socket_memoria[0] != -1){
+				enviarPaquete(socket_memoria[0], serializado, paqueteJournal->length);
 			}else{
 				if(cons != nada){
 					log_error(loggerError,"No existen memorias disponibles para el criterio de la tabla");
@@ -311,8 +326,8 @@ int despacharQuery(char* consulta, t_list* sockets) {
 			serializado = serializarDrop(paqueteDrop);
 			consistencias consis = consTabla(paqueteDrop->nombre_tabla);
 			socket_memoria = devolverSocket(consis,sockets,1);
-			if(socket_memoria != -1){
-				enviarPaquete(socket_memoria, serializado, paqueteJournal->length);
+			if(socket_memoria[0] != -1){
+				enviarPaquete(socket_memoria[0], serializado, paqueteJournal->length);
 			}else{
 				if(consis != nada){
 					log_error(loggerError,"No existen memorias disponibles para el criterio de la tabla");
@@ -337,14 +352,17 @@ int despacharQuery(char* consulta, t_list* sockets) {
 	free(paqueteDrop);
 	free(paqueteJournal);
 	string_iterate_lines(tempSplit,free);
+	//free(socket_memoria);
 	free(tempSplit);
 	return consultaOk;
 }
-
 void CPU(){
 	t_list *sockets = list_create();
 	int socket_memoria = levantarCliente(miConfig->puerto_mem,miConfig->ip_mem);
-	list_add_in_index(sockets,0,socket_memoria);
+	list_add_in_index(sockets,0,&(socket_memoria));
+	sem_wait(&mutexContMult);
+	contMult++;
+	sem_post(&mutexContMult);
 	while(continuar){
 		script *unScript;
 		char* consulta = malloc(256);
@@ -432,7 +450,7 @@ int leerLinea(char* path, int linea, char* leido){
 	log_debug(logger,"%s", path);
 	FILE* archivo = fopen(path,"r");
 	if(archivo != NULL){
-		int cont = 1;
+		int cont = 0;
 		while (fgets(leido, 256, archivo) != NULL)
 		{
 			if (cont == linea)
@@ -541,7 +559,7 @@ void ejecutarAdd(char* consulta){
 	case shc:
 		sem_wait(&mutexSHC);
 		if(list_is_empty(list_filter(listaMemsSHC, mismoId))){
-						list_add_in_index(listaMemsSHC,memAdd->id ,memAdd);
+						list_add(listaMemsSHC, memAdd);
 						log_debug(logger,"La memoria %d se asoció al criterio %s",memAdd->id,split[4]);
 					}else{
 						log_error(loggerError,"Ya se encuentra asociada la memoria %d al criterio",memAdd->id);
@@ -552,7 +570,7 @@ void ejecutarAdd(char* consulta){
 	case ec:
 		sem_wait(&mutexEC);
 		if(list_is_empty(list_filter(listaMemsEC, mismoId))){
-						list_add_in_index(listaMemsEC, memAdd->id,memAdd);
+						list_add(listaMemsEC, memAdd);
 						log_debug(logger,"La memoria %d se asoció al criterio %s",memAdd->id,split[4]);
 					}else{
 						log_error(loggerError,"Ya se encuentra asociada la memoria %d al criterio",memAdd->id);
@@ -568,8 +586,6 @@ t_infoMem* generarMem(char* consulta){
 	char** split = string_split(consulta," ");
 	t_infoMem* mem = malloc(sizeof(t_infoMem));
 	mem->id = atoi(split[2]);
-	string_iterate_lines(split,free);
-	free(split);
 	return mem;
 }
 
@@ -593,6 +609,7 @@ void ejecutarDescribe(t_describe *response){
 		memcpy(metadata,&(response->tablas[i]),sizeof(t_metadata));
 		char nombre[12];
 		strcpy(nombre, metadata->nombre_tabla);
+		log_debug(logger,"%s",nombre);
 		bool mismoNombre(void* elemento) {
 						t_metadata* tabla = malloc(sizeof(t_metadata));
 						tabla = (t_metadata*) elemento;
@@ -600,7 +617,7 @@ void ejecutarDescribe(t_describe *response){
 					}
 		if(list_is_empty(list_filter(listaTablas,mismoNombre))){
 			list_add(listaTablas,metadata);
-			log_debug(logger, "Se agrego la tabla %s a la lista", nombre);
+			log_debug(logger, "Se agrego la tabla %s a la lista con", nombre);
 		}
 	}
 }
@@ -608,42 +625,48 @@ consistencias consTabla (char* nombre){
 	bool mismoNombre(void* elemento) {
 		t_metadata* tabla = malloc(sizeof(t_metadata));
 		tabla = (t_metadata*) elemento;
+		log_debug(logger,"nombre tabla: %s",tabla->nombre_tabla);
+		log_debug(logger,"nombre que quiero: %s", nombre);
 		return (!strcmp(tabla->nombre_tabla,nombre));
 	}
 	if(list_any_satisfy(listaTablas,mismoNombre)){
-		t_metadata *tabla = list_find(listaTablas,mismoNombre);
-		return tabla->consistencia;
+		t_metadata *tabla = (t_metadata*) list_find(listaTablas,mismoNombre);
+		log_debug(logger,"esta es la consistencia de la tabla: %s",tabla->nombre_tabla);
+		return obtCons(tabla->consistencia);
 	}else{
 		return nada;
 	}
 }
-int devolverSocket(consistencias cons, t_list* sockets, int key){
-	int pos;
+
+int* devolverSocket(consistencias cons, t_list* sockets, int key){
+	int* pos = malloc(sizeof(int));
 	switch(cons){
 	case sc:
-		return list_get(sockets,SC->id);
+		return (int*)list_get(sockets,SC->id);
 		break;
 	case shc:
-		pos = SHC(key);
+		pos[0] = SHC(key);
 		if(pos!=-1){
-			return list_get(sockets,pos);
+			return (int*)list_get(sockets,pos[0]);
 		}else{
 			return pos;
 		}
 		break;
 	case ec:
-		pos = EC((int) time(NULL));
-		if(pos!=-1){
-			return list_get(sockets,pos);
+		pos[0] = EC((int) time(NULL));
+		if(pos[0]!=-1){
+			return (int*)list_get(sockets,pos[0]);
 		}else{
 			return pos;
 		}
 		break;
 	default:
-		return -1;
+		pos[0] = -1;
+		return pos;
 		break;
 	}
 }
+
 
 int SHC(int key){
 	sem_wait(&mutexSHC);
@@ -668,6 +691,7 @@ int EC(int time){
 		return -1;
 	}
 }
+
 void cargarConfig(t_config* config){
 	miConfig = malloc(sizeof(configKernel));
 	miConfig->ip_mem = config_get_string_value(config,"IP");
@@ -676,6 +700,7 @@ void cargarConfig(t_config* config){
 	miConfig->puerto_mem = config_get_string_value(config,"PUERTO_MEMORIA");
 	miConfig->sleep = config_get_int_value(config,"SLEEP_EJECUCION");
 	miConfig->quantum = config_get_int_value(config,"QUANTUM");
+
 }
 
 void inicializarTodo(){
@@ -695,6 +720,7 @@ void inicializarTodo(){
 	sem_init(&mutexEC,0,1);
 	sem_init(&mutexSC,0,1);
 	sem_init(&mutexSHC,0,1);
+	sem_init(&mutexContMult,0,1);
 	listaMemsEC = list_create();
 	listaMemsSHC = list_create();
 	listaTablas = list_create();
@@ -704,8 +730,6 @@ void inicializarTodo(){
 	listaMemsSHC = list_create();
 	listaTablas = list_create();
 }
-
-
 
 void finalizarEjecucion() {
 	printf("------------------------\n");
@@ -723,9 +747,18 @@ void finalizarEjecucion() {
 	sem_destroy(&mutexEC);
 	sem_destroy(&mutexSC);
 	sem_destroy(&mutexSHC);
+	sem_destroy(&mutexContMult);
+	for(int i = 0;i < contMult; i++){
+		t_list* lista = malloc(sizeof(t_list));
+		lista = (t_list*) list_get(listaDeLSockets,i);
+		for(int j = 0; j < list_size(lista);j++){
+			int* sock = list_get(lista,j);
+			log_warning(loggerWarning,"sandanga");
+			close(sock[0]);
+		}
+	}
+
 	continuar = false;
 	//close(socket_memoria);
 	raise(SIGTERM);
 }
-
-
