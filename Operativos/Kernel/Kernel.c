@@ -20,6 +20,7 @@ sem_t semNew;
 sem_t mutexSC;
 sem_t mutexSHC;
 sem_t mutexEC;
+sem_t mutexContMult;
 t_contMetrics metricsSC;
 t_contMetrics metricsSHC;
 t_contMetrics metricsEC;
@@ -35,10 +36,12 @@ t_list *listaMemsEC;
 t_list *listaMemsSHC;
 t_list *mems;
 t_list *listaTablas;
+t_list *listaDeLSockets;
 configKernel *miConfig;
 t_config* config;
 int contScript;
 bool continuar = true;
+int contMult = 0;
 
 // Define cual va a ser el size maximo del paquete a enviar
 
@@ -53,7 +56,9 @@ int main(){
 	log_debug(logger, "Realizando describe general");
 	pthread_t cpus[miConfig->MULT_PROC];
 	t_list *sockets = list_create();
+	listaDeLSockets = list_create();
 	list_add_in_index(sockets,0,&(socket_memoria));
+	list_add_in_index(listaDeLSockets,contMult,sockets);
 	despacharQuery("describe\n",sockets);
 	if(levantarCpus(cpus)){
 		colaReady = queue_create();
@@ -233,7 +238,11 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				serializado = serializarCreate(paqueteCreate);
 				socket_memoria = devolverSocket(obtCons(paqueteCreate->consistencia)
 						,sockets,1);
-				enviarPaquete(socket_memoria[0], serializado, paqueteCreate->length);
+				if(socket_memoria[0] != -1){
+					enviarPaquete(socket_memoria[0], serializado, paqueteCreate->length);
+				}else{
+					log_error(loggerError,"No existen memorias disponibles para el criterio de la tabla");
+				}
 				free(serializado);
 				free(paqueteCreate->consistencia);
 				free(paqueteCreate->nombre_tabla);
@@ -273,12 +282,16 @@ int despacharQuery(char* consulta, t_list* sockets) {
 			serializado = serializarDescribe(paqueteDescribe);
 			socket_memoria = list_get(sockets,0);
 			enviarPaquete(socket_memoria[0],serializado,paqueteDescribe->length);
-			//type header = leerHeader(socket_memoria);
 			t_describe* response = malloc(sizeof(t_describe));
 			desserializarDescribe_Response(response,socket_memoria[0]);
-			log_debug(logger,"Cant tablas: %d", response->cant_tablas);
-			ejecutarDescribe(response);
-
+			if(response->cant_tablas != 0){
+				log_debug(logger,"Cant tablas: %d", response->cant_tablas);
+				ejecutarDescribe(response);
+			}else{
+				log_error(loggerWarning, "No se recibio ninguna tabla");
+			}
+			free(response->tablas);
+			free(response);
 			free(serializado);
 			free(paqueteDescribe->nombre_tabla);
 			consultaOk = 1;
@@ -345,6 +358,9 @@ void CPU(){
 	t_list *sockets = list_create();
 	int socket_memoria = levantarCliente(miConfig->puerto_mem,miConfig->ip_mem);
 	list_add_in_index(sockets,0,&(socket_memoria));
+	sem_wait(&mutexContMult);
+	contMult++;
+	sem_post(&mutexContMult);
 	while(continuar){
 		script *unScript;
 		char* consulta = malloc(256);
@@ -697,6 +713,7 @@ void inicializarTodo(){
 	sem_init(&mutexEC,0,1);
 	sem_init(&mutexSC,0,1);
 	sem_init(&mutexSHC,0,1);
+	sem_init(&mutexContMult,0,1);
 	listaMemsEC = list_create();
 	listaMemsSHC = list_create();
 	listaTablas = list_create();
@@ -706,8 +723,6 @@ void inicializarTodo(){
 	listaMemsSHC = list_create();
 	listaTablas = list_create();
 }
-
-
 
 void finalizarEjecucion() {
 	printf("------------------------\n");
@@ -725,6 +740,17 @@ void finalizarEjecucion() {
 	sem_destroy(&mutexEC);
 	sem_destroy(&mutexSC);
 	sem_destroy(&mutexSHC);
+	sem_destroy(&mutexContMult);
+	for(int i = 0;i < contMult; i++){
+		t_list* lista = malloc(sizeof(t_list));
+		lista = (t_list*) list_get(listaDeLSockets,i);
+		for(int j = 0; j < list_size(lista);j++){
+			int* sock = list_get(lista,j);
+			log_warning(loggerWarning,"sandanga");
+			close(sock[0]);
+		}
+	}
+
 	continuar = false;
 	//close(socket_memoria);
 	raise(SIGTERM);
