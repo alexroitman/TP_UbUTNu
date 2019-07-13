@@ -11,8 +11,19 @@
 #include "sockets-lib.h"
 
 typedef enum {
-	INSERT, DESCRIBE, JOURNAL, DROP, SELECT, ADD, RUN, REGISTRO, NIL, CREATE
-} type;
+INSERT,
+SELECT,
+CREATE,
+DESCRIBE,
+DROP,
+JOURNAL,
+ADD,
+RUN,
+REGISTRO,
+NIL,
+GOSSIPING,
+RESPGOSS,
+GOSSIPKERNEL}type;
 
 typedef struct {
 
@@ -85,6 +96,7 @@ typedef struct {//DESCRIBE
 	int nombre_tabla_long;
 	int length;
 } tDescribe;
+
 
 typedef struct {
 	char nombre_tabla[12];

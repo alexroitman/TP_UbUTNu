@@ -203,7 +203,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				recv(socket_memoria[0], &error, sizeof(error), 0);
 				if(error == 1){
 					log_debug(logger, "Se inserto el valor: %s", paqueteInsert->value);
-				} else {
+				} else if(error == -1){
 					log_error(logger, "Memoria llena, hago JOURNAL");
 					cargarPaqueteJournal(paqueteJournal, "JOURNAL");
 					serializado = serializarJournal(paqueteJournal);
@@ -213,6 +213,8 @@ int despacharQuery(char* consulta, t_list* sockets) {
 					enviarPaquete(socket_memoria[0], serializado, paqueteInsert->length);
 					recv(socket_memoria[0], &error, sizeof(error), 0);
 					consultaOk = 1;
+				}else{
+					log_debug(logger,"Tamanio de value demasiado grande");
 				}
 				}else{
 					if(cons != nada){

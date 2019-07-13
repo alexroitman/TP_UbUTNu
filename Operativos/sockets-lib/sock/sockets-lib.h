@@ -34,7 +34,7 @@ struct addrinfo *serverInfo;
 
 int levantarCliente(char* puerto,char* ip);
 int levantarServidor(char* puerto);
-
+int levantarClienteNoBloqueante(char* puerto, char* ip);
 int aceptarCliente(int serverSocket);
 
 void cerrarConexiones(int socket_cliente,int socket_servidor);

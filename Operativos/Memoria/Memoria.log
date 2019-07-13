@@ -211,3 +211,6 @@
 [DEBUG] 17:17:53:704 Memoria.c/(22381:22397): offset: 28
 [DEBUG] 17:17:53:704 Memoria.c/(22381:22397): Pagina cargada en memoria.
 [DEBUG] 17:17:55:704 Memoria.c/(22381:22397): LLEGO JOURNAL WACHIN
+[INFO] 15:48:58:966 Memoria.c/(9538:9538): Por favor ingrese el path de su archivo de configuracion
+[INFO] 15:50:14:414 Memoria.c/(9608:9608): Por favor ingrese el path de su archivo de configuracion
+[INFO] 15:50:25:590 Memoria.c/(9614:9614): Por favor ingrese el path de su archivo de configuracion
