@@ -89,7 +89,7 @@ typedef struct {//DESCRIBE
 typedef struct {
 	char nombre_tabla[12];
 	uint8_t particiones;
-	char* consistencia;
+	int consistencia;
 	//TODO: ver uso de la consistencia
 	uint8_t tiempo_compactacion;
 } t_metadata;
