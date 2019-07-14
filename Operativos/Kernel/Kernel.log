@@ -322,3 +322,130 @@
 [DEBUG] 21:12:13:859 Kernel.c/(12317:12317): header describe
 
 [DEBUG] 21:12:13:859 Kernel.c/(12317:12317): Se recibio un DESCRIBE
+[DEBUG] 15:32:07:385 Kernel.c/(14038:14038): Cargando configuracion
+[DEBUG] 15:32:07:406 Kernel.c/(14038:14038): Configuracion cargada con exito
+[DEBUG] 15:32:07:406 Kernel.c/(14038:14038): Inicializando semaforos
+[DEBUG] 15:32:07:406 Kernel.c/(14038:14038): Semaforos incializados con exito
+[DEBUG] 15:32:07:406 Kernel.c/(14038:14038): Inicializando sockets
+[DEBUG] 15:32:07:406 Kernel.c/(14038:14038): Sockets inicializados con exito
+[DEBUG] 15:32:07:406 Kernel.c/(14038:14038): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 15:32:07:406 Kernel.c/(14038:14038): Realizando describe general
+[DEBUG] 15:32:07:406 Kernel.c/(14038:14038): header describe
+
+[DEBUG] 15:32:07:406 Kernel.c/(14038:14038): Se recibio un DESCRIBE
+[DEBUG] 15:32:42:347 Kernel.c/(14108:14108): Cargando configuracion
+[DEBUG] 15:32:42:347 Kernel.c/(14108:14108): Configuracion cargada con exito
+[DEBUG] 15:32:42:347 Kernel.c/(14108:14108): Inicializando semaforos
+[DEBUG] 15:32:42:347 Kernel.c/(14108:14108): Semaforos incializados con exito
+[DEBUG] 15:32:42:348 Kernel.c/(14108:14108): Inicializando sockets
+[DEBUG] 15:32:42:348 Kernel.c/(14108:14108): Sockets inicializados con exito
+[DEBUG] 15:32:42:348 Kernel.c/(14108:14108): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 15:32:42:348 Kernel.c/(14108:14108): Realizando describe general
+[DEBUG] 15:32:42:348 Kernel.c/(14108:14108): header describe
+
+[DEBUG] 15:32:42:348 Kernel.c/(14108:14108): Se recibio un DESCRIBE
+[DEBUG] 15:33:40:907 Kernel.c/(14108:14108): Cant tablas: 4
+[DEBUG] 15:33:41:634 Kernel.c/(14108:14108): UNTER
+[DEBUG] 15:33:41:634 Kernel.c/(14108:14108): Se agrego la tabla UNTER a la lista con
+[DEBUG] 15:33:41:634 Kernel.c/(14108:14108): SARAZA
+[DEBUG] 15:33:41:634 Kernel.c/(14108:14108): Se agrego la tabla SARAZA a la lista con
+[DEBUG] 15:33:41:634 Kernel.c/(14108:14108): PAPA
+[DEBUG] 15:33:41:634 Kernel.c/(14108:14108): Se agrego la tabla PAPA a la lista con
+[DEBUG] 15:33:41:634 Kernel.c/(14108:14108): GUIDO
+[DEBUG] 15:33:41:634 Kernel.c/(14108:14108): Se agrego la tabla GUIDO a la lista con
+[DEBUG] 15:34:08:247 Kernel.c/(14108:14192): 11
+[DEBUG] 15:34:41:328 Kernel.c/(14108:14192): cant de memorias: 3
+[DEBUG] 15:34:46:929 Kernel.c/(14108:14192): 11
+[DEBUG] 15:34:53:897 Kernel.c/(14108:14108): header describe
+
+[DEBUG] 15:34:53:898 Kernel.c/(14108:14108): Se recibio un DESCRIBE
+[DEBUG] 15:35:08:162 Kernel.c/(14108:14192): cant de memorias: 3
+[DEBUG] 15:35:15:298 Kernel.c/(14108:14192): 11
+[DEBUG] 15:35:15:298 Kernel.c/(14108:14192): cant de memorias: 3
+[DEBUG] 15:35:26:810 Kernel.c/(14108:14192): 11
+[DEBUG] 15:35:26:810 Kernel.c/(14108:14192): cant de memorias: 3
+[DEBUG] 15:35:32:780 Kernel.c/(14108:14192): 11
+[DEBUG] 15:35:32:780 Kernel.c/(14108:14192): cant de memorias: 3
+[DEBUG] 15:35:39:948 Kernel.c/(14108:14192): 11
+[DEBUG] 15:35:39:948 Kernel.c/(14108:14192): cant de memorias: 3
+[ERROR] 15:35:40:453 Kernel.c/(14108:14108): Memoria 134552952 caida, eliminando de la lista
+[DEBUG] 15:47:28:720 Kernel.c/(14770:14770): Cargando configuracion
+[DEBUG] 15:47:28:721 Kernel.c/(14770:14770): Configuracion cargada con exito
+[DEBUG] 15:47:28:721 Kernel.c/(14770:14770): Inicializando semaforos
+[DEBUG] 15:47:28:721 Kernel.c/(14770:14770): Semaforos incializados con exito
+[DEBUG] 15:47:28:721 Kernel.c/(14770:14770): Inicializando sockets
+[DEBUG] 15:47:28:722 Kernel.c/(14770:14770): Sockets inicializados con exito
+[DEBUG] 15:47:28:722 Kernel.c/(14770:14770): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 15:47:28:722 Kernel.c/(14770:14770): Realizando describe general
+[DEBUG] 15:47:28:722 Kernel.c/(14770:14770): header describe
+
+[DEBUG] 15:47:28:722 Kernel.c/(14770:14770): Se recibio un DESCRIBE
+[DEBUG] 15:47:29:373 Kernel.c/(14770:14770): Cant tablas: 4
+[DEBUG] 15:47:29:374 Kernel.c/(14770:14770): UNTER
+[DEBUG] 15:47:29:374 Kernel.c/(14770:14770): Se agrego la tabla UNTER a la lista con
+[DEBUG] 15:47:29:374 Kernel.c/(14770:14770): SARAZA
+[DEBUG] 15:47:29:374 Kernel.c/(14770:14770): Se agrego la tabla SARAZA a la lista con
+[DEBUG] 15:47:29:374 Kernel.c/(14770:14770): PAPA
+[DEBUG] 15:47:29:374 Kernel.c/(14770:14770): Se agrego la tabla PAPA a la lista con
+[DEBUG] 15:47:29:374 Kernel.c/(14770:14770): GUIDO
+[DEBUG] 15:47:29:374 Kernel.c/(14770:14770): Se agrego la tabla GUIDO a la lista con
+[DEBUG] 15:47:34:3 Kernel.c/(14770:14803): 11
+[DEBUG] 15:47:34:3 Kernel.c/(14770:14803): cant de memorias: 1
+[DEBUG] 15:47:38:792 Kernel.c/(14770:14770): header add
+[ERROR] 15:47:38:793 Kernel.c/(14770:14770): Se ingreso un header no valido
+[DEBUG] 15:47:40:604 Kernel.c/(14770:14803): 11
+[DEBUG] 15:47:40:604 Kernel.c/(14770:14803): cant de memorias: 2
+[DEBUG] 15:47:46:205 Kernel.c/(14770:14803): 11
+[DEBUG] 15:47:46:205 Kernel.c/(14770:14803): cant de memorias: 2
+[DEBUG] 15:47:48:341 Kernel.c/(14770:14770): header add
+[DEBUG] 15:47:48:341 Kernel.c/(14770:14770): Se recibio un ADD
+[ERROR] 15:47:48:341 Kernel.c/(14770:14770): La memoria elegida no se encuentra en el pool
+[DEBUG] 15:48:38:417 Kernel.c/(14770:14803): 11
+[DEBUG] 15:48:38:417 Kernel.c/(14770:14803): cant de memorias: 2
+[ERROR] 15:48:54:442 Kernel.c/(14770:14770): Se ingreso un header no valido
+[DEBUG] 15:48:55:44 Kernel.c/(14770:14803): 11
+[DEBUG] 15:48:55:44 Kernel.c/(14770:14803): cant de memorias: 2
+[DEBUG] 15:49:00:645 Kernel.c/(14770:14803): 11
+[DEBUG] 15:49:00:646 Kernel.c/(14770:14803): cant de memorias: 2
+[DEBUG] 15:49:06:247 Kernel.c/(14770:14803): 11
+[DEBUG] 15:49:06:247 Kernel.c/(14770:14803): cant de memorias: 2
+[DEBUG] 15:49:11:848 Kernel.c/(14770:14803): 11
+[DEBUG] 15:49:11:848 Kernel.c/(14770:14803): cant de memorias: 2
+[DEBUG] 15:49:11:915 Kernel.c/(14770:14770): header add
+[DEBUG] 15:49:11:915 Kernel.c/(14770:14770): Se recibio un ADD
+[DEBUG] 15:50:21:780 Kernel.c/(14890:14890): Cargando configuracion
+[DEBUG] 15:50:21:780 Kernel.c/(14890:14890): Configuracion cargada con exito
+[DEBUG] 15:50:21:780 Kernel.c/(14890:14890): Inicializando semaforos
+[DEBUG] 15:50:21:780 Kernel.c/(14890:14890): Semaforos incializados con exito
+[DEBUG] 15:50:21:780 Kernel.c/(14890:14890): Inicializando sockets
+[DEBUG] 15:50:33:661 Kernel.c/(14927:14927): Cargando configuracion
+[DEBUG] 15:50:33:661 Kernel.c/(14927:14927): Configuracion cargada con exito
+[DEBUG] 15:50:33:661 Kernel.c/(14927:14927): Inicializando semaforos
+[DEBUG] 15:50:33:661 Kernel.c/(14927:14927): Semaforos incializados con exito
+[DEBUG] 15:50:33:661 Kernel.c/(14927:14927): Inicializando sockets
+[DEBUG] 15:51:11:318 Kernel.c/(14981:14981): Cargando configuracion
+[DEBUG] 15:51:11:318 Kernel.c/(14981:14981): Configuracion cargada con exito
+[DEBUG] 15:51:11:318 Kernel.c/(14981:14981): Inicializando semaforos
+[DEBUG] 15:51:11:318 Kernel.c/(14981:14981): Semaforos incializados con exito
+[DEBUG] 15:51:11:318 Kernel.c/(14981:14981): Inicializando sockets
+[DEBUG] 15:51:11:319 Kernel.c/(14981:14981): Sockets inicializados con exito
+[DEBUG] 15:51:11:319 Kernel.c/(14981:14981): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 15:51:11:319 Kernel.c/(14981:14981): Realizando describe general
+[DEBUG] 15:51:11:319 Kernel.c/(14981:14981): header describe
+
+[DEBUG] 15:51:11:319 Kernel.c/(14981:14981): Se recibio un DESCRIBE
+[DEBUG] 15:51:11:971 Kernel.c/(14981:14981): Cant tablas: 4
+[DEBUG] 15:51:11:971 Kernel.c/(14981:14981): UNTER
+[DEBUG] 15:51:11:971 Kernel.c/(14981:14981): Se agrego la tabla UNTER a la lista con
+[DEBUG] 15:51:11:971 Kernel.c/(14981:14981): SARAZA
+[DEBUG] 15:51:11:971 Kernel.c/(14981:14981): Se agrego la tabla SARAZA a la lista con
+[DEBUG] 15:51:11:971 Kernel.c/(14981:14981): PAPA
+[DEBUG] 15:51:11:971 Kernel.c/(14981:14981): Se agrego la tabla PAPA a la lista con
+[DEBUG] 15:51:11:971 Kernel.c/(14981:14981): GUIDO
+[DEBUG] 15:51:11:971 Kernel.c/(14981:14981): Se agrego la tabla GUIDO a la lista con
+[DEBUG] 15:51:17:585 Kernel.c/(14981:14996): 11
+[DEBUG] 15:51:17:585 Kernel.c/(14981:14996): cant de memorias: 2
+[DEBUG] 15:51:23:186 Kernel.c/(14981:14996): 11
+[DEBUG] 15:51:23:186 Kernel.c/(14981:14996): cant de memorias: 2
+[DEBUG] 15:51:23:215 Kernel.c/(14981:14981): header add
+[DEBUG] 15:51:23:215 Kernel.c/(14981:14981): Se recibio un ADD

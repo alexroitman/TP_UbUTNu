@@ -65,7 +65,6 @@ typedef struct{
 type leerConsola(); //Lee la consulta y devuelve el string
 type validarSegunHeader(char* header);
 bool analizarConsulta();
-
 void run();
 int despacharQuery(char* consulta, t_list* socket_memoria);
 void add();
@@ -91,6 +90,6 @@ void ejecutarDescribe(t_describe *response);
 void actualizarTablaGossip(tGossip* packGossip);
 void ejecutarAdd(char* consulta);
 void gossip();
-
+void borrarSocket(void* lista);
 #endif /* KERNEL_KERNEL_H_ */
 

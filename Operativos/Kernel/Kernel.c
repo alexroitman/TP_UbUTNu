@@ -48,6 +48,11 @@ int cantMemorias = 1;
 
 // Define cual va a ser el size maximo del paquete a enviar
 
+void borrarSocket(void* lista){
+	t_list* sockets = (t_list*) lista;
+	list_remove(sockets,indiceAborrar);
+}
+
 
 int main(){
 	signal(SIGINT, finalizarEjecucion);
@@ -80,6 +85,7 @@ int main(){
 			pthread_detach(cpus[i]);
 		}
 		pthread_detach(planificador_t);
+		pthread_detach(hiloGossip);
 		while (continuar) {
 			fgets(consulta, 256, stdin);
 			sem_wait(&mutexMems);
@@ -103,8 +109,16 @@ int main(){
 			}
 			sem_post(&mutexMems);
 			int consultaOk = despacharQuery(consulta, sockets);
+			if(consultaOk < 0){
+				indiceAborrar = consultaOk*-1;
+				log_error(loggerError,"Memoria %d caida, eliminando de la lista", consultaOk*-1);
+				list_iterate(listaDeLSockets,borrarSocket);
+				log_warning(loggerWarning,"Realizando Jounal general para mantener consistencias");
+				despacharQuery("journal\n",sockets);
+				log_warning(loggerWarning,"Por favor, vuelva a ingresar su consulta");
+				indiceAborrar = -1;
+			}
 			if (!consultaOk) {
-				printf("no entendi tu header \n");
 				log_error(loggerError,"Se ingreso un header no valido");
 			}
 			consultaOk = 0;
@@ -118,7 +132,6 @@ int main(){
 	sem_destroy(&mutexNew);
 	sem_destroy(&mutexReady);
 	sem_destroy(&mutexSocket);*/
-	close(socket_memoria);
 }
 
 type validarSegunHeader(char* header) {
@@ -233,28 +246,28 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				consistencias cons = consTabla(paqueteInsert->nombre_tabla);
 				socket_memoria = devolverSocket(cons,sockets,paqueteInsert->key);
 				if(socket_memoria->socket != -1){
-				log_debug(logger,"%s",paqueteInsert->value);
-				consultaOk = enviarPaquete(socket_memoria->socket, serializado, paqueteInsert->length);
-				recv(socket_memoria->socket, &error, sizeof(error), 0);
-				if(consultaOk != 0){
-				if(error == 1){
-					log_debug(logger, "Se inserto el valor: %s", paqueteInsert->value);
-				} else if(error == -1){
-					log_error(logger, "Memoria llena, hago JOURNAL");
-					cargarPaqueteJournal(paqueteJournal, "JOURNAL");
-					serializado = serializarJournal(paqueteJournal);
-					enviarPaquete(socket_memoria->socket, serializado,
-							paqueteJournal->length);
-					serializado = serializarInsert(paqueteInsert);
-					enviarPaquete(socket_memoria->socket, serializado, paqueteInsert->length);
+					log_debug(logger,"%s",paqueteInsert->value);
+					consultaOk = enviarPaquete(socket_memoria->socket, serializado, paqueteInsert->length);
 					recv(socket_memoria->socket, &error, sizeof(error), 0);
-					consultaOk = 1;
-				}else{
-					log_debug(logger,"Tamanio de value demasiado grande");
-				}
-				}else{
-					consultaOk = socket_memoria->id * -1;
-				}
+					if(consultaOk != 0){
+						if(error == 1){
+							log_debug(logger, "Se inserto el valor: %s", paqueteInsert->value);
+						} else if(error == -1){
+							log_error(logger, "Memoria llena, hago JOURNAL");
+							cargarPaqueteJournal(paqueteJournal, "JOURNAL");
+							serializado = serializarJournal(paqueteJournal);
+							enviarPaquete(socket_memoria->socket, serializado,
+									paqueteJournal->length);
+							serializado = serializarInsert(paqueteInsert);
+							enviarPaquete(socket_memoria->socket, serializado, paqueteInsert->length);
+							recv(socket_memoria->socket, &error, sizeof(error), 0);
+							consultaOk = 1;
+						}else{
+							log_debug(logger,"Tamanio de value demasiado grande");
+						}
+					}else{
+						consultaOk = socket_memoria->id * -1;
+					}
 				}else{
 					if(cons != nada){
 						log_error(loggerError,"No existen memorias disponibles para el criterio de la tabla");
@@ -351,23 +364,9 @@ int despacharQuery(char* consulta, t_list* sockets) {
 			cargarPaqueteJournal(paqueteJournal,
 					string_substring_until(consulta,string_length(consulta)-1  ) );
 			serializado = serializarJournal(paqueteJournal);
-			consistencias cons = consTabla(
-					string_substring_until(tempSplit[1],string_length(tempSplit[1])-1  ));
-			//TODO HACER BIEN EL JOURNAL
-			socket_memoria = devolverSocket(cons,sockets,1);
-			if(socket_memoria->socket != -1){
-				consultaOk = enviarPaquete(socket_memoria->socket, serializado, paqueteJournal->length);
-				if(consultaOk == -1){
-					consultaOk = socket_memoria->id * -1;
-				}else{
-					consultaOk = 1;
-				}
-			}else{
-				if(cons != nada){
-					log_error(loggerError,"No existen memorias disponibles para el criterio de la tabla");
-				}else{
-					log_error(loggerError,"No existe informacion de la tabla, por favor realice un describe");
-				}
+			for(int i = 0; i<sockets;i++){
+				socket_memoria = list_get(sockets,i);
+				enviarPaquete(socket_memoria->socket, serializado, paqueteJournal->length);
 			}
 			free(serializado);
 			break;
@@ -400,8 +399,8 @@ int despacharQuery(char* consulta, t_list* sockets) {
 			log_error(loggerError,"Se ingreso una consulta no disponible por el momento");
 			break;
 		}
-
 	}
+
 	free(paqueteCreate);
 	free(paqueteInsert);
 	free(paqueteSelect);
@@ -409,15 +408,12 @@ int despacharQuery(char* consulta, t_list* sockets) {
 	free(paqueteDrop);
 	free(paqueteJournal);
 	string_iterate_lines(tempSplit,free);
-	//free(socket_memoria);
 	free(tempSplit);
 	return consultaOk;
+
 }
 
-void borrarSocket(void* lista){
-	t_infoMem* sockets = (t_infoMem*) lista;
-	list_remove(sockets,indiceAborrar);
-}
+
 
 
 void CPU(){
@@ -708,7 +704,7 @@ void ejecutarAdd(char* consulta){
 				log_error(loggerError,"Ya se encuentra asociada la memoria %d al criterio",memAdd->numeroMemoria);
 			}
 			sem_post(&mutexSHC);
-			//despacharQuery("journal\n",)
+			despacharQuery("journal\n",(t_list*)list_get(listaDeLSockets,0));
 			break;
 		case ec:
 			sem_wait(&mutexEC);
@@ -734,8 +730,8 @@ tMemoria* generarMem(char* consulta){
 	tMemoria* mem = malloc(sizeof(t_infoMem));
 	mem->numeroMemoria = atoi(split[2]);
 	bool compararNumeroMem(void* elem){
-		t_infoMem* mem2 = (t_infoMem*) elem;
-		return mem2->id == mem->numeroMemoria;
+		tMemoria* mem2 = (tMemoria*) elem;
+		return mem2->numeroMemoria == mem->numeroMemoria;
 	}
 	if(list_filter(memorias,compararNumeroMem)->elements_count != 0){
 		mem =(tMemoria*) list_find(memorias,compararNumeroMem);
