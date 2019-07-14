@@ -14,9 +14,10 @@ int main() {
 	log_debug(logger,"Tamanio Memoria: %d",miConfig->tam_mem);
 
 
-	socket_lfs = levantarClienteNoBloqueante((char*) miConfig->puerto_fs, miConfig->ip_fs);
+	
 
 	if (miConfig->numeroMemoria == 1) {
+		socket_lfs = levantarClienteNoBloqueante((char*) miConfig->puerto_fs, miConfig->ip_fs);
 		if (socket_lfs <= 0) {
 			log_error(logger, "No se pudo conectar a LFS");
 			raise(SIGTERM);
