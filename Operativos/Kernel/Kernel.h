@@ -49,7 +49,7 @@ typedef struct{
 }t_contMetrics;
 typedef struct{
 	int id;
-	int puerto;
+	int socket;
 }t_infoMem;
 
 typedef struct{
@@ -79,14 +79,14 @@ int validarSelect(char* consulta);
 int validarCreate(char* consulta);
 int validarInsert(char* consulta);
 int validarAdd(char* consulta);
-t_infoMem* generarMem(char* consulta);
+tMemoria* generarMem(char* consulta);
 int levantarCpus(pthread_t* cpus);
 void cargarConfig(t_config* config);
 consistencias obtCons(char* criterio);
 void inicializarTodo();
 void finalizarEjecucion();
 consistencias consTabla (char* nombre);
-int* devolverSocket(consistencias cons, t_list* sockets, int key);
+t_infoMem* devolverSocket(consistencias cons, t_list* sockets, int key);
 void ejecutarDescribe(t_describe *response);
 void actualizarTablaGossip(tGossip* packGossip);
 void ejecutarAdd(char* consulta);

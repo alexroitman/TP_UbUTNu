@@ -311,3 +311,14 @@
 [DEBUG] 18:19:57:489 Kernel.c/(7068:7068): GUIDO
 [DEBUG] 18:19:57:489 Kernel.c/(7068:7068): Se agrego la tabla GUIDO a la lista con
 [DEBUG] 18:20:03:124 Kernel.c/(7068:7087): 11
+[DEBUG] 21:12:13:857 Kernel.c/(12317:12317): Cargando configuracion
+[DEBUG] 21:12:13:858 Kernel.c/(12317:12317): Configuracion cargada con exito
+[DEBUG] 21:12:13:858 Kernel.c/(12317:12317): Inicializando semaforos
+[DEBUG] 21:12:13:858 Kernel.c/(12317:12317): Semaforos incializados con exito
+[DEBUG] 21:12:13:858 Kernel.c/(12317:12317): Inicializando sockets
+[DEBUG] 21:12:13:858 Kernel.c/(12317:12317): Sockets inicializados con exito
+[DEBUG] 21:12:13:859 Kernel.c/(12317:12317): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 21:12:13:859 Kernel.c/(12317:12317): Realizando describe general
+[DEBUG] 21:12:13:859 Kernel.c/(12317:12317): header describe
+
+[DEBUG] 21:12:13:859 Kernel.c/(12317:12317): Se recibio un DESCRIBE
