@@ -28,10 +28,10 @@ dependents:
 	-cd /home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug && $(MAKE) all
 
 # Tool invocations
-Memoria: $(OBJS) $(USER_OBJS) /home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug/libsockets-lib.so
+Memoria: $(OBJS) $(USER_OBJS) /home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug/libsockets-lib.so
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L"/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Memoria" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc -L"/home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug" -o "Memoria" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -41,6 +41,6 @@ clean:
 	-@echo ' '
 
 .PHONY: all clean dependents
-/home/utnso/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug/libsockets-lib.so:
+/home/utnso/workspace/tp-2019-1c-UbUTNu/Operativos/sockets-lib/Debug/libsockets-lib.so:
 
 -include ../makefile.targets

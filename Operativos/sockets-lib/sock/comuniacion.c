@@ -37,7 +37,7 @@ void cargarPaqueteInsert(tInsert *pack, char* cons) {
 			&& strcmp(spliteado[3], "")) {
 		pack->type = INSERT;
 		pack->value = malloc(strlen(value[1]));
-		pack->nombre_tabla = malloc(strlen(spliteado[1]));
+		pack->nombre_tabla = malloc(strlen(spliteado[1]) + 1);
 		strcpy(pack->nombre_tabla,spliteado[1]);
 		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
 		pack->key = atoi(spliteado[2]);
