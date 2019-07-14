@@ -28,6 +28,7 @@ t_contMetrics metricsSHC;
 t_contMetrics metricsEC;
 pthread_t planificador_t;
 pthread_t hiloGossip;
+pthread_t hiloMetrics;
 t_log *logger;
 t_log *loggerError;
 t_log *loggerWarning;
@@ -80,6 +81,7 @@ int main(){
 		colaNew = queue_create();
 		pthread_create(&planificador_t, NULL, (void*) planificador, NULL);
 		pthread_create(&hiloGossip,NULL,(void*) gossip,NULL);
+		pthread_create(&hiloMetrics,NULL,(void*)metrics,NULL);
 		char consulta[256] = "";
 		for(int i = 0; i < miConfig->MULT_PROC; i++){
 			pthread_detach(cpus[i]);
@@ -167,9 +169,57 @@ type validarSegunHeader(char* header) {
 	return NIL;
 }
 
+void metricsInsert(consistencias cons,int time){
+	switch(cons){
+	case sc:
+		metricsSC.acumtInsert += time;
+		metricsSC.contInsert++;
+		break;
+	case ec:
+			metricsEC.acumtInsert += time;
+			metricsEC.contInsert++;
+			break;
+	case shc:
+			metricsSHC.acumtInsert += time;
+			metricsSHC.contInsert++;
+			break;
+	}
+}
+void metricsSelect(consistencias cons,int time){
+	switch(cons){
+	case sc:
+		metricsSC.acumtSelect += time;
+		metricsSC.contSelect++;
+		break;
+	case ec:
+			metricsEC.acumtSelect += time;
+			metricsEC.contSelect++;
+			break;
+	case shc:
+			metricsSHC.acumtSelect += time;
+			metricsSHC.contSelect++;
+			break;
+	}
+}
 
+void metrics(){
+	while(1){
+		metricsEC.acumtInsert = 0;
+		metricsEC.acumtSelect = 0;
+		metricsEC.contInsert = 0;
+		metricsEC.contSelect = 0;
+		metricsSC.acumtInsert = 0;
+		metricsSC.acumtSelect = 0;
+		metricsSC.contInsert = 0;
+		metricsSC.contSelect = 0;
+		metricsSHC.acumtInsert = 0;
+		metricsSHC.acumtSelect = 0;
+		metricsSHC.contInsert = 0;
+		metricsSHC.contSelect = 0;
+		sleep(30);
+	}
 
-
+}
 
 int despacharQuery(char* consulta, t_list* sockets) {
 	t_infoMem* socket_memoria = malloc(sizeof(t_infoMem));
@@ -192,6 +242,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 		case SELECT:
 			if(validarSelect(consulta)){
 				int error;
+				int comienzo = clock();
 				log_debug(logger,"Se recibio un SELECT");
 				cargarPaqueteSelect(paqueteSelect, consulta);
 				serializado = serializarSelect(paqueteSelect);
@@ -219,6 +270,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 						log_debug(logger,"Value: %s",reg->value);
 						free(reg->value);
 						free(reg);
+						metricsSelect(cons,(clock()-comienzo)/CLOCKS_PER_SEC);
 					}else{
 						consultaOk = socket_memoria->id * -1;
 					}
@@ -239,6 +291,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 		case INSERT:
 			if(validarInsert(consulta)){
 				int error = 0;
+				int comienzo = clock();
 				log_debug(logger,"Se recibio un INSERT");
 				char* sinFin = string_substring_until(consulta,string_length(consulta)-1 );
 				cargarPaqueteInsert(paqueteInsert, sinFin);
@@ -262,6 +315,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 							enviarPaquete(socket_memoria->socket, serializado, paqueteInsert->length);
 							recv(socket_memoria->socket, &error, sizeof(error), 0);
 							consultaOk = 1;
+							metricsInsert(cons,(clock()-comienzo)/CLOCKS_PER_SEC);
 						}else{
 							log_debug(logger,"Tamanio de value demasiado grande");
 						}

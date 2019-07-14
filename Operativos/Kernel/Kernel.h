@@ -91,5 +91,6 @@ void actualizarTablaGossip(tGossip* packGossip);
 void ejecutarAdd(char* consulta);
 void gossip();
 void borrarSocket(void* lista);
+void metrics();
 #endif /* KERNEL_KERNEL_H_ */
 
