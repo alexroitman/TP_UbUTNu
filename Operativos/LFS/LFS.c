@@ -294,12 +294,9 @@ void abrirHiloConsola(void* params) {
 
 	while (1) {
 		tHiloConsola* parametros = (tHiloConsola*) params;
-
 		fgets(parametros->consulta, 256, stdin);
-
 		char** tempSplit;
 		tempSplit = string_n_split(parametros->consulta, 2, " ");
-		log_debug(logger, "rompo aca");
 		int errorHandler;
 		bool leyoConsola = true;
 		usleep((configLFS->retardo)*1000);
@@ -387,17 +384,16 @@ void abrirHiloConsola(void* params) {
 				lista = Describe();
 			}
 
-			else {
-				log_debug(logger, "entre al Especifico");
-//				lista = DESCRIBEespecifico(sinFin);
+			else
+				lista = DESCRIBEespecifico(packDescribeConsola->nombre_tabla);
 
+			if(lista){
+				for (int i = 0; i < lista->elements_count; i++) {
+					Metadata* m = list_get(lista, i);
+					log_debug(logger, "Voy a logear");
+					log_debug(logger, "%d", m->consistency);
+				}
 			}
-
-			for (int i = 0; i < lista->elements_count; i++) {
-				Metadata* m = list_get(lista, i);
-				log_debug(logger, "%d", m->consistency);
-			}
-
 			free(packDescribeConsola->nombre_tabla);
 			free(packDescribeConsola);
 			break;
@@ -754,18 +750,22 @@ int Select(registro* reg, char* NOMBRE_TABLA, int KEY) {
 }
 
 t_list* DESCRIBEespecifico(char* NOMBRE_TABLA) {
-
-	// ---- Verifico que la tabla exista ----
-	if (verificadorDeTabla(NOMBRE_TABLA) != 0)
-		return noExisteTabla;
 	char* ruta = string_new();
-	string_append_with_format(&ruta, "%sTablas/%s", configLFS->dirMontaje,
-			NOMBRE_TABLA);
-
+	string_append_with_format(&ruta, "%sTablas/%s", configLFS->dirMontaje,NOMBRE_TABLA);
 	t_list* metadatas = list_create();
-	Metadata* metadata = obtener_metadata(NOMBRE_TABLA);
-	strcpy(metadata->nombre_tabla, NOMBRE_TABLA);
-	list_add(metadatas, metadata);
+	if(verificadorDeTabla(NOMBRE_TABLA)){
+		log_debug(logger, "CREE LISTA");
+		Metadata* metadata = obtener_metadata(ruta);
+		log_debug(logger, "VOY A COPIAR");
+		strcpy(metadata->nombre_tabla, NOMBRE_TABLA);
+		log_debug(logger, "COPIE");
+		list_add(metadatas, metadata);
+	}
+	else{
+		logeoDeErroresLFS(noExisteTabla, logger);
+		metadatas = NULL;
+	}
+	free(ruta);
 	return metadatas;
 }
 
@@ -776,7 +776,7 @@ t_list* Describe() {
 	char* tablas_path = string_new();
 	string_append(&tablas_path, configLFS->dirMontaje);
 	string_append(&tablas_path, "Tablas/");
-	log_debug(logger, tablas_path);
+	log_debug(logger, "TABLAS_PATH: %s", tablas_path);
 	tables_directory = opendir(tablas_path);
 	if (tables_directory) {
 		log_debug(logger, "Entre al if");
@@ -790,6 +790,7 @@ t_list* Describe() {
 						strlen(a_directory->d_name) + 1);
 				string_append(&a_table_path, tablas_path);
 				string_append(&a_table_path, table_name);
+				log_debug(logger, "%s", a_table_path);
 				Metadata* metadata = obtener_metadata(a_table_path);
 				strcpy(metadata->nombre_tabla, table_name);
 				list_add(metadatas, metadata);
@@ -811,6 +812,7 @@ Metadata* obtener_metadata(char* ruta) {
 	log_debug(logger, mi_ruta);
 	t_config* config_metadata = config_create(mi_ruta);
 	Metadata* metadata = malloc(sizeof(Metadata));
+	log_debug(logger, "Voy a levantar data", metadata->consistency);
 	long tiempoDeCompactacion = config_get_long_value(config_metadata,
 			"COMPACTION_TIME");
 	metadata->tiempo_compactacion = tiempoDeCompactacion;
@@ -818,7 +820,7 @@ Metadata* obtener_metadata(char* ruta) {
 			"CONSISTENCY");
 	log_debug(logger, consistencia);
 	metadata->consistency = consistency_to_int(consistencia);
-	logeoDeErroresLFS(metadata->consistency, logger);
+	log_debug(logger, "%d", metadata->consistency);
 	config_destroy(config_metadata);
 	free(mi_ruta);
 	return metadata;
@@ -1445,30 +1447,20 @@ char* direccionarTabla(char* tabla) {
 
 void crearBitmapNuestro() {
 
-	log_debug(logger, "%s", configLFS->dirMontaje);
 	int size = configMetadata->blocks / 8;
 	if (configMetadata->blocks % 8 != 0)
 		size++;
-	log_debug(logger, "%s", configLFS->dirMontaje);
-	log_debug(logger, "%d", configMetadata->blocks / 8);
 	char* bitarray = calloc(configMetadata->blocks / 8, sizeof(char));
-	log_debug(logger, "hola que tal señor");
-	t_bitarray* structBitarray = bitarray_create_with_mode(bitarray, size,
-			MSB_FIRST);
+	t_bitarray* structBitarray = bitarray_create_with_mode(bitarray, size, MSB_FIRST);
 	for (int i = 0; i < configMetadata->blocks; i++) {
 		if (i == 10)
 			bitarray_set_bit(structBitarray, i);
 		else
 			bitarray_clean_bit(structBitarray, i);
 	}
-	log_debug(logger, "%s", configLFS->dirMontaje);
-	char* path = string_from_format("%s/Metadata/Bitmap.bin",
-			configLFS->dirMontaje);
-
+	char* path = string_from_format("%s/Metadata/Bitmap.bin", configLFS->dirMontaje);
 	FILE* file = fopen(path, "wb+");
-	log_debug(logger, "%s", configLFS->dirMontaje);
-	fwrite(structBitarray->bitarray, sizeof(char), configMetadata->blocks / 8,
-			file);
+	fwrite(structBitarray->bitarray, sizeof(char), configMetadata->blocks / 8, file);
 	fclose(file);
 	bitarray_destroy(structBitarray);
 	free(path);
