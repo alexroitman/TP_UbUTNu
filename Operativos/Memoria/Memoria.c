@@ -16,7 +16,7 @@ int main() {
 
 	
 
-	//if (miConfig->numeroMemoria == 1) {
+	/*if (miConfig->numeroMemoria == 1) {
 		socket_lfs = levantarClienteNoBloqueante((char*) miConfig->puerto_fs, miConfig->ip_fs);
 		if (socket_lfs <= 0) {
 			log_error(logger, "No se pudo conectar a LFS");
@@ -29,7 +29,7 @@ int main() {
 			log_debug(logger,"Levanta conexion con LFS");
 
 		}
-//}
+}*/
 
 	socket_sv = levantarServidor((char*) miConfig->puerto_kernel);
 	socket_gossip = levantarServidor((char*) miConfig->miPuerto);
@@ -107,7 +107,7 @@ void* recibirHeader(void* arg) {
 				}
 			}
 		}
-		log_debug(logger, "Se ha cortado la conexion");
+		log_debug(logger, "Se ha cortado la conexion con un cliente");
 	}
 
 }
@@ -155,13 +155,16 @@ void realizarGossiping() {
 							+ sizeof(int);
 					error = enviarPaquete(seeds[i], serializado, tam_tot);
 					if (recv(seeds[i], &(*header), sizeof(type),
-					MSG_WAITALL) > 0) {
+					MSG_WAITALL) > 0 && error >= 0) {
 						//log_debug(logger, "llego algo del cliente %d", clienteGossip);
 						recibioSocket = true;
 						usleep(miConfig->retardoMemoria * 1000);
 						sem_wait(&mutexJournal);
 						ejecutarConsulta(seeds[i]);
 						sem_post(&mutexJournal);
+					}else{
+						seeds[i] = -1;
+						log_debug(logger,"Error al enviar tabla a seed %d",i);
 					}
 					free(packGossip);
 					free(packGossip->memorias);
