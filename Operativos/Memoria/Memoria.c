@@ -16,7 +16,7 @@ int main() {
 
 	
 
-	/*if (miConfig->numeroMemoria == 1) {
+	//if (miConfig->numeroMemoria == 1) {
 		socket_lfs = levantarClienteNoBloqueante((char*) miConfig->puerto_fs, miConfig->ip_fs);
 		if (socket_lfs <= 0) {
 			log_error(logger, "No se pudo conectar a LFS");
@@ -29,10 +29,10 @@ int main() {
 			log_debug(logger,"Levanta conexion con LFS");
 
 		}
-}*/
+//}
 
-	socket_sv = levantarServidor((char*) miConfig->puerto_kernel);
-	socket_gossip = levantarServidor((char*) miConfig->miPuerto);
+	socket_sv = levantarServidor((char*) miConfig->puerto_escucha);
+	//socket_gossip = levantarServidor((char*) miConfig->miPuerto);
 
 	memoria = calloc(miConfig->tam_mem,6 + tamanioMaxValue);
 	cantPagsMax = miConfig->tam_mem / (6 + tamanioMaxValue);
@@ -63,7 +63,7 @@ void* recibirHeader(void* arg) {
 		int listener = socket_sv;
 		FD_ZERO(&active_fd_set);
 		FD_SET(socket_sv, &active_fd_set);
-		FD_SET(socket_gossip, &active_fd_set);
+		//FD_SET(socket_gossip, &active_fd_set);
 		int flagError = 0;
 
 		while (flagError != 1) {
@@ -76,7 +76,7 @@ void* recibirHeader(void* arg) {
 					if (FD_ISSET(i, &read_fd_set)) {
 						//El cliente quiere algo!!, vamos a ver quien es primero y que quiere
 
-						if (i == listener || i == socket_gossip) {
+						if (i == listener) {
 							/*
 							 El socket i resultó ser el listener! o sea el socket del servidor. Cuando el que quiere algo es el propio servidor
 							 significa que tenemos un nuevo cliente QUE SE QUIERE CONECTAR. Por lo que tenemos que hacer un accept() para generar un nuevo socket para ese lciente
@@ -117,7 +117,7 @@ void inicializarTablaGossip() {
 	tablaGossip = list_create();
 	tMemoria* yo = malloc(sizeof(tMemoria));
 	strcpy(yo->ip, miConfig->mi_IP);
-	strcpy(yo->puerto, miConfig->miPuerto);
+	strcpy(yo->puerto,(char*) miConfig->puerto_escucha);
 	yo->numeroMemoria = miConfig->numeroMemoria;
 	list_add(tablaGossip, yo);
 }
@@ -158,7 +158,6 @@ void realizarGossiping() {
 					MSG_WAITALL) > 0 && error >= 0) {
 						//log_debug(logger, "llego algo del cliente %d", clienteGossip);
 						recibioSocket = true;
-						usleep(miConfig->retardoMemoria * 1000);
 						sem_wait(&mutexJournal);
 						ejecutarConsulta(seeds[i]);
 						sem_post(&mutexJournal);
@@ -566,8 +565,8 @@ void pedirPathConfig(){
 
 t_miConfig* cargarConfig() {
 
-	miConfig->puerto_kernel = (int) config_get_string_value(config,
-			"PUERTO_KERNEL");
+	miConfig->puerto_escucha = (int) config_get_string_value(config,
+			"PUERTO");
 	miConfig->puerto_fs = (int) config_get_string_value(config, "PUERTO_FS");
 	miConfig->ip_fs = config_get_string_value(config, "IP");
 	miConfig->tam_mem = config_get_int_value(config, "TAM_MEM");
@@ -578,7 +577,7 @@ t_miConfig* cargarConfig() {
 	miConfig->puerto_seeds = config_get_array_value(config,"PUERTO_SEEDS");
 	miConfig->retardoGossiping = config_get_int_value(config,"RETARDO_GOSSIPING");
 	miConfig->numeroMemoria = config_get_int_value(config,"MEMORY_NUMBER");
-	miConfig->miPuerto = config_get_string_value(config,"MI_PUERTO");
+	//miConfig->miPuerto = config_get_string_value(config,"MI_PUERTO");
 	miConfig->mi_IP = config_get_string_value(config, "MI_IP");
 	log_debug(logger, "Levanta archivo de config");
 	return miConfig;

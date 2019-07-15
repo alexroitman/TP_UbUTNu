@@ -81,7 +81,7 @@ typedef struct {
 
 typedef struct {
 	int numeroMemoria;
-	int puerto_kernel;
+	int puerto_escucha;
 	int puerto_fs;
 	char* ip_fs;
 	char** ip_seeds;
@@ -91,7 +91,6 @@ typedef struct {
 	int retardoFS;
 	int retardoJournal;
 	int retardoGossiping;
-	char* miPuerto;
 	char* mi_IP;
 } t_miConfig;
 
