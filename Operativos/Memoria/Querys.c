@@ -142,13 +142,15 @@ void ejecutarConsulta(int socket) {
 			log_debug(logger, "Encontre segmento: %s", packDrop->nombre_tabla);
 			liberarPaginasDelSegmento(miSegmento, tablaSegmentos);
 			log_debug(logger, "Segmento eliminado");
-			char* serializado = serializarDrop(packDrop);
-			enviarPaquete(socket_lfs, serializado, packDrop->length);
-			log_debug(logger, "Envio DROP a LFS");
 		} else {
 			log_error(logger, "No se encontro el segmento");
 		}
+		char* dropSerializado = serializarDrop(packDrop);
+		enviarPaquete(socket_lfs, dropSerializado, packDrop->length);
+		log_debug(logger, "Envio DROP a LFS");
 		free(packDrop);
+		free(packDrop->nombre_tabla);
+		free(dropSerializado);
 
 		break;
 	case JOURNAL:
