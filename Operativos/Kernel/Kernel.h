@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <ctype.h>
-
+#include <sys/inotify.h>
+#include <sys/mman.h>
 #include <signal.h>
 #include <string.h>
 #include <stdlib.h>
@@ -19,6 +20,9 @@
 #ifndef KERNEL_KERNEL_H_
 #define KERNEL_KERNEL_H_
 #define MAX_MESSAGE_SIZE 300
+#define EVENT_SIZE  ( sizeof (struct inotify_event) + 24 )
+
+#define BUF_LEN     ( 1024 * EVENT_SIZE )
 typedef enum{
 	new,
 	ready,
@@ -27,10 +31,10 @@ typedef enum{
 }estados;
 
 typedef enum{
-	sc = 1,
-	shc = 2,
-	ec = 3,
-	nada = 4
+	sc,
+	shc,
+	ec,
+	nada
 }consistencias;
 
 
@@ -66,6 +70,7 @@ type leerConsola(); //Lee la consulta y devuelve el string
 type validarSegunHeader(char* header);
 bool analizarConsulta();
 void run();
+void innotificar();
 int despacharQuery(char* consulta, t_list* socket_memoria);
 void add();
 void cargarPaqueteSelect();
