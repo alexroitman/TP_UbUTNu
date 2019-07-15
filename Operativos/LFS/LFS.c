@@ -40,7 +40,7 @@ int main(void) {
 
 	// Abro hilo de consola
 	paramsConsola = malloc(sizeof(tHiloConsola));
-	paramsConsola->header = NIL;
+	*(paramsConsola->header) = NIL;
 	pthread_create(&hiloConsola, NULL, (void*) abrirHiloConsola, paramsConsola);
 
 	// Abro hilo de compactacion
@@ -290,6 +290,8 @@ void abrirHiloConsola(void* params) {
 		usleep((configLFS->retardo) * 1000);
 		type header = stringToHeader(tempSplit[0]);
 		switch (header){
+		//TODO: handlear en cada case que se ingresen mal las cosas. En el inicio de cada uno splitear tempSplit[1] y ver con string_spĺit que tenga la cantidad de campos necesarios
+		// y que el siguiente se NULL. Ejemplo: en SELECT verificar que tempSplit[1] se divida en dos campos diferentes a NULL y un tercero que sea NULL.
 
 		case SELECT:
 			log_debug(logger, "Recibi un SELECT por consola");
@@ -367,10 +369,10 @@ void abrirHiloConsola(void* params) {
 				lista = Describe();
 			else
 				lista = DESCRIBEespecifico(packDescribeConsola->nombre_tabla);
-			if (lista)
-				for (int i = 0; i < lista->elements_count; i++) {
-					Metadata* m = list_get(lista, i);
-				}
+//			if (lista)
+//				for (int i = 0; i < lista->elements_count; i++) {
+//					Metadata* m = list_get(lista, i);
+//				}
 			free(packDescribeConsola->nombre_tabla);
 			free(packDescribeConsola);
 			break;
@@ -390,49 +392,37 @@ void abrirHiloConsola(void* params) {
 void abrirHiloSockets() {
 	log_debug(logger, "entre al primer hilo");
 //	int errorHandler;
-	pthread_t* threadPrincipal;
+	pthread_t threadPrincipal;
 	socket_sv = levantarServidor(configLFS->puerto);
 	if (socket_sv < 0)
 		logeoDeErroresLFS(noLevantoServidor, logger);
 	socket_cli = aceptarCliente(socket_sv);
 	send(socket_cli, &configLFS->tamanioValue, 4, 0);
-	pthread_create(&threadPrincipal, NULL, (void*) receptorDeSockets,
-			&socket_cli);
-
+	pthread_create(&threadPrincipal, NULL, (void*) receptorDeSockets, &socket_cli);
 	while (1) {
 		log_debug(logger, "entre al while para crear una nueva memoria");
 		int socketNuevo;
-		pthread_t* threadNuevo;
+		pthread_t threadNuevo;
 		socketNuevo = aceptarCliente(socket_sv);
 		send(socketNuevo, &configLFS->tamanioValue, 4, 0);
-		pthread_create(&threadNuevo, NULL, (void*) receptorDeSockets,
-				&socketNuevo);
+		pthread_create(&threadNuevo, NULL, (void*) receptorDeSockets, &socketNuevo);
 		log_debug(logger, "levante cliente");
-
-		//		if (errorHandler < 0)
-		//			logeoDeErroresLFS(errorTamanioValue, logger);
 	}
 }
 
 type stringToHeader(char* str) {
-	if (!strcmp(str, "SELECT")) {
+	if (!strcmp(str, "SELECT"))
 		return SELECT;
-	}
-	if (!strcmp(str, "INSERT")) {
+	if (!strcmp(str, "INSERT"))
 		return INSERT;
-	}
-	if (!strcmp(str, "CREATE")) {
+	if (!strcmp(str, "CREATE"))
 		return CREATE;
-	}
-	if (!strcmp(str, "DROP")) {
+	if (!strcmp(str, "DROP"))
 		return DROP;
-	}
-	if (!strcmp(str, "DESCRIBE")) {
+	if (!strcmp(str, "DESCRIBE"))
 		return DESCRIBE;
-	}
-	if (!strcmp(str, "DESCRIBE\n")) {
+	if (!strcmp(str, "DESCRIBE\n"))
 		return DESCRIBE;
-	}
 	return NIL;
 }
 
@@ -448,23 +438,19 @@ void abrirHiloCompactacion() {
 		log_debug(logger, "Entre al if");
 		while ((a_directory = readdir(tables_directory)) != NULL) {
 			log_debug(logger, "Entre al while");
-			if (strcmp(a_directory->d_name, ".")
-					&& strcmp(a_directory->d_name, "..")) {
-				char* a_table_path = string_new();
+			if (strcmp(a_directory->d_name, ".") && strcmp(a_directory->d_name, "..")) {
 				char* table_name = malloc(strlen(a_directory->d_name));
-				memcpy(table_name, a_directory->d_name,
-						strlen(a_directory->d_name) + 1);
-				pthread_t* threadComp;
-				pthread_create(&threadComp, NULL, (void*) hiloCompactar,
-						&table_name);
+				memcpy(table_name, a_directory->d_name, strlen(a_directory->d_name) + 1);
+				pthread_t threadComp;
+				pthread_create(&threadComp, NULL, (void*) hiloCompactar, &table_name);
 				free(table_name);
-
 			}
 		}
 		closedir(tables_directory);
 	}
 	free(tablas_path);
 }
+
 void hiloCompactar(char*nombre_tabla) {
 
 	while (1) {
@@ -496,7 +482,7 @@ t_list* inicializarMemtable() {
 int insertarEnMemtable(tInsert *packinsert) {
 	int errorHandler;
 	errorHandler = verificadorDeTabla(packinsert->nombre_tabla);
-// Cheque que la tabla este creada
+// ChequeO que la tabla este creada
 	if (!errorHandler)
 		return noExisteTabla;
 // Chequeo si existe la tabla en la memtable
@@ -599,7 +585,7 @@ int Create(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES,
 // ---- Creo los archivos binarios ----
 	crearBinarios(ruta, NUMERO_PARTICIONES);
 	free(ruta);
-	pthread_t* threadComp;
+	pthread_t threadComp;
 	pthread_create(&threadComp, NULL, (void*) hiloCompactar, &NOMBRE_TABLA);
 	return todoJoya;
 }
@@ -1175,14 +1161,11 @@ int compactacion(char* nombre_tabla) {
 	t_list* lista_Temp = list_create();
 
 	int error = obtener_temporales(nombre_tabla, &temporales);
-
 	int errorbinario = levantarbinarios(nombre_tabla, &binarios);
-
 	if (!string_is_empty(temporales))
 		crearListaRegistros(&temporales, lista_Temp);
 	if (!string_is_empty(binarios))
 		crearListaRegistros(&binarios, lista_bin);
-
 	free(temporales);
 	free(binarios);
 
@@ -1267,7 +1250,6 @@ void crearListaRegistros(char** string, t_list* lista) {
 		char** datos_registro;
 //		Recorro y divido los datos unificado del archivos temporal, almacenando solo las keys que coincidan con la solicitada
 		while (registros[j] != NULL) {
-
 			registro* reg = malloc(sizeof(registro));
 			datos_registro = string_split(registros[j], ";");
 			reg->timestamp = atoi(datos_registro[0]);
@@ -1276,13 +1258,11 @@ void crearListaRegistros(char** string, t_list* lista) {
 			strcpy(reg->value, datos_registro[2]);
 			log_debug(logger, "%d;%d;%s", reg->timestamp, reg->key, reg->value);
 			list_add(lista, reg);
-
 			j++;
 		}
 
 		string_iterate_lines(datos_registro, (void*) free);
 		free(datos_registro);
-
 	}
 }
 
@@ -1471,48 +1451,33 @@ void finalizarEjecutcion() {
 
 void innotificar() {
 	log_debug(logger, "entre al hilo");
-
 	while (1) {
 		char buffer[BUF_LEN];
-
 		int file_descriptor = inotify_init();
-		if (file_descriptor < 0) {
+		if (file_descriptor < 0)
 			perror("inotify_init");
-		}
-
-		int watch_descriptor = inotify_add_watch(file_descriptor, "../",
-		IN_MODIFY | IN_CREATE | IN_DELETE);
-
+		int watch_descriptor = inotify_add_watch(file_descriptor, "../", IN_MODIFY | IN_CREATE | IN_DELETE);
 		int length = read(file_descriptor, buffer, BUF_LEN);
-		if (length < 0) {
+		if (length < 0)
 			perror("read");
-		}
-
 		int offset = 0;
-
 		while (offset < length) {
-
-			struct inotify_event *event =
-					(struct inotify_event *) &buffer[offset];
-
+			struct inotify_event *event = (struct inotify_event *) &buffer[offset];
 			if (event->len) {
-
 				if (event->mask & IN_CREATE) {
-					if (event->mask & IN_ISDIR) {
+					if (event->mask & IN_ISDIR)
 						printf("The directory %s was created.\n", event->name);
-					} else {
+					else
 						printf("The file %s was created.\n", event->name);
-					}
 				} else if (event->mask & IN_DELETE) {
-					if (event->mask & IN_ISDIR) {
+					if (event->mask & IN_ISDIR)
 						printf("The directory %s was deleted.\n", event->name);
-					} else {
+					else
 						printf("The file %s was deleted.\n", event->name);
-					}
 				} else if (event->mask & IN_MODIFY) {
-					if (event->mask & IN_ISDIR) {
+					if (event->mask & IN_ISDIR)
 						printf("The directory %s was modified.\n", event->name);
-					} else {
+					else {
 						printf("The file %s was modified.\n", event->name);
 						levantarConfigLFS();
 					}
@@ -1520,7 +1485,6 @@ void innotificar() {
 			}
 			offset += sizeof(struct inotify_event) + event->len;
 		}
-
 		inotify_rm_watch(file_descriptor, watch_descriptor);
 		close(file_descriptor);
 	}
