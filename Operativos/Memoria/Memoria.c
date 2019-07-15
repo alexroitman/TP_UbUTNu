@@ -16,7 +16,7 @@ int main() {
 
 	
 
-	if (miConfig->numeroMemoria == 1) {
+	//if (miConfig->numeroMemoria == 1) {
 		socket_lfs = levantarClienteNoBloqueante((char*) miConfig->puerto_fs, miConfig->ip_fs);
 		if (socket_lfs <= 0) {
 			log_error(logger, "No se pudo conectar a LFS");
@@ -27,11 +27,11 @@ int main() {
 					"Handshake con LFS realizado. Tamanio max del value: %d",
 					tamanioMaxValue);
 			log_debug(logger,"Levanta conexion con LFS");
-			socket_sv = levantarServidor((char*) miConfig->puerto_kernel);
+
 		}
-	}
+//}
 
-
+	socket_sv = levantarServidor((char*) miConfig->puerto_kernel);
 	socket_gossip = levantarServidor((char*) miConfig->miPuerto);
 
 	memoria = calloc(miConfig->tam_mem,6 + tamanioMaxValue);
@@ -113,58 +113,67 @@ void* recibirHeader(void* arg) {
 }
 
 
-void inicializarTablaGossip(){
+void inicializarTablaGossip() {
 	tablaGossip = list_create();
 	tMemoria* yo = malloc(sizeof(tMemoria));
-	strcpy(yo->ip,miConfig->mi_IP);
-	strcpy(yo->puerto,miConfig->miPuerto);
+	strcpy(yo->ip, miConfig->mi_IP);
+	strcpy(yo->puerto, miConfig->miPuerto);
 	yo->numeroMemoria = miConfig->numeroMemoria;
-	list_add(tablaGossip,yo);
+	list_add(tablaGossip, yo);
 }
 
 void realizarGossiping() {
-	if ((miConfig->puerto_seeds) != NULL && (miConfig->ip_seeds)[0] != NULL) {
+	int cant = 0;
+	while (miConfig->puerto_seeds[cant] != NULL) {
+		cant++;
+	}
+	log_debug(logger, "cant seeds: %d", cant);
 
+	//if ((miConfig->puerto_seeds)[0] != NULL && (miConfig->ip_seeds)[0] != NULL) {
+	if (cant > 0) {
+		int seeds[cant];
+		for(int j =0;j<cant;j++){
+			seeds[j] = -1;
+		}
 		while (1) {
-			int clienteGossip;
-			do {
-				usleep(miConfig->retardoGossiping * 1000);
-				//log_debug(logger, "pruebo conectarme");
-				clienteGossip = levantarClienteNoBloqueante(
-						(miConfig->puerto_seeds)[0], (miConfig->ip_seeds)[0]);
-				if (clienteGossip == -1) {
-					log_debug(logger, "No me pude conectar con mi seed");
-				}
-			} while (clienteGossip <= 0);
-			log_debug(logger, "me pude conectar a mi seed");
-			//FD_SET(clienteGossip,&active_fd_set);
 			int error = 0;
-			while (error != -1) {
-				usleep(miConfig->retardoGossiping * 1000);
-				int cantMemorias = tablaGossip->elements_count;
-				tGossip* packGossip = malloc(sizeof(tGossip));
-				packGossip->memorias = malloc(cantMemorias * sizeof(tMemoria));
-				cargarPackGossip(packGossip, tablaGossip, GOSSIPING);
-				char* serializado = serializarGossip(packGossip);
-				int tam_tot = cantMemorias * sizeof(tMemoria) + sizeof(type)
-						+ sizeof(int);
-				error = enviarPaquete(clienteGossip, serializado, tam_tot);
-				if (recv(clienteGossip, &(*header), sizeof(type), MSG_WAITALL) > 0) {
-					//log_debug(logger, "llego algo del cliente %d", clienteGossip);
-					recibioSocket = true;
-					usleep(miConfig->retardoMemoria * 1000);
-					sem_wait(&mutexJournal);
-					ejecutarConsulta(clienteGossip);
-					sem_post(&mutexJournal);
-				}else{
-					error = -1;
+			usleep(miConfig->retardoGossiping * 1000);
+			for (int i = 0; i < cant; i++) {
+				if (seeds[i] <= 0) {
+					seeds[i] = levantarClienteNoBloqueante(
+							(miConfig->puerto_seeds)[i],
+							(miConfig->ip_seeds)[i]);
 				}
-
-				free(packGossip);
-				free(packGossip->memorias);
-				free(serializado);
+				if (seeds[i] > 0) {
+					int cantMemorias = tablaGossip->elements_count;
+					tGossip* packGossip = malloc(sizeof(tGossip));
+					packGossip->memorias = malloc(
+							cantMemorias * sizeof(tMemoria));
+					cargarPackGossip(packGossip, tablaGossip, GOSSIPING);
+					char* serializado = serializarGossip(packGossip);
+					int tam_tot = cantMemorias * sizeof(tMemoria) + sizeof(type)
+							+ sizeof(int);
+					error = enviarPaquete(seeds[i], serializado, tam_tot);
+					if (recv(seeds[i], &(*header), sizeof(type),
+					MSG_WAITALL) > 0) {
+						//log_debug(logger, "llego algo del cliente %d", clienteGossip);
+						recibioSocket = true;
+						usleep(miConfig->retardoMemoria * 1000);
+						sem_wait(&mutexJournal);
+						ejecutarConsulta(seeds[i]);
+						sem_post(&mutexJournal);
+					}
+					free(packGossip);
+					free(packGossip->memorias);
+					free(serializado);
+				}else{
+					log_debug(logger,"No me pude conectar con mi seed %d",i);
+				}
 			}
 		}
+
+	}else{
+		log_debug(logger,"No tengo seeds");
 	}
 
 }
@@ -172,13 +181,13 @@ void realizarGossiping() {
 void cargarPackGossip(tGossip* packGossip, t_list* tablaGossip, type header){
 
 	packGossip->cant_memorias = tablaGossip->elements_count;
-	log_debug(logger,"cant memorias a mandar %d",packGossip->cant_memorias);
+	//log_debug(logger,"cant memorias a mandar %d",packGossip->cant_memorias);
 	packGossip->header = header;
 	for(int i = 0; i < tablaGossip->elements_count; i++){
 		tMemoria* miMemoria;
 		miMemoria = (tMemoria*) list_get(tablaGossip, i);
 		packGossip->memorias[i] = *miMemoria;
-		log_debug(logger,"mando memoria %d",packGossip->memorias[i].numeroMemoria);
+		//log_debug(logger,"mando memoria %d",packGossip->memorias[i].numeroMemoria);
 	}
 }
 

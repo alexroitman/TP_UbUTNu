@@ -42,7 +42,7 @@ int desSerializarGossip(tGossip* packGossip, int socket){
 	if(!status){
 		return 0;
 	}
-	printf("cant memorias: %d",packGossip->cant_memorias);
+	//printf("cant memorias: %d",packGossip->cant_memorias);
 
 
 	packGossip->memorias = malloc(packGossip->cant_memorias * sizeof(tMemoria));
