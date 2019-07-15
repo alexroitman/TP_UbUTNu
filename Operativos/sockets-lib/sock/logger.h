@@ -27,7 +27,7 @@
 #define noExisteKey -15
 #define particionesInvalidas -16
 #define noAbreBIN -17
-
+#define comandoMalIngresado -18
 
 #include <commons/log.h>
 #include "comunicacion.h"

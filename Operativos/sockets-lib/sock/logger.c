@@ -84,6 +84,10 @@ void logeoDeErroresLFS(int errorHandler, t_log* logger) {
 		log_info(logger, "El archivo .bin no pudo ser accedido");
 		break;
 
+	case comandoMalIngresado:
+		log_info(logger, "El comando ingresado fue erroneo o se encuentra incompleto");
+		break;
+
 	default:
 		break;
 	}

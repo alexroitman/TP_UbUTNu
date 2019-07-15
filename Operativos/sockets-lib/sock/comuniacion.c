@@ -156,7 +156,7 @@ void cargarPaqueteDescribe(tDescribe *pack, char* cons) {
 		pack->type = DESCRIBE;
 		if(spliteado[1] != NULL){
 			pack->nombre_tabla = malloc(strlen(spliteado[1]));
-			strcpy(pack->nombre_tabla, spliteado[1]);
+			strcpy(pack->nombre_tabla, string_substring_until(spliteado[1], strlen(spliteado[1])));
 			pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
 		}else{
 			pack->nombre_tabla = malloc(strlen(""));
