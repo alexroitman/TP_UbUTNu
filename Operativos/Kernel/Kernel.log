@@ -449,3 +449,18 @@
 [DEBUG] 15:51:23:186 Kernel.c/(14981:14996): cant de memorias: 2
 [DEBUG] 15:51:23:215 Kernel.c/(14981:14981): header add
 [DEBUG] 15:51:23:215 Kernel.c/(14981:14981): Se recibio un ADD
+[DEBUG] 13:36:14:494 Kernel.c/(16552:16552): Cargando configuracion
+[DEBUG] 13:36:14:517 Kernel.c/(16552:16552): Configuracion cargada con exito
+[DEBUG] 13:36:14:517 Kernel.c/(16552:16552): Inicializando semaforos
+[DEBUG] 13:36:14:517 Kernel.c/(16552:16552): Semaforos incializados con exito
+[DEBUG] 13:36:14:517 Kernel.c/(16552:16552): Inicializando sockets
+[DEBUG] 13:36:14:517 Kernel.c/(16552:16552): Sockets inicializados con exito
+[DEBUG] 13:36:14:517 Kernel.c/(16552:16552): Se tendra un nivel de multiprocesamiento de: 3 cpus
+[DEBUG] 13:36:14:517 Kernel.c/(16552:16552): Realizando describe general
+[DEBUG] 13:36:14:517 Kernel.c/(16552:16552): header describe
+
+[DEBUG] 13:36:14:517 Kernel.c/(16552:16552): Se recibio un DESCRIBE
+[DEBUG] 13:36:15:210 Kernel.c/(16552:16552): Cant tablas: 5
+[DEBUG] 13:36:15:210 Kernel.c/(16552:16552): UNTER
+[DEBUG] 13:36:57:543 Kernel.c/(16552:16552): Se agrego la tabla UNTER a la lista con
+[DEBUG] 13:37:33:80 Kernel.c/(16552:16552): SARAZA
