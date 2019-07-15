@@ -67,8 +67,12 @@ void levantarMetadataFS() {
 	t_config* aux = config_create("../../FS_LISSANDRA/Metadata/Metadata.bin");
 	configMetadata->blockSize = config_get_int_value(aux, "BLOCK_SIZE");
 	configMetadata->blocks = config_get_int_value(aux, "BLOCKS");
-	configMetadata->magicNumber = config_get_string_value(aux, "MAGIC_NUMBER");
+	configMetadata->magicNumber = malloc(strlen(config_get_string_value(aux, "MAGIC_NUMBER")));
+	strcpy(configMetadata->magicNumber,config_get_string_value(aux, "MAGIC_NUMBER"));
 	config_destroy(aux);
+	log_debug(logger,"%d",configMetadata->blockSize);
+	log_debug(logger,"%d",configMetadata->blocks);
+	log_debug(logger,"%s",configMetadata->magicNumber);
 }
 
 void levantarConfigLFS() {
@@ -81,6 +85,11 @@ void levantarConfigLFS() {
 	configLFS->tamanioValue = config_get_int_value(aux, "TAMANIO_VALUE");
 	configLFS->tiempoDumpeo = config_get_int_value(aux, "TIEMPO_DUMP");
 	config_destroy(aux);
+	log_debug(logger, "%s", configLFS->puerto);
+	log_debug(logger, "%s", configLFS->dirMontaje);
+	log_debug(logger, "%d", configLFS->retardo);
+	log_debug(logger, "%d", configLFS->tamanioValue);
+	log_debug(logger, "%d", configLFS->tiempoDumpeo);
 }
 
 void receptorDeSockets(int* socket) {
@@ -396,7 +405,9 @@ void abrirHiloSockets() {
 	socket_sv = levantarServidor(configLFS->puerto);
 	if (socket_sv < 0)
 		logeoDeErroresLFS(noLevantoServidor, logger);
+	log_debug(logger, "%d",socket_sv);
 	socket_cli = aceptarCliente(socket_sv);
+	log_debug(logger, "%d",socket_cli);
 	send(socket_cli, &configLFS->tamanioValue, 4, 0);
 	pthread_create(&threadPrincipal, NULL, (void*) receptorDeSockets, &socket_cli);
 	while (1) {
