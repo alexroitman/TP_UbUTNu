@@ -443,14 +443,12 @@ int despacharQuery(char* consulta, t_list* sockets) {
 			break;
 		case DROP:
 			log_debug(logger, "Se recibio un DROP");
-			cargarPaqueteDrop(paqueteDrop,
-					string_substring_until(consulta,
-							string_length(consulta) - 1));
+			cargarPaqueteDrop(paqueteDrop,consulta);
 			serializado = serializarDrop(paqueteDrop);
 			consistencias consis = consTabla(paqueteDrop->nombre_tabla);
 			socket_memoria = devolverSocket(consis,sockets,1);
 			if(socket_memoria->socket != -1){
-				consultaOk = enviarPaquete(socket_memoria->socket, serializado, paqueteJournal->length);
+				consultaOk = enviarPaquete(socket_memoria->socket, serializado, paqueteDrop->length);
 				if(consultaOk == -1){
 					consultaOk = socket_memoria->id * -1;
 				}else{
