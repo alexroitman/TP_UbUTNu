@@ -842,10 +842,19 @@ consistencias obtCons(char* criterio){
 	}
 	if(!strcmp(criterio,"SHC\n")){
 			return shc;
-		}
+	}
 	if(!strcmp(criterio,"EC\n")){
 			return ec;
-		}
+	}
+	if (!strcmp(criterio, "SC")) {
+		return sc;
+	}
+	if (!strcmp(criterio, "SHC")) {
+		return shc;
+	}
+	if (!strcmp(criterio, "EC")) {
+		return ec;
+	}
 }
 
 void ejecutarDescribe(t_describe *response){
