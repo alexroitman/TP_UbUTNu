@@ -9,7 +9,7 @@
 #define QUERYS_H_
 #include "Memoria.h"
 void ejecutarConsulta(int socket);
-void pedirRegistroALFS(int socket,tSelect* packSelect,tRegistroRespuesta* reg);
+int pedirRegistroALFS(int socket,tSelect* packSelect,tRegistroRespuesta* reg);
 void enviarRegistroAKernel(tRegistroRespuesta* reg, int socket,bool leyoConsola);
 void* leerQuery(void* params);
 void cargarPackCreate(tCreate* packCreate,bool leyoConsola,char consulta[], int socket);

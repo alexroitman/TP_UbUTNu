@@ -44,7 +44,7 @@ void ejecutarConsulta(int socket) {
 			//enviarRegistroAKernel(reg, socket_kernel, leyoConsola);
 			log_debug(logger, "El value es: %s", pagina->value);
 		} else {
-			pedirRegistroALFS(socket_lfs, packSelect, reg);
+			error = pedirRegistroALFS(socket_lfs, packSelect, reg);
 			if (reg->key != -1) {
 				pagina->key = reg->key;
 				pagina->timestamp = reg->timestamp;
@@ -227,18 +227,23 @@ void ejecutarConsulta(int socket) {
 
 }
 
-void pedirRegistroALFS(int socket, tSelect* packSelect, tRegistroRespuesta* reg) {
+int pedirRegistroALFS(int socket, tSelect* packSelect, tRegistroRespuesta* reg) {
 	usleep(miConfig->retardoFS * 1000);
-	log_debug(logger,"Pido registro a LFS");
+	log_debug(logger, "Pido registro a LFS");
 	char* selectAEnviar = serializarSelect(packSelect);
-	enviarPaquete(socket, selectAEnviar, packSelect->length);
+	int bytes = enviarPaquete(socket, selectAEnviar, packSelect->length);
 	free(selectAEnviar);
-	type header = leerHeader(socket);
-	if (header == REGISTRO) {
-		desSerializarRegistro(reg, socket);
-		reg->tipo = REGISTRO;
+	if (bytes > 0) {
+		type header = leerHeader(socket);
+		if (header == REGISTRO) {
+			desSerializarRegistro(reg, socket);
+			reg->tipo = REGISTRO;
+			return 1;
+		} else {
+			return -3;
+		}
 	}
-
+	return -3;
 }
 
 void enviarRegistroAKernel(tRegistroRespuesta* reg, int socket,

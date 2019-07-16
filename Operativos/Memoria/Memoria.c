@@ -411,6 +411,7 @@ bool fueModificado(void* pag){
 
 
 int ejecutarLRU(){
+	log_debug(logger,"Ejecutando LRU");
 	t_list* LRUPaginaPorSegmento;
 	LRUPaginaPorSegmento = list_create();
 
@@ -442,7 +443,7 @@ int ejecutarLRU(){
 
 	elem_tabla_pag* pagBorrar = malloc(sizeof(elem_tabla_pag));
 	int indexMin = listMinTimestamp(LRUPaginaPorSegmento, pagBorrar);
-	log_debug(logger,"Se eliminara la pagina: %d",pagBorrar->offsetMemoria);
+	log_debug(logger,"Se eliminara la pagina: %d",pagBorrar->index);
 	tSegmento* segmento = obtenerSegmentoDeTabla(tablaSegmentos,indexMin);
 	list_remove(segmento->tablaPaginas,pagBorrar->index);
 	actualizarIndexLista(segmento->tablaPaginas);
