@@ -24,7 +24,8 @@ NIL,
 GOSSIPING,
 RESPGOSS,
 GOSSIPKERNEL,
-METRICS}type;
+METRICS,
+SIGNAL}type;
 
 typedef struct {
 

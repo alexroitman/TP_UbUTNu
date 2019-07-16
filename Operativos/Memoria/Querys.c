@@ -214,6 +214,8 @@ void ejecutarConsulta(int socket) {
 		free(gossipKernel);
 		free(gossipKernel->memorias);
 		break;
+	case SIGNAL:
+		log_debug(logger,"Kernel quiere saber si estoy vivo");
 	case NIL:
 		log_error(logger, "No entendi la consulta");
 		break;

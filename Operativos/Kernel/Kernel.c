@@ -13,7 +13,6 @@
 char package[PACKAGESIZE];
 struct addrinfo hints;
 struct addrinfo *serverInfo;
-int indiceAborrar;
 sem_t semReady;
 sem_t mutexReady;
 sem_t mutexNew;
@@ -24,6 +23,7 @@ sem_t mutexSHC;
 sem_t mutexEC;
 sem_t mutexContMult;
 sem_t mutexMems;
+sem_t mutexCaido;
 t_contMetrics metricsSC;
 t_contMetrics metricsSHC;
 t_contMetrics metricsEC;
@@ -31,6 +31,7 @@ pthread_t planificador_t;
 pthread_t hiloGossip;
 pthread_t hiloMetrics;
 pthread_t hiloInnotify;
+pthread_t hiloDescribe;
 t_log *logger;
 t_log *loggerError;
 t_log *loggerWarning;
@@ -42,6 +43,7 @@ t_list *listaMemsSHC;
 t_list *memorias;
 t_list *listaTablas;
 t_list *listaDeLSockets;
+t_list *memoriasCaidas;
 configKernel *miConfig;
 t_config* config;
 int contScript;
@@ -50,11 +52,6 @@ int contMult = 0;
 int cantMemorias = 1;
 
 // Define cual va a ser el size maximo del paquete a enviar
-
-void borrarSocket(void* lista){
-	t_list* sockets = (t_list*) lista;
-	list_remove(sockets,indiceAborrar);
-}
 
 
 int main(){
@@ -75,9 +72,11 @@ int main(){
 	pthread_t cpus[miConfig->MULT_PROC];
 	t_list *sockets = list_create();
 	listaDeLSockets = list_create();
+	memoriasCaidas = list_create();
 	list_add_in_index(sockets,0,socket_memoria);
 	list_add_in_index(listaDeLSockets,contMult,sockets);
 	despacharQuery("describe\n",sockets);
+	int id = contMult;
 	if(levantarCpus(cpus)){
 		colaReady = queue_create();
 		colaNew = queue_create();
@@ -85,6 +84,7 @@ int main(){
 		pthread_create(&hiloGossip,NULL,(void*) gossip,NULL);
 		pthread_create(&hiloMetrics,NULL,(void*)metrics,NULL);
 		pthread_create(&hiloInnotify, NULL, (void*) innotificar, NULL);
+		pthread_create(&hiloDescribe,NULL,describe,(void*)sockets);
 		char consulta[256] = "";
 		for(int i = 0; i < miConfig->MULT_PROC; i++){
 			pthread_detach(cpus[i]);
@@ -92,6 +92,7 @@ int main(){
 		pthread_detach(planificador_t);
 		pthread_detach(hiloGossip);
 		pthread_detach(hiloInnotify);
+		pthread_detach(hiloDescribe);
 		while (continuar) {
 			fgets(consulta, 256, stdin);
 			sem_wait(&mutexMems);
@@ -105,25 +106,69 @@ int main(){
 					if(list_filter(sockets,compararNumeroMem)->elements_count == 0){
 						t_infoMem *sock = malloc(sizeof(t_infoMem));
 						sock->socket = levantarClienteNoBloqueante(miConfig->puerto_mem,miConfig->ip_mem);
-						list_add(sockets,&(sock->socket));
-						log_debug(logger,"agrege este socket %d",sock->socket);
 						if(sock->socket != -1){
+							list_add(sockets,&(sock->socket));
+							log_debug(logger,"agrege este socket %d",sock->socket);
 							sock->id = mem->numeroMemoria;
 							list_add(sockets,sock);
+							bool compararNumeroMem2(void* elem){
+								tMemoria* mem2 = (tMemoria*) elem;
+								return mem2->numeroMemoria == mem->numeroMemoria;
+							}
+							sem_wait(&mutexCaido);
+							if(list_filter(memoriasCaidas,compararNumeroMem2)->elements_count != 0){
+								list_remove_by_condition(memoriasCaidas,compararNumeroMem2);
+							}
+							sem_post(&mutexCaido);
 						}
 					}
 				}
 			}
 			sem_post(&mutexMems);
+			sem_wait(&mutexCaido);
+			if(memoriasCaidas->elements_count != 0){
+				int size_to_send = sizeof(type);
+				char* serializedPackage = malloc(size_to_send);
+				type gossip = SIGNAL;
+				memcpy(serializedPackage,&(gossip),size_to_send);
+				for(int i = 0; i < memoriasCaidas->elements_count;i++){
+					tMemoria* mem = (tMemoria*) list_get(memoriasCaidas,i);
+					bool compararNumeroMem(void* elem){
+						t_infoMem* mem2 = (t_infoMem*) elem;
+						return mem2->id == mem->numeroMemoria;
+					}
+					if(list_filter(sockets,compararNumeroMem)->elements_count != 0){
+						int info = enviarPaquete(((t_infoMem*)list_get(sockets,0))->socket,serializedPackage,size_to_send);
+						if(info == -1){
+							list_remove_by_condition(sockets,compararNumeroMem);
+						}else{
+							list_remove(memoriasCaidas,i);
+						}
+					}
+				}
+				free(serializedPackage);
+			}
+			sem_post(&mutexCaido);
 			int consultaOk = despacharQuery(consulta, sockets);
 			if(consultaOk < 0){
-				indiceAborrar = consultaOk*-1;
-				log_error(loggerError,"Memoria %d caida, eliminando de la lista", consultaOk*-1);
-				list_iterate(listaDeLSockets,borrarSocket);
-				log_warning(loggerWarning,"Realizando Jounal general para mantener consistencias");
-				despacharQuery("journal\n",sockets);
-				log_warning(loggerWarning,"Por favor, vuelva a ingresar su consulta");
-				indiceAborrar = -1;
+				int socketAborrar = consultaOk*-1;
+				log_error(loggerError,"Memoria %d caida, eliminando de la lista", socketAborrar);
+				t_infoMem* mem = malloc(sizeof(mem));
+				mem->id = socketAborrar;
+				bool compararNumeroMem(void* elem){
+					tMemoria* mem2 = (tMemoria*) elem;
+					return mem2->numeroMemoria == mem->id;
+				}
+				if(list_filter(memoriasCaidas,compararNumeroMem)->elements_count == 0){
+					list_add(memoriasCaidas,list_find(memorias,compararNumeroMem));
+					log_warning(loggerWarning,"Realizando Jounal general para mantener consistencias");
+					despacharQuery("journal\n",sockets);
+				}
+				bool compararNumeroSocket(void* elem){
+					t_infoMem* mem2 = (t_infoMem*) elem;
+					return mem2->id == mem->id;
+				}
+				list_remove_by_condition(sockets,compararNumeroSocket);
 			}
 			if (!consultaOk) {
 				log_error(loggerError,"Se ingreso un header no valido");
@@ -139,6 +184,14 @@ int main(){
 	sem_destroy(&mutexNew);
 	sem_destroy(&mutexReady);
 	sem_destroy(&mutexSocket);*/
+}
+
+void describe (void* lista){
+	t_list* sockets = (t_list*) lista;
+	while(1){
+		usleep(miConfig->metadata_refresh*1000);
+		despacharQuery("DESCRIBE\n",sockets);
+	}
 }
 
 type validarSegunHeader(char* header) {
@@ -259,7 +312,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				consistencias cons = consTabla(paqueteSelect->nombre_tabla);
 				socket_memoria = devolverSocket(cons,sockets,paqueteSelect->key);
 				log_debug(logger,"uso este socket: %d",socket_memoria->id);
-				if(socket_memoria->socket != -1){
+				if(socket_memoria->id != -1){
 					consultaOk = enviarPaquete(socket_memoria->socket, serializado, paqueteSelect->length);
 					recv(socket_memoria->socket, &error, sizeof(error), 0);
 					if(consultaOk != -1){
@@ -311,10 +364,10 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				serializado = serializarInsert(paqueteInsert);
 				consistencias cons = consTabla(paqueteInsert->nombre_tabla);
 				socket_memoria = devolverSocket(cons,sockets,paqueteInsert->key);
-				if(socket_memoria->socket != -1){
+				if(socket_memoria->id != -1){
 					log_debug(logger,"%s",paqueteInsert->value);
 					consultaOk = enviarPaquete(socket_memoria->socket, serializado, paqueteInsert->length);
-					recv(socket_memoria->socket, &error, sizeof(error), 0);
+					recv(socket_memoria->id, &error, sizeof(error), 0);
 					if(consultaOk != 0){
 						if(error == 1){
 							log_debug(logger, "Se inserto el valor: %s", paqueteInsert->value);
@@ -362,7 +415,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				socket_memoria = devolverSocket(obtCons(paqueteCreate->consistencia)
 						,sockets,1);
 				log_debug(logger,"voy a usar este socket: %d",socket_memoria->id);
-				if(socket_memoria->socket != -1){
+				if(socket_memoria->id != -1){
 					consultaOk = enviarPaquete(socket_memoria->socket, serializado, paqueteCreate->length);
 					if(consultaOk == -1){
 						consultaOk = socket_memoria->id * -1;
@@ -435,7 +488,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 			cargarPaqueteJournal(paqueteJournal,
 					string_substring_until(consulta,string_length(consulta)-1  ) );
 			serializado = serializarJournal(paqueteJournal);
-			for(int i = 0; i<sockets;i++){
+			for(int i = 0; i<sockets->elements_count;i++){
 				socket_memoria = list_get(sockets,i);
 				enviarPaquete(socket_memoria->socket, serializado, paqueteJournal->length);
 			}
@@ -447,7 +500,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 			serializado = serializarDrop(paqueteDrop);
 			consistencias consis = consTabla(paqueteDrop->nombre_tabla);
 			socket_memoria = devolverSocket(consis,sockets,1);
-			if(socket_memoria->socket != -1){
+			if(socket_memoria->id != -1){
 				consultaOk = enviarPaquete(socket_memoria->socket, serializado, paqueteDrop->length);
 				if(consultaOk == -1){
 					consultaOk = socket_memoria->id * -1;
@@ -523,16 +576,49 @@ void CPU(){
 						if(list_filter(sockets,compararNumeroMem)->elements_count == 0){
 							t_infoMem *sock = malloc(sizeof(t_infoMem));
 							sock->socket = levantarClienteNoBloqueante(miConfig->puerto_mem,miConfig->ip_mem);
-							list_add(sockets,&(sock->socket));
-							log_debug(logger,"agrege este socket %d",sock->socket);
 							if(sock->socket != -1){
+								list_add(sockets,&(sock->socket));
+								log_debug(logger,"agrege este socket %d",sock->socket);
 								sock->id = mem->numeroMemoria;
 								list_add(sockets,sock);
+								bool compararNumeroMem2(void* elem){
+									tMemoria* mem2 = (tMemoria*) elem;
+									return mem2->numeroMemoria == mem->numeroMemoria;
+								}
+								sem_wait(&mutexCaido);
+								if(list_filter(memoriasCaidas,compararNumeroMem2)->elements_count != 0){
+									list_remove_by_condition(memoriasCaidas,compararNumeroMem2);
+								}
+								sem_post(&mutexCaido);
 							}
 						}
 			}
 		}
 		sem_post(&mutexMems);
+		sem_wait(&mutexCaido);
+		if(memoriasCaidas->elements_count != 0){
+			int size_to_send = sizeof(type);
+			char* serializedPackage = malloc(size_to_send);
+			type gossip = SIGNAL;
+			memcpy(serializedPackage,&(gossip),size_to_send);
+			for(int i = 0; i < memoriasCaidas->elements_count;i++){
+				tMemoria* mem = (tMemoria*) list_get(memoriasCaidas,i);
+				bool compararNumeroMem(void* elem){
+					t_infoMem* mem2 = (t_infoMem*) elem;
+					return mem2->id == mem->numeroMemoria;
+				}
+				if(list_filter(sockets,compararNumeroMem)->elements_count != 0){
+					int info = enviarPaquete(((t_infoMem*)list_get(sockets,0))->socket,serializedPackage,size_to_send);
+					if(info == -1){
+						list_remove_by_condition(sockets,compararNumeroMem);
+					}else{
+						list_remove(memoriasCaidas,i);
+					}
+				}
+			}
+			free(serializedPackage);
+		}
+		sem_post(&mutexCaido);
 		script *unScript;
 		char* consulta = malloc(256);
 		sem_wait(&semReady);
@@ -559,15 +645,29 @@ void CPU(){
 				info = despacharQuery(consulta,sockets);
 				if(info!=1){
 					if(info < 0){
-						indiceAborrar = info*-1;
+						int socketAborrar = info*-1;
 						log_error(loggerError,"Memoria %d caida, eliminando de la lista", info*-1);
-						list_iterate(listaDeLSockets,borrarSocket);
-						log_warning(loggerWarning,"Realizando Jounal general para mantener consistencias");
-						despacharQuery("journal\n",sockets);
+						t_infoMem* mem = malloc(sizeof(mem));
+						mem->id = socketAborrar;
+						bool compararNumeroMem(void* elem){
+							tMemoria* mem2 = (tMemoria*) elem;
+							return mem2->numeroMemoria == mem->id;
+						}
+						sem_wait(&mutexCaido);
+						if(list_filter(memoriasCaidas,compararNumeroMem)->elements_count == 0){
+							list_add(memoriasCaidas,list_find(memorias,compararNumeroMem));
+							log_warning(loggerWarning,"Realizando Jounal general para mantener consistencias");
+							despacharQuery("journal\n",sockets);
+						}
+						sem_post(&mutexCaido);
+						bool compararNumeroSocket(void* elem){
+							t_infoMem* mem2 = (t_infoMem*) elem;
+							return mem2->id == mem->id;
+						}
+						list_remove_by_condition(sockets,compararNumeroSocket);
 						i--;
 						log_warning(loggerWarning,"Se volvera a ejecutar la consulta: %d",unScript->pos);
 						unScript->pos--;
-						indiceAborrar = -1;
 					}else{
 						i = miConfig->quantum;
 						unScript->estado = exit_;
@@ -907,8 +1007,9 @@ t_infoMem* devolverSocket(consistencias cons, t_list* sockets, int key){
 		break;
 	case shc:
 		pos[0] = SHC(key);
+		mem->numeroMemoria = pos[0];
 		if(pos[0] !=-1){
-			return (t_infoMem*)list_get(sockets,pos[0]);
+			return (t_infoMem*)list_find(sockets,compararNumeroMem);
 		}else{
 			ret->id = -1;
 			return ret;
@@ -917,7 +1018,7 @@ t_infoMem* devolverSocket(consistencias cons, t_list* sockets, int key){
 	case ec:
 		pos[0] = EC((int) time(NULL));
 		if(pos[0]!=-1){
-			return (t_infoMem*)list_get(sockets,pos[0]);
+			return (t_infoMem*)list_find(sockets,compararNumeroMem);
 		}else{
 			ret->id = -1;
 			return ret;
@@ -987,6 +1088,7 @@ void inicializarTodo(){
 	sem_init(&mutexContMult,0,1);
 	sem_init(&mutexMems,0,1);
 	sem_init(&mutexMetrics,0,1);
+	sem_init(&mutexCaido,0,1);
 	log_debug(logger,"Semaforos incializados con exito");
 	log_debug(logger,"Inicializando sockets");
 	listaMemsEC = list_create();
@@ -1046,6 +1148,7 @@ void finalizarEjecucion() {
 	list_iterate(listaMemsEC,free);
 	list_iterate(listaMemsSHC,free);
 	list_iterate(memorias,free);
+	list_iterate(memoriasCaidas,free);
 	sem_destroy(&semReady);
 	sem_destroy(&semNew);
 	sem_destroy(&mutexNew);
@@ -1056,6 +1159,7 @@ void finalizarEjecucion() {
 	sem_destroy(&mutexContMult);
 	sem_destroy(&mutexMems);
 	sem_destroy(&mutexMetrics);
+	sem_destroy(&mutexCaido);
 	for(int i = 0;i < contMult; i++){
 		t_list* lista = malloc(sizeof(t_list));
 		lista = (t_list*) list_get(listaDeLSockets,i);
