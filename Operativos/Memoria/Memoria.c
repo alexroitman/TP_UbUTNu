@@ -318,8 +318,8 @@ tSegmento* obtenerSegmentoDeTabla(t_list* tablaSeg, int index) {
 
 int buscarSegmentoEnTabla(char* nombreTabla, tSegmento* miseg, t_list* listaSegmentos) {
 	bool mismoNombre(void* elemento) {
-		tSegmento* seg = malloc(sizeof(tSegmento));
-		seg = (tSegmento*) elemento;
+		//tSegmento* seg = malloc(sizeof(tSegmento));
+		tSegmento* seg = (tSegmento*) elemento;
 		return !strcmp(nombreTabla, seg->path);
 	}
 	if (!list_is_empty(listaSegmentos)) {
@@ -615,14 +615,14 @@ void finalizarEjecucion() {
 	printf("------------------------\n");
 	printf("¿chau chau adios?\n");
 	printf("------------------------\n");
-	log_destroy(logger);
-	config_destroy(config);
 	free(miConfig);
 	close(socket_lfs);
 	close(socket_kernel);
 	close(socket_sv);
 	list_iterate(tablaSegmentos, free);
 	list_iterate(tablaGossip,free);
+	free(tablaSegmentos);
+	free(tablaGossip);
 	free(header);
 	free(memoria);
 	free(paramsConsola);
