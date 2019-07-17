@@ -1156,6 +1156,7 @@ int dumpeoMemoria() {
 		return 1;
 	}pthread_mutex_lock(&mem_table_mutex);
 	t_list* dumpMem=list_duplicate(memtable);
+	memtable=list_create();
 	pthread_mutex_unlock(&mem_table_mutex);
 
 
