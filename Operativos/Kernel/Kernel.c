@@ -629,7 +629,6 @@ void CPU(){
 		int info;
 		log_debug(logger,"Se esta corriendo el script: %d", unScript->id);
 		for(int i = 0 ; i < miConfig->quantum; i++){
-			unScript->pos++;
 			info = leerLinea(unScript->path,unScript->pos,consulta);
 			switch(info){
 			case 0:
@@ -687,7 +686,9 @@ void CPU(){
 				i = miConfig->quantum;
 				free(unScript->path);
 				free(unScript);
+				break;
 			}
+			unScript->pos++;
 		}
 		if(info == 1){
 			sem_wait(&mutexReady);
