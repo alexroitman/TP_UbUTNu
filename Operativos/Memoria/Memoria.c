@@ -227,6 +227,7 @@ void devolverTablaGossip(tGossip* packGossip, int socket) {
 	int tam_tot = packGossip->cant_memorias * sizeof(tMemoria) + sizeof(type)
 			+ sizeof(int);
 	enviarPaquete(socket, serializado, tam_tot);
+	free(serializado);
 }
 
 
@@ -552,8 +553,7 @@ void pedirPathConfig(){
 		fgets(buffer, 256, stdin);
 		strncpy(pathConfig, buffer, strlen(buffer) - 1);
 		config = config_create(pathConfig);
-		free(buffer);
-		free(pathConfig);
+
 		if (config != NULL) {
 			miConfig = cargarConfig();
 			error = 0;
@@ -561,6 +561,9 @@ void pedirPathConfig(){
 			log_info(logger, "Error de apertura de config ");
 			error = 1;
 		}
+
+		free(buffer);
+		free(pathConfig);
 	}
 
 }
@@ -615,17 +618,23 @@ void finalizarEjecucion() {
 	printf("------------------------\n");
 	printf("¿chau chau adios?\n");
 	printf("------------------------\n");
+	free(miConfig->ip_fs);
+	free(miConfig->ip_seeds);
+	free(miConfig->mi_IP);
+	free(miConfig->puerto_seeds);
 	free(miConfig);
+	free(config);
 	close(socket_lfs);
 	close(socket_kernel);
 	close(socket_sv);
-	list_iterate(tablaSegmentos, free);
-	list_iterate(tablaGossip,free);
+	list_destroy_and_destroy_elements(tablaSegmentos, free);
+	list_destroy_and_destroy_elements(tablaGossip, free);
 	free(tablaSegmentos);
 	free(tablaGossip);
 	free(header);
 	free(memoria);
 	free(paramsConsola);
+	sem_destroy(&mutexJournal);
 	raise(SIGTERM);
 }
 
