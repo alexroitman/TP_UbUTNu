@@ -86,7 +86,8 @@ void abrirHiloSockets();
 void abrirHiloConsola();
 void abrirHiloCompactacion();
 type stringToHeader(char* str);
-void hiloCompactar(char*nombre_tabla);
+void hiloCompactar(void* nombre_tabla);
+
 // MEMTABLE
 t_list* inicializarMemtable();
 int insertarEnMemtable(tInsert* packinsert);
@@ -118,6 +119,7 @@ t_bitarray* levantarBitmap();
 off_t obtener_bit_libre();
 
 // DUMPEO Y COMPACTACION
+void hiloDump();
 void bajarAMemoria(int* fd2, char* registroParaEscribir, t_config* tmp);
 void dumpearTabla(t_list* registros, char* ruta);
 int dumpeoMemoria();
@@ -128,6 +130,7 @@ void guardar_en_disco(t_list* binarios, int cantParticiones,char* nombre_tabla);
 void crearListaRegistros(char** string, t_list* lista);
 int levantarbinarios(char* nombre_tabla, char** bloquesUnificados);
 int obtener_temporales(char* nombre_tabla, char** bloquesUnificados);
+void liberar_bloques(char* nombre_tabla, int cantParticiones);
 
 // OTROS
 char* direccionarTabla(char* tabla);
