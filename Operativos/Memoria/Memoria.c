@@ -613,6 +613,21 @@ void validarAgregadoDePagina(bool leyoConsola, int error,int socket, tSegmento* 
 	}
 }
 
+void liberarPagina(void* elemento){
+	elem_tabla_pag* pag = (elem_tabla_pag*) elemento;
+	free(pag);
+}
+
+
+void liberarPaginas(void* elemento){
+	tSegmento* seg = (tSegmento*)elemento;
+	t_list* tablaPaginas = seg->tablaPaginas;
+	list_iterate(tablaPaginas, liberarPagina);
+	free(seg->tablaPaginas);
+	free(seg->path);
+	free(seg);
+}
+
 
 void finalizarEjecucion() {
 	printf("------------------------\n");
@@ -627,7 +642,7 @@ void finalizarEjecucion() {
 	close(socket_lfs);
 	close(socket_kernel);
 	close(socket_sv);
-	list_destroy_and_destroy_elements(tablaSegmentos, free);
+//	list_iterate(tablaSegmentos, liberarPaginas);
 	list_destroy_and_destroy_elements(tablaGossip, free);
 	free(tablaSegmentos);
 	free(tablaGossip);
