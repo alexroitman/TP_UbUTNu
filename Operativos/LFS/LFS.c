@@ -16,7 +16,7 @@ t_log* logger;
 t_list* memtable;
 config_FS* configLFS;
 metadataFS* configMetadata;
-
+pthread_mutex_t mem_table_mutex;
 // ---------------MAIN-----------------
 
 int main(void) {
@@ -26,13 +26,14 @@ int main(void) {
 	pthread_t hiloCompactacion;
 	pthread_t hiloConsola;
 	pthread_t hiloInnotify;
+	pthread_t hiloDumpeo;
 
 	// ---------------Inicializacion-----------------
 	memtable = inicializarMemtable();
 	logger = iniciar_logger();
 	levantarMetadataFS();
 	levantarConfigLFS();
-
+	pthread_mutex_init(&mem_table_mutex, NULL);
 	// ---------------Pruebas con bitmap propio-----------------
 	crearBitmapNuestro();
 
@@ -42,10 +43,11 @@ int main(void) {
 	paramsConsola = malloc(sizeof(tHiloConsola));
 	*(paramsConsola->header) = NIL;
 	pthread_create(&hiloConsola, NULL, (void*) abrirHiloConsola, paramsConsola);
+	pthread_create(&hiloDumpeo, NULL, (void*) hiloDump, NULL);
 
 	// Abro hilo de compactacion
 	pthread_create(&hiloCompactacion, NULL, (void*) abrirHiloCompactacion,
-			NULL);
+	NULL);
 
 // Abro hilo de socket
 	pthread_create(&hiloSocket, NULL, (void*) abrirHiloSockets, NULL);
@@ -96,6 +98,15 @@ void levantarConfigLFS() {
 	log_debug(logger, "%d", configLFS->retardo);
 	log_debug(logger, "%d", configLFS->tamanioValue);
 	log_debug(logger, "%d", configLFS->tiempoDumpeo);
+}
+
+void hiloDump() {
+	while (1) {
+		usleep(configLFS->tiempoDumpeo * 1000);
+
+		if (!list_is_empty(memtable))
+			dumpeoMemoria();
+	}
 }
 
 void receptorDeSockets(int* socket) {
@@ -363,21 +374,15 @@ void abrirHiloConsola(void* params) {
 			tDrop* packDropConsola = malloc(sizeof(tDrop));
 			cargarPaqueteDrop(packDropConsola, paramsConsola->consulta);
 			packDropConsola->type = DROP;
-			/* log_debug(logger, "Comando DROP recibido");
-			 tDrop* packDrop = malloc(sizeof(tDrop));
-			 if (!packDrop) {
-			 errorHandler = errorDeMalloc;
-			 break;
-			 }
-			 errorHandler = desSerializarDrop(packDrop, socket_cli);
-			 if (errorHandler)
+			log_debug(logger, "Comando DROP recibido");
 
-			 packDrop->type = header;
-			 errorHandler = Drop(packDrop->nombre_tabla);
-			 free(packDrop);
-			 */
-			dumpeoMemoria();
-			compactacion("FELO");
+			if (!packDropConsola) {
+				errorHandler = errorDeMalloc;
+				break;
+			}
+			if (errorHandler)
+				packDropConsola->type = header;
+			errorHandler = Drop(packDropConsola->nombre_tabla);
 			free(packDropConsola);
 			break;
 
@@ -486,29 +491,29 @@ void abrirHiloCompactacion() {
 void hiloCompactar(void* nombre_tabla) {
 
 	while (1) {
-		log_debug(logger,"intento compactar %s",(char*)nombre_tabla);
-		if (!verificadorDeTabla((char*)nombre_tabla)) {
-			log_debug(logger,"cieroo compactar");
+		log_debug(logger, "intento compactar %s", (char*) nombre_tabla);
+		if (!verificadorDeTabla((char*) nombre_tabla)) {
+			log_debug(logger, "cieroo compactar");
 			pthread_exit(NULL);
 		}
 		char* tablas_path = string_new();
 		string_append(&tablas_path, configLFS->dirMontaje);
 		string_append(&tablas_path, "Tablas/");
-		string_append(&tablas_path, (char*)nombre_tabla);
+		string_append(&tablas_path, (char*) nombre_tabla);
 		string_append(&tablas_path, "/metadata");
 		t_config* configComp = config_create(tablas_path);
 		free(tablas_path);
 		int retardoCompac = config_get_int_value(configComp, "COMPACTION_TIME");
 		config_destroy(configComp);
-		log_debug(logger,"%d",retardoCompac);
+		log_debug(logger, "%d", retardoCompac);
 		usleep(retardoCompac * 1000);
-		if (!verificadorDeTabla((char*)nombre_tabla)) {
-			log_debug(logger,"intento cierro");
+		if (!verificadorDeTabla((char*) nombre_tabla)) {
+			log_debug(logger, "intento cierro");
 			pthread_exit(NULL);
 		}
 		if (cantidadDeDumpeos > 0) {
-			log_debug(logger,"compacto");
-			compactacion((char*)nombre_tabla);
+			log_debug(logger, "compacto");
+			compactacion((char*) nombre_tabla);
 
 		}
 	}
@@ -538,7 +543,6 @@ int insertarEnMemtable(tInsert *packinsert) {
 		return errorDeMalloc;
 	registro_insert->key = packinsert->key;
 //	log_debug(logger, string_itoa(registro_insert->key));
-
 	registro_insert->timestamp = packinsert->timestamp;
 //	log_debug(logger, (packinsert->value));
 	char* value = malloc(packinsert->value_long);
@@ -564,7 +568,9 @@ int insertarRegistro(registro* registro, char* nombre_tabla) {
 			return true;
 		return false;
 	}
+	pthread_mutex_lock(&mem_table_mutex);
 	t_tabla* tabla = (t_tabla*) list_find(memtable, (void*) &es_tabla);
+	pthread_mutex_unlock(&mem_table_mutex);
 	list_add(tabla->registros, registro);
 	return todoJoya;
 }
@@ -580,8 +586,10 @@ int agregar_tabla_a_memtable(char* tabla) {
 	tabla_nueva->nombreTabla = string_new();
 	strcpy(tabla_nueva->nombreTabla, tabla);
 	tabla_nueva->registros = list_create();
+	pthread_mutex_lock(&mem_table_mutex);
 	cantidad_anterior = memtable->elements_count;
 	indice_agregado = list_add(memtable, tabla_nueva);
+	pthread_mutex_unlock(&mem_table_mutex);
 	return indice_agregado + 1 > cantidad_anterior;
 }
 
@@ -590,9 +598,10 @@ int existe_tabla_en_memtable(char* posible_tabla) {
 		if (strcmp(UnaTabla->nombreTabla, posible_tabla) == 0)
 			return true;
 		return false;
-	}
+	}pthread_mutex_lock(&mem_table_mutex);
 	t_tabla* tabla_encontrada = (t_tabla*) list_find(memtable,
 			(void*) &es_tabla);
+	pthread_mutex_unlock(&mem_table_mutex);
 	if (tabla_encontrada)
 		return 1;
 	return 0;
@@ -626,13 +635,12 @@ int Create(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES,
 	crearBinarios(ruta, NUMERO_PARTICIONES);
 	free(ruta);
 	pthread_t threadComp;
-	log_debug(logger,"%s",NOMBRE_TABLA);
+	log_debug(logger, "%s", NOMBRE_TABLA);
 	char* table_name = malloc(strlen(NOMBRE_TABLA));
-	memcpy(table_name, NOMBRE_TABLA,
-			strlen(NOMBRE_TABLA) + 1);
+	memcpy(table_name, NOMBRE_TABLA, strlen(NOMBRE_TABLA) + 1);
 
 	pthread_create(&threadComp, NULL, (void*) hiloCompactar,
-					(void*) table_name);
+			(void*) table_name);
 	return todoJoya;
 }
 
@@ -665,9 +673,19 @@ int Drop(char* NOMBRE_TABLA) {
 		return noExisteTabla;
 	}
 
+	bool es_tabla(t_tabla* t) {
+		if (!strcmp(t->nombreTabla, NOMBRE_TABLA)) {
+			return true;
+		}
+		return false;
+	}
+
+	// Eliminar de la memtable
+	pthread_mutex_lock(&mem_table_mutex);
+	list_remove_by_condition(memtable, &es_tabla);
+	pthread_mutex_unlock(&mem_table_mutex);
 	char* ruta = direccionarTabla(NOMBRE_TABLA);
 
-// Eliminar de la memtable
 	char* rutametadata = string_new();
 	string_append(&rutametadata, ruta);
 	string_append(&rutametadata, "/metadata");
@@ -685,6 +703,13 @@ int Drop(char* NOMBRE_TABLA) {
 		int i = 0;
 		while (bloques_a_limpiar[i] != NULL) {
 			bitarray_clean_bit(bitmap, atoi(bloques_a_limpiar[i]));
+
+			char* bloque_a_limpiar = string_new();
+			string_append_with_format(&bloque_a_limpiar, "rm %sBloques/%s.bin",
+					configLFS->dirMontaje, bloques_a_limpiar[i]);
+			system(bloque_a_limpiar);
+			free(bloque_a_limpiar);
+
 			i++;
 			//TODO: ELIMINAR EL BLOQUE PROPIAMENTE DICHO
 		}
@@ -696,14 +721,19 @@ int Drop(char* NOMBRE_TABLA) {
 		for (int j = 1; j <= cantidadDeDumpeos; j++) {
 			char* temporal_a_limpiar = string_new();
 			string_append_with_format(&temporal_a_limpiar, "%s/%d.tmp", ruta,
-					j);
+					j - 1);
 			t_config* temporal = config_create(temporal_a_limpiar);
 			char** bloques_a_limpiar = config_get_array_value(temporal,
 					"BLOCKS");
 			int i = 0;
 			while (bloques_a_limpiar[i] != NULL) {
 				bitarray_clean_bit(bitmap, atoi(bloques_a_limpiar[i]));
-				//TODO: ELIMINAR EL BLOQUE PROPIAMENTE DICHO
+				char* bloque_a_limpiar = string_new();
+				string_append_with_format(&bloque_a_limpiar,
+						"rm %sBloques/%s.bin", configLFS->dirMontaje,
+						bloques_a_limpiar[i]);
+				system(bloque_a_limpiar);
+				free(bloque_a_limpiar);
 				i++;
 			}
 			free(bloques_a_limpiar);
@@ -713,6 +743,7 @@ int Drop(char* NOMBRE_TABLA) {
 	}
 	free(bitmap);
 	char* comando_a_ejecutar = string_new();
+
 	string_append_with_format(&comando_a_ejecutar, "rm -rf %s", ruta);
 	errorHandler = system(comando_a_ejecutar);
 	if (!errorHandler)
@@ -737,8 +768,10 @@ int Select(registro** reg, char* NOMBRE_TABLA, int KEY) {
 	t_list* registros = list_create();
 //	log_debug(logger, "me voy a fijar a memtable");
 	t_list* memtable = selectEnMemtable(KEY, NOMBRE_TABLA);
+	pthread_mutex_lock(&mem_table_mutex);
 	if (memtable->elements_count > 0)
 		list_add_all(registros, memtable);
+	pthread_mutex_unlock(&mem_table_mutex);
 //	log_debug(logger, "me voy a fijar a FS");
 	registro* registry = malloc(sizeof(registro));
 	if (!registry)
@@ -860,7 +893,9 @@ t_list* selectEnMemtable(uint16_t key, char* tabla) {
 	}
 	t_tabla* tablaSelect;
 	t_list* list_reg = list_create();
+	pthread_mutex_lock(&mem_table_mutex);
 	tablaSelect = list_find(memtable, (void*) &es_tabla);
+	pthread_mutex_unlock(&mem_table_mutex);
 	if (tablaSelect != NULL)
 		list_add_all(list_reg,
 				list_filter(tablaSelect->registros, (void*) &es_registro));
@@ -1116,10 +1151,17 @@ int dumpeoMemoria() {
 				(void*) destruidor2);
 	}
 	if (list_is_empty(memtable))
+	{
 //		TODO: poner define para memtable vacia
 		return 1;
-	list_iterate(memtable, (void*) &paraDumpearTabla);
-	list_clean_and_destroy_elements(memtable, (void*) destruidor);
+	}pthread_mutex_lock(&mem_table_mutex);
+	t_list* dumpMem=list_duplicate(memtable);
+	pthread_mutex_unlock(&mem_table_mutex);
+
+
+	list_iterate(dumpMem, (void*) &paraDumpearTabla);
+	list_clean_and_destroy_elements(dumpMem, (void*) destruidor);
+
 	cantidadDeDumpeos++;
 	log_debug(logger, "termine el dump");
 	return 0;
