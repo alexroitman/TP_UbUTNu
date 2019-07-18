@@ -196,7 +196,7 @@ void receptorDeSockets(int* socket) {
 				desSerializarInsert(packInsert, *socket);
 				//TODO: handlear error de desSerializarInsert
 				packInsert->type = header;
-				log_debug(logger, "Tabla %s con key %d y value %s y time %d\n",
+				log_debug(logger, "Tabla %s con key %d y value %s y time %llu\n",
 						packInsert->nombre_tabla, packInsert->key,
 						packInsert->value,packInsert->timestamp);
 				errorHandler = insertarEnMemtable(packInsert);

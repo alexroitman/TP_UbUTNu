@@ -2,7 +2,7 @@
 #include "Querys.h"
 #define BACKLOG 5			// Define cuantas conexiones vamos a mantener pendientes al mismo tiempo
 #define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
-
+int tam_pag;
 
 
 int main() {
@@ -13,8 +13,8 @@ int main() {
     pedirPathConfig();
 	log_debug(logger,"Tamanio Memoria: %d",miConfig->tam_mem);
 
-
 	
+
 
 	//if (miConfig->numeroMemoria == 1) {
 		socket_lfs = levantarClienteNoBloqueante((char*) miConfig->puerto_fs, miConfig->ip_fs);
@@ -34,9 +34,10 @@ int main() {
 
 	socket_sv = levantarServidor((char*) miConfig->puerto_escucha);
 	socket_gossip = levantarServidor((char*) miConfig->puerto_gossip);
+	tam_pag = sizeof(unsigned long long) + sizeof(uint16_t) + tamanioMaxValue;
 
-	memoria = calloc(miConfig->tam_mem,6 + tamanioMaxValue);
-	cantPagsMax = miConfig->tam_mem / (6 + tamanioMaxValue);
+	memoria = calloc(miConfig->tam_mem,tam_pag);
+	cantPagsMax = miConfig->tam_mem / (tam_pag);
 	log_debug(logger,"Cantidad maxima de paginas en memoria: %d",cantPagsMax);
 	tablaSegmentos = list_create();
 	//header = malloc(sizeof(type));
@@ -287,11 +288,13 @@ int actualizarPaginaEnMemoria(tSegmento* segmento, int index, char* newValue) {
 		elemTablaPag = (elem_tabla_pag*) list_get(segmento->tablaPaginas,
 				index);
 		int offsetMemoria = elemTablaPag->offsetMemoria;
-		int timestamp = (int) time(NULL);
-		memcpy(memoria + offsetMemoria + 2, &(timestamp), 4);
-		memcpy(memoria + offsetMemoria + 6, newValue, tamanioMaxValue);
+		//int timestamp = (int) time(NULL);
+		unsigned long long timestamp = obtenerTimestamp();
+		memcpy(memoria + offsetMemoria + 2, &timestamp, 8);
+		//memcpy(memoria + offsetMemoria + 2, &(timestamp), 4);
+		memcpy(memoria + offsetMemoria + 10, newValue, tamanioMaxValue);
 		elemTablaPag->modificado = true;
-		elemTablaPag->ultimoTime = (int) time(NULL);
+		elemTablaPag->ultimoTime = timestamp;
 		log_debug(logger, "Pagina encontrada y actualizada.");
 		return 1;
 	} else {
@@ -312,35 +315,34 @@ bool verificarTamanioValue(char* value){
 }
 
 int agregarPaginaAMemoria(tSegmento* seg, tPagina* pagina, bool modificado) {
-
 	if (verificarTamanioValue(pagina->value)) {
 
 		int cantPags = 0;
-		int timeAux;
-		memcpy(&timeAux, memoria + 2, 4);
+		unsigned long long timeAux;
+		memcpy(&timeAux, memoria + 2, sizeof(unsigned long long));
 		while (timeAux != 0) {
 			cantPags++;
 			if (cantPags < cantPagsMax) {
-				memcpy(&timeAux, memoria + cantPags * (6 + tamanioMaxValue) + 2,
-						4);
+				memcpy(&timeAux, memoria + cantPags * (tam_pag) + 2,
+						sizeof(unsigned long long));
 			} else {
 
 				return -1;
 				//no hay mas lugar en memoria
 			}
 		}
-		int offset = (cantPags * (6 + tamanioMaxValue));
+		int offset = (cantPags * tam_pag);
 		memcpy((memoria + offset), &(pagina->key), sizeof(uint16_t));
 
-		memcpy((memoria + offset + 2), &(pagina->timestamp), sizeof(int));
+		memcpy((memoria + offset + 2), &(pagina->timestamp), sizeof(unsigned long long));
 
-		memcpy((memoria + offset + 6), pagina->value, tamanioMaxValue);
+		memcpy((memoria + offset + 10), pagina->value, tamanioMaxValue);
 
 		elem_tabla_pag* pagTabla = malloc(sizeof(elem_tabla_pag));
 		pagTabla->modificado = modificado;
 		pagTabla->offsetMemoria = offset;
 		pagTabla->index = list_size(seg->tablaPaginas);
-		pagTabla->ultimoTime = (int) time(NULL);
+		pagTabla->ultimoTime = obtenerTimestamp();
 		list_add(seg->tablaPaginas, (elem_tabla_pag*) pagTabla);
 		log_debug(logger, "Pagina cargada en memoria.");
 		log_warning(logger,"Flag modificado de la key %d es %d",pagina->key,pagTabla->modificado);
@@ -383,7 +385,7 @@ int buscarSegmentoEnTabla(char* nombreTabla, tSegmento* miseg, t_list* listaSegm
 
 void eliminarDeMemoria(void* elemento) {
 	elem_tabla_pag* elemPag = (elem_tabla_pag*) elemento;
-	memset(memoria + elemPag->offsetMemoria + 2, 0 , 4);
+	memset(memoria + elemPag->offsetMemoria + 2, 0 , sizeof(unsigned long long));
 }
 
 void liberarPaginasDelSegmento(tSegmento* miSegmento, t_list* tablaSegmentos) {
@@ -430,11 +432,13 @@ int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla,tPa
 		if(list_find((t_list*)miseg->tablaPaginas, buscarKey) != NULL){
 			*pagTabla = *(elem_tabla_pag*)list_find((t_list*)miseg->tablaPaginas, buscarKey);
 
-			memcpy(&(pagina->key),memoria + pagTabla->offsetMemoria,2);
+			memcpy(&(pagina->key), memoria + pagTabla->offsetMemoria, 2);
 
-			memcpy(&(pagina->timestamp),memoria + pagTabla->offsetMemoria + 2,4);
+			memcpy(&(pagina->timestamp), memoria + pagTabla->offsetMemoria + 2,
+					sizeof(unsigned long long));
 
-			memcpy(pagina->value,memoria + pagTabla->offsetMemoria + 6,tamanioMaxValue);
+			memcpy(pagina->value, memoria + pagTabla->offsetMemoria + 10,
+					tamanioMaxValue);
 
 			return pagTabla->index;
 
@@ -555,15 +559,16 @@ void mandarInsertDePaginasModificadas(t_list* paginasModificadas,char* nombreTab
 
 	elem_tabla_pag* miPagina = (elem_tabla_pag*)list_get(paginasModificadas, index);
 	while(miPagina != NULL){
-		memcpy(miInsert->value, (memoria + miPagina->offsetMemoria + 6), tamanioMaxValue);
 		memcpy(&(miInsert->key), (memoria + miPagina->offsetMemoria), 2);
-		memcpy(&(miInsert->timestamp), (memoria + miPagina->offsetMemoria) + 2, 4);
+		memcpy(&(miInsert->timestamp), (memoria + miPagina->offsetMemoria) + 2, sizeof(unsigned long long));
+		memcpy(miInsert->value, (memoria + miPagina->offsetMemoria + 10), tamanioMaxValue);
+
 
 		miInsert->value_long = strlen(miInsert->value) + 1;
 		miInsert->length = sizeof(miInsert->type) + sizeof(miInsert->nombre_tabla_long)
 						+ miInsert->nombre_tabla_long + sizeof(miInsert->key)
 						+ sizeof(miInsert->value_long) + miInsert->value_long
-						+sizeof(miInsert->timestamp);
+						+ sizeof(miInsert->timestamp);
 		char* serializado = serializarInsert(miInsert);
 		enviarPaquete(socket_lfs, serializado, miInsert->length);
 		index++;

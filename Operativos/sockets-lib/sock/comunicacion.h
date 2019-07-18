@@ -50,7 +50,7 @@ typedef struct {
 typedef struct {
 	uint16_t key;
 	char* value;
-	int timestamp;
+	unsigned long long timestamp;
 } registro;
 
 typedef struct {
@@ -58,7 +58,7 @@ typedef struct {
 	uint16_t key;
 	int value_long;
 	char* value;
-	int timestamp;
+	unsigned long long timestamp;
 	int length;
 } tRegistroRespuesta;
 
@@ -72,7 +72,7 @@ typedef struct {
 	uint32_t value_long;
 	char* value;
 	uint32_t length;
-	int timestamp;
+	unsigned long long timestamp;
 } tInsert;
 
 typedef struct {
@@ -144,7 +144,7 @@ typedef struct {
 	tMemoria* memorias;
 }tGossip;
 type leerHeader(int socket);
-
+unsigned long long obtenerTimestamp();
 void cargarPaqueteSelect(tSelect *pack, char* cons);
 void cargarPaqueteInsert(tInsert *pack, char* cons);
 void cargarPaqueteCreate(tCreate *pack, char* cons);
