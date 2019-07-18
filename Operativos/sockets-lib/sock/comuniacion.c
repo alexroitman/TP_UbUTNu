@@ -74,7 +74,7 @@ void cargarPaqueteInsert(tInsert *pack, char* cons) {
 	if (strcmp(spliteado[1], "") && strcmp(spliteado[2], "")
 			&& strcmp(spliteado[3], "")) {
 		pack->type = INSERT;
-		pack->value = malloc(strlen(value[1]));
+		pack->value = malloc(strlen(value[1])+1);
 		pack->nombre_tabla = malloc(strlen(spliteado[1]) + 1);
 		strcpy(pack->nombre_tabla,spliteado[1]);
 		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
@@ -99,8 +99,8 @@ void cargarPaqueteInsertLFS(tInsert *pack, char* cons) {
 	if (strcmp(spliteado[1], "") && strcmp(spliteado[2], "")
 			&& strcmp(spliteado[3], "")) {
 		pack->type = INSERT;
-		pack->value = malloc(strlen(value[1]));
-		pack->nombre_tabla = malloc(strlen(spliteado[1]));
+		pack->value = malloc(strlen(value[1])+1);
+		pack->nombre_tabla = malloc(strlen(spliteado[1])+1);
 		strcpy(pack->nombre_tabla,spliteado[1]);
 		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
 		pack->key = atoi(spliteado[2]);
@@ -128,10 +128,10 @@ void cargarPaqueteCreate(tCreate *pack, char* cons) {
 	if (strcmp(spliteado[1], "") && strcmp(spliteado[2], "")
 			&& strcmp(spliteado[3], "") && strcmp(spliteado[4], "")) {
 		pack->type = CREATE;
-		pack->nombre_tabla = malloc(strlen(spliteado[1]));
+		pack->nombre_tabla = malloc(strlen(spliteado[1])+1);
 		strcpy(pack->nombre_tabla, spliteado[1]);
 		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
-		pack->consistencia = malloc(strlen(spliteado[2]));
+		pack->consistencia = malloc(strlen(spliteado[2])+1);
 		strcpy(pack->consistencia,spliteado[2]);
 		pack->consistencia_long = strlen(spliteado[2]) + 1;
 		pack->particiones = atoi(spliteado[3]);
@@ -152,11 +152,11 @@ void cargarPaqueteDescribe(tDescribe *pack, char* cons) {
 	spliteado = string_n_split(cons, 2, " ");//DESCRIBE\n
 		pack->type = DESCRIBE;
 		if(spliteado[1] != NULL){
-			pack->nombre_tabla = malloc(strlen(spliteado[1]));
+			pack->nombre_tabla = malloc(strlen(spliteado[1])+1);
 			strcpy(pack->nombre_tabla, string_substring_until(spliteado[1], strlen(spliteado[1])));
 			pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
 		}else{
-			pack->nombre_tabla = malloc(strlen(""));
+			pack->nombre_tabla = malloc(strlen("")+1);
 			strcpy(pack->nombre_tabla, "");
 			pack->nombre_tabla_long = strlen("") + 1;
 		}
@@ -178,7 +178,7 @@ void cargarPaqueteDrop(tDrop*pack, char* cons) {
 	//strcat(name_tabla[0],name_tabla[1]);
 	//strcpy(pack->nombre_tabla,);
 	//strcpy(pack->nombre_tabla, spliteado[1]);
-		pack->nombre_tabla_long = strlen(pack->nombre_tabla);
+		pack->nombre_tabla_long = strlen(pack->nombre_tabla)+1;
 		pack->length = sizeof(pack->type)
 				+ sizeof(pack->nombre_tabla_long)
 				+ pack->nombre_tabla_long;
