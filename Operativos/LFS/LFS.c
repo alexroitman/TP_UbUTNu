@@ -491,9 +491,9 @@ void abrirHiloCompactacion() {
 }
 
 void hiloCompactar(void* nombre_tabla) {
-	pthread_mutex_t mutexTabla;
-	pthread_mutex_init(&mutexTabla, NULL);
-	dictionary_put(bloqueoTablas,nombre_tabla,&mutexTabla);
+//	pthread_mutex_t mutexTabla;
+//	pthread_mutex_init(&mutexTabla, NULL);
+//	dictionary_put(bloqueoTablas,nombre_tabla,&mutexTabla);
 	while (1) {
 		log_debug(logger, "intento compactar %s", (char*) nombre_tabla);
 		if (!verificadorDeTabla((char*) nombre_tabla)) {
