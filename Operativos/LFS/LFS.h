@@ -25,6 +25,7 @@
 #include <commons/bitarray.h>
 #include <commons/config.h>
 #include <commons/collections/list.h>
+#include <commons/collections/dictionary.h>
 #include <readline/readline.h>
 #include <time.h>
 #include <fts.h>

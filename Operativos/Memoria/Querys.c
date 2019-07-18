@@ -216,6 +216,7 @@ void ejecutarConsulta(int socket) {
 		break;
 	case SIGNAL:
 		log_debug(logger,"Kernel quiere saber si estoy vivo");
+		break;
 	case NIL:
 		log_error(logger, "No entendi la consulta");
 		break;

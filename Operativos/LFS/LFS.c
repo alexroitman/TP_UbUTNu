@@ -17,6 +17,7 @@ t_list* memtable;
 config_FS* configLFS;
 metadataFS* configMetadata;
 pthread_mutex_t mem_table_mutex;
+t_dictionary* bloqueoTablas;
 // ---------------MAIN-----------------
 
 int main(void) {
@@ -34,6 +35,7 @@ int main(void) {
 	levantarMetadataFS();
 	levantarConfigLFS();
 	pthread_mutex_init(&mem_table_mutex, NULL);
+	//bloqueoTablas=dictionary_create();
 	// ---------------Pruebas con bitmap propio-----------------
 	crearBitmapNuestro();
 
@@ -177,9 +179,9 @@ void receptorDeSockets(int* socket) {
 				desSerializarInsert(packInsert, *socket);
 				//TODO: handlear error de desSerializarInsert
 				packInsert->type = header;
-				log_debug(logger, "Tabla %s con key %d y value %s \n",
+				log_debug(logger, "Tabla %s con key %d y value %s y time %d\n",
 						packInsert->nombre_tabla, packInsert->key,
-						packInsert->value);
+						packInsert->value,packInsert->timestamp);
 				errorHandler = insertarEnMemtable(packInsert);
 			}
 			free(packInsert);
@@ -489,7 +491,9 @@ void abrirHiloCompactacion() {
 }
 
 void hiloCompactar(void* nombre_tabla) {
-
+	pthread_mutex_t mutexTabla;
+	pthread_mutex_init(&mutexTabla, NULL);
+	dictionary_put(bloqueoTablas,nombre_tabla,&mutexTabla);
 	while (1) {
 		log_debug(logger, "intento compactar %s", (char*) nombre_tabla);
 		if (!verificadorDeTabla((char*) nombre_tabla)) {
@@ -717,7 +721,7 @@ int Drop(char* NOMBRE_TABLA) {
 		free(binario_a_limpiar);
 		config_destroy(binario);
 	}
-	if (cantidadDeDumpeos > 1) {
+	if (cantidadDeDumpeos >= 1) {
 		for (int j = 1; j <= cantidadDeDumpeos; j++) {
 			char* temporal_a_limpiar = string_new();
 			string_append_with_format(&temporal_a_limpiar, "%s/%d.tmp", ruta,
@@ -754,6 +758,7 @@ int Drop(char* NOMBRE_TABLA) {
 }
 
 int Select(registro** reg, char* NOMBRE_TABLA, int KEY) {
+
 	bool es_mayor(registro* unReg, registro* otroReg) {
 		if (unReg->timestamp >= otroReg->timestamp)
 			return true;
@@ -776,6 +781,8 @@ int Select(registro** reg, char* NOMBRE_TABLA, int KEY) {
 	registro* registry = malloc(sizeof(registro));
 	if (!registry)
 		return errorDeMalloc;
+
+	//wait
 	errorHandler = SelectFS(ruta, KEY, &registry);
 	if (errorHandler)
 		return errorHandler;
@@ -783,6 +790,8 @@ int Select(registro** reg, char* NOMBRE_TABLA, int KEY) {
 		list_add(registros, registry);
 //	log_debug(logger, "me voy a fijar a Temp");
 	t_list* temporales = SelectTemp(ruta, KEY);
+	//faltan los tempc IGUAL A TEMP
+	//signal
 	if (temporales->elements_count > 0)
 		list_add_all(registros, temporales);
 	free(ruta);
@@ -913,6 +922,8 @@ int SelectFS(char* ruta, int KEY, registro** reg) {
 	string_append(&rutaFS, ("/"));
 	string_append(&rutaFS, string_itoa(particiones));
 	string_append(&rutaFS, ".bin");
+
+//wait
 	t_config* particion = config_create(rutaFS);
 	int size = config_get_int_value(particion, "SIZE");
 	if (size > 0) {
@@ -936,6 +947,8 @@ int SelectFS(char* ruta, int KEY, registro** reg) {
 			free(bloque);
 			i++;
 		}
+//signal
+
 		int j = 0;
 		char** registros = string_split(bloquesUnificados, "\n");
 		while (registros[j] != NULL) {
@@ -969,10 +982,11 @@ t_list* SelectTemp(char* ruta, int KEY) {
 	t_list* listRegistros = list_create();
 //	Ejecuto lo siguiento por cada temporal creado (uno por dumpeo)
 	for (int aux = 1; aux <= cantidadDeDumpeos; aux++) {
+		//wait
 		char* rutaTemporal = string_new();
 		string_append(&rutaTemporal, ruta);
 		string_append(&rutaTemporal, ("/"));
-		string_append_with_format(&rutaTemporal, "%d", aux);
+		string_append_with_format(&rutaTemporal, "%d", aux-1);
 		string_append(&rutaTemporal, ".tmp");
 		t_config* particion = config_create(rutaTemporal);
 		int size = config_get_int_value(particion, "SIZE");
@@ -997,7 +1011,7 @@ t_list* SelectTemp(char* ruta, int KEY) {
 				free(bloque);
 				i++;
 			}
-
+//signal
 			int j = 0;
 			char** registros = string_split(bloquesUnificados, "\n");
 //		Recorro y divido los datos unificado del archivos temporal, almacenando solo las keys que coincidan con la solicitada
@@ -1177,12 +1191,15 @@ void dumpearTabla(t_list* registros, char* ruta) {
 	config_set_value(tmp, "SIZE", "0");
 	config_set_value(tmp, "BLOCKS", bloque);
 	log_debug(logger, "El bloque libre a escribir es: %s", bloque);
+	//wait
 	config_save(tmp);
+	//signal
 	char* bloqueDumpeo = string_new();
 	string_append_with_format(&bloqueDumpeo, "%sBloques/%d.bin",
 			configLFS->dirMontaje, bit_index);
-
+	//wait
 	int fd2 = open(bloqueDumpeo, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);
+	//signal
 	char* registroParaEscribir = string_new();
 	void dumpearRegistros(registro* UnRegistro) {
 		log_debug(logger, "Entre a dumpearRegistros");
@@ -1208,7 +1225,10 @@ void bajarAMemoria(int* fd2, char* registroParaEscribir, t_config* tmp) {
 	string_append_with_format(&strsize, "%d", (textsize - 1));
 	log_debug(logger, strsize);
 	config_set_value(tmp, "SIZE", strsize);
+
+	//wait
 	config_save(tmp);
+	//signal
 	free(strsize);
 	char* map = mapearBloque(*fd2, textsize);
 	int i = 0;
@@ -1225,8 +1245,10 @@ void bajarAMemoria(int* fd2, char* registroParaEscribir, t_config* tmp) {
 			string_append(&bloqueDumpeoNuevo, "Bloques/");
 			string_append_with_format(&bloqueDumpeoNuevo, "%d", bit_index);
 			string_append(&bloqueDumpeoNuevo, ".bin");
+			//wait
 			*fd2 = open(bloqueDumpeoNuevo, O_RDWR | O_CREAT | O_TRUNC,
 					(mode_t) 0600);
+			//signal
 //			Hasta aca
 			map = mapearBloque(*fd2, textsize - i);
 			posmap = 0;
@@ -1235,7 +1257,9 @@ void bajarAMemoria(int* fd2, char* registroParaEscribir, t_config* tmp) {
 		i++;
 		posmap++;
 	}
+	//wait
 	msync(map, textsize, MS_SYNC);
+	//signal
 	munmap(map, textsize);
 }
 
@@ -1244,7 +1268,9 @@ char* mapearBloque(int fd2, size_t textsize) {
 	int errorHandler = write(fd2, "", 1);
 	if (errorHandler < 0)
 		log_debug(logger, "error al mapear el bloque");
+	//wait
 	char *map = mmap(0, textsize, PROT_READ | PROT_WRITE, MAP_SHARED, fd2, 0);
+	//signal
 	return map;
 }
 
@@ -1253,7 +1279,9 @@ void actualizarBloquesEnTemporal(t_config* tmp, off_t bloque) {
 	bloques = string_substring_until(bloques, string_length(bloques) - 1);
 	string_append_with_format(&bloques, ",%d]", bloque);
 	config_set_value(tmp, "BLOCKS", bloques);
+	//wait
 	config_save(tmp);
+	//signal
 	log_debug(logger, "grabe los bloques");
 	free(bloques);
 }
@@ -1342,11 +1370,15 @@ int compactacion(char* nombre_tabla) {
 			configLFS->dirMontaje, nombre_tabla);
 	t_config* t = config_create(tabla);
 	int part = config_get_int_value(t, "PARTITIONS");
+
+	//wait
 	liberar_bloques(nombre_tabla, part);
 	log_debug(logger, "%d", listaCompactada->elements_count);
 	guardar_en_disco(listaCompactada, part, nombre_tabla);
+	//signal
 
 	dumpeosCompactacion = 0;
+	//TODO: free a las listas
 	return 0;
 }
 
