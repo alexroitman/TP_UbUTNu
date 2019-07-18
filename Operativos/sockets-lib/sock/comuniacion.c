@@ -81,9 +81,11 @@ void cargarPaqueteInsert(tInsert *pack, char* cons) {
 		pack->key = atoi(spliteado[2]);
 		strcpy(pack->value, value[1]);
 		pack->value_long = strlen(value[1]) + 1;
+		pack->timestamp = 0;
 		pack->length = sizeof(pack->type) + sizeof(pack->nombre_tabla_long)
 				+ pack->nombre_tabla_long + sizeof(pack->key)
-				+ sizeof(pack->value_long) + pack->value_long;
+				+ sizeof(pack->value_long) + pack->value_long
+				+ sizeof(pack->timestamp);
 	} else {
 		printf("no entendi tu consulta\n");
 	}
@@ -266,23 +268,19 @@ char* serializarInsert(tInsert* packageInsert) {
 	offset += size_to_send;
 
 	size_to_send = sizeof(packageInsert->nombre_tabla_long);
-	memcpy(serializedPackage + offset, &(packageInsert->nombre_tabla_long),
-			size_to_send);
+	memcpy(serializedPackage + offset, &(packageInsert->nombre_tabla_long),	size_to_send);
 	offset += size_to_send;
 
 	size_to_send = packageInsert->nombre_tabla_long;
-
-	memcpy(serializedPackage + offset, (packageInsert->nombre_tabla),
-			size_to_send);
+	memcpy(serializedPackage + offset, (packageInsert->nombre_tabla), size_to_send);
 	offset += size_to_send;
 
 	size_to_send = sizeof(uint16_t);
 	memcpy(serializedPackage + offset, &packageInsert->key, size_to_send);
-
 	offset += size_to_send;
+
 	size_to_send = sizeof(uint32_t);
-	memcpy(serializedPackage + offset, &packageInsert->value_long,
-			size_to_send);
+	memcpy(serializedPackage + offset, &packageInsert->value_long, size_to_send);
 	offset += size_to_send;
 
 	size_to_send = packageInsert->value_long;
@@ -291,7 +289,6 @@ char* serializarInsert(tInsert* packageInsert) {
 
 	size_to_send = sizeof(int);
 	memcpy(serializedPackage + offset, &packageInsert->timestamp, size_to_send);
-	offset += size_to_send;
 
 	return serializedPackage;
 }
