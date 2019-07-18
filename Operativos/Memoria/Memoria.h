@@ -34,7 +34,7 @@ tDescribe* packDescribe;
 t_describe* packDescResp;
 tDrop* packDrop;
 tJournal* packJournal;
-type* header;
+//type* header;
 t_list* tablaSegmentos;
 t_list* tablaGossip;
 int tamanioMaxValue;
@@ -92,6 +92,7 @@ typedef struct {
 	int retardoJournal;
 	int retardoGossiping;
 	char* mi_IP;
+	int puerto_gossip;
 } t_miConfig;
 
 

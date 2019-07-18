@@ -33,21 +33,21 @@ int main() {
 //}
 
 	socket_sv = levantarServidor((char*) miConfig->puerto_escucha);
-	//socket_gossip = levantarServidor((char*) miConfig->miPuerto);
+	socket_gossip = levantarServidor((char*) miConfig->puerto_gossip);
 
 	memoria = calloc(miConfig->tam_mem,6 + tamanioMaxValue);
 	cantPagsMax = miConfig->tam_mem / (6 + tamanioMaxValue);
 	log_debug(logger,"Cantidad maxima de paginas en memoria: %d",cantPagsMax);
 	tablaSegmentos = list_create();
-	header = malloc(sizeof(type));
+	//header = malloc(sizeof(type));
 	sem_init(&mutexJournal,0,1);
 	leyoConsola = true;
 	recibioSocket = true;
-	*header = NIL;
+	//*header = NIL;
 	paramsConsola = malloc(sizeof(tHiloConsola));
-	paramsConsola->header = header;
+	//paramsConsola->header = header;
 	inicializarTablaGossip();
-	pthread_create(&hiloSocket, NULL, (void*) recibirHeader, (void*) header);
+	pthread_create(&hiloSocket, NULL, (void*) recibirHeader, NULL);
 	pthread_create(&hiloConsola, NULL, (void*) leerQuery,
 			(void*) paramsConsola);
 	pthread_create(&hiloJournal, NULL, (void*) journalAsincronico, NULL);
@@ -64,7 +64,7 @@ void* recibirHeader(void* arg) {
 		int listener = socket_sv;
 		FD_ZERO(&active_fd_set);
 		FD_SET(socket_sv, &active_fd_set);
-		//FD_SET(socket_gossip, &active_fd_set);
+		FD_SET(socket_gossip, &active_fd_set);
 		int flagError = 0;
 
 		while (flagError != 1) {
@@ -77,7 +77,7 @@ void* recibirHeader(void* arg) {
 					if (FD_ISSET(i, &read_fd_set)) {
 						//El cliente quiere algo!!, vamos a ver quien es primero y que quiere
 
-						if (i == listener) {
+						if (i == listener || i == socket_gossip) {
 							/*
 							 El socket i resultó ser el listener! o sea el socket del servidor. Cuando el que quiere algo es el propio servidor
 							 significa que tenemos un nuevo cliente QUE SE QUIERE CONECTAR. Por lo que tenemos que hacer un accept() para generar un nuevo socket para ese lciente
@@ -89,14 +89,15 @@ void* recibirHeader(void* arg) {
 							FD_SET(clienteNuevo, &active_fd_set);
 						} else {
 
-							type* header = (type*) arg;
-							if (recv(i, &(*header), sizeof(type), MSG_WAITALL)
+							//type* header = (type*) arg;
+							type head;
+							if (recv(i, &(head), sizeof(type), MSG_WAITALL)
 									> 0) {
 								log_debug(logger, "llego algo del cliente %d", i);
 								recibioSocket = true;
 								usleep(miConfig->retardoMemoria * 1000);
 								sem_wait(&mutexJournal);
-								ejecutarConsulta(i);
+								ejecutarConsulta(i,head);
 								sem_post(&mutexJournal);
 							} else {
 								flagError = 1;
@@ -124,6 +125,7 @@ void inicializarTablaGossip() {
 }
 
 void realizarGossiping() {
+	/*
 	int cant = 0;
 	while (miConfig->puerto_seeds[cant] != NULL) {
 		cant++;
@@ -177,6 +179,52 @@ void realizarGossiping() {
 
 	}else{
 		log_debug(logger,"No tengo seeds");
+	}*/
+
+	if ((miConfig->puerto_seeds)[0] != NULL && (miConfig->ip_seeds)[0] != NULL) {
+
+		while (1) {
+			int clienteGossip;
+			do {
+				usleep(miConfig->retardoGossiping * 1000);
+				//log_debug(logger, "pruebo conectarme");
+				clienteGossip = levantarClienteNoBloqueante(
+						(miConfig->puerto_seeds)[0], (miConfig->ip_seeds)[0]);
+				if (clienteGossip == -1) {
+					log_debug(logger, "No me pude conectar con mi seed");
+				}
+			} while (clienteGossip <= 0);
+			log_debug(logger, "me pude conectar a mi seed");
+			//FD_SET(clienteGossip,&active_fd_set);
+			int error = 0;
+			while (error != -1) {
+				usleep(miConfig->retardoGossiping * 1000);
+				int cantMemorias = tablaGossip->elements_count;
+				tGossip* packGossip = malloc(sizeof(tGossip));
+				packGossip->memorias = malloc(cantMemorias * sizeof(tMemoria));
+				cargarPackGossip(packGossip, tablaGossip, GOSSIPING);
+				char* serializado = serializarGossip(packGossip);
+				int tam_tot = cantMemorias * sizeof(tMemoria) + sizeof(type)
+						+ sizeof(int);
+				error = enviarPaquete(clienteGossip, serializado, tam_tot);
+				type head;
+				if (recv(clienteGossip, &(head), sizeof(type), MSG_WAITALL)
+						> 0) {
+					//log_debug(logger, "llego algo del cliente %d", clienteGossip);
+					recibioSocket = true;
+					usleep(miConfig->retardoMemoria * 1000);
+					sem_wait(&mutexJournal);
+					ejecutarConsulta(clienteGossip,head);
+					sem_post(&mutexJournal);
+				} else {
+					error = -1;
+				}
+
+				free(packGossip);
+				free(packGossip->memorias);
+				free(serializado);
+			}
+		}
 	}
 
 }
@@ -586,6 +634,7 @@ t_miConfig* cargarConfig() {
 	miConfig->numeroMemoria = config_get_int_value(config,"MEMORY_NUMBER");
 	//miConfig->miPuerto = config_get_string_value(config,"MI_PUERTO");
 	miConfig->mi_IP = config_get_string_value(config, "MI_IP");
+	miConfig->puerto_gossip = (int) config_get_string_value(config, "PUERTO_GOSSIP");
 	log_debug(logger, "Levanta archivo de config");
 	return miConfig;
 }
@@ -648,7 +697,7 @@ void finalizarEjecucion() {
 	list_destroy_and_destroy_elements(tablaGossip, free);
 	free(tablaSegmentos);
 	free(tablaGossip);
-	free(header);
+	//free(header);
 	free(memoria);
 	free(paramsConsola);
 	sem_destroy(&mutexJournal);

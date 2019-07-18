@@ -9,7 +9,7 @@
 
 
 
-void ejecutarConsulta(int socket) {
+void ejecutarConsulta(int socket, type header) {
 	encontroSeg = -1;
 	indexPag = -1;
 	tPagina* pagina = malloc(sizeof(tPagina));
@@ -19,7 +19,7 @@ void ejecutarConsulta(int socket) {
 	encontroSeg = -1;
 	indexPag = -1;
 	int error;
-	switch (*header) {
+	switch (header) {
 	case SELECT:
 		packSelect = malloc(sizeof(tSelect));
 		cargarPackSelect(packSelect, leyoConsola, paramsConsola->consulta,socket);
@@ -263,31 +263,32 @@ void* leerQuery(void* params) {
 	while (1) {
 		tHiloConsola* parametros = (tHiloConsola*) params;
 		leyoConsola = false;
+		type head;
 		fgets(parametros->consulta, 256, stdin);
 		char** tempSplit;
 		tempSplit = string_n_split(parametros->consulta, 2, " ");
 		if (!strcmp(tempSplit[0], "SELECT")) {
-			*(parametros->header) = SELECT;
+			head = SELECT;
 		}
 		if (!strcmp(tempSplit[0], "INSERT")) {
-			*(parametros->header) = INSERT;
+			head = INSERT;
 		}
 		if (!strcmp(tempSplit[0], "CREATE")) {
-			*(parametros->header) = CREATE;
+			head = CREATE;
 		}
 		if(!strcmp(tempSplit[0], "DROP")){
-			*(parametros->header) = DROP;
+			head = DROP;
 		}
 		if(!strcmp(tempSplit[0], "JOURNAL\n")){
 			log_debug(logger,"llega journal");
-			*(parametros->header) = JOURNAL;
+			head = JOURNAL;
 		}
 		leyoConsola = true;
 		free(tempSplit[0]);
 		free(tempSplit[1]);
 		free(tempSplit);
 		sem_wait(&mutexJournal);
-		ejecutarConsulta(-1);
+		ejecutarConsulta(-1,head);
 		sem_post(&mutexJournal);
 
 	}
