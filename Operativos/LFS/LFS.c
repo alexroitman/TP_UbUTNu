@@ -115,6 +115,7 @@ void receptorDeSockets(int* socket) {
 	type header;
 	int errorHandler = 0;
 	while (1) {
+		errorHandler = todoJoya;
 		int bytes = recv(*socket, &header, sizeof(type), MSG_WAITALL);
 		usleep((configLFS->retardo) * 1000);
 		if (0 > bytes) {
@@ -141,9 +142,10 @@ void receptorDeSockets(int* socket) {
 					errorHandler = Select(&reg, packSelect->nombre_tabla,
 							packSelect->key);
 					log_debug(logger, "sali del Select");
+					tRegistroRespuesta* registro = malloc(
+													sizeof(tRegistroRespuesta));
 					if (!errorHandler) {
-						tRegistroRespuesta* registro = malloc(
-								sizeof(tRegistroRespuesta));
+
 						if (!registro)
 							errorHandler = errorDeMalloc;
 						else {
@@ -163,6 +165,21 @@ void receptorDeSockets(int* socket) {
 							free(registroSerializado);
 						}
 						free(registro);
+					} else if (errorHandler == noExisteKey || errorHandler == noExisteTabla) {
+						registro->tipo = REGISTRO;
+						registro->timestamp = -1;
+						registro->value = "";
+						registro->key = 0;
+						registro->value_long = 1;
+						log_debug(logger, "guarde valores en el registro");
+						char* registroSerializado = serializarRegistro(
+								registro);
+						//TODO: handlear error de serializarRegistro
+						enviarPaquete(*socket, registroSerializado,
+								registro->length);
+						log_debug(logger, "mande pack");
+						//TODO: handlear error de enviarPaquete
+						free(registroSerializado);
 					}
 				}
 				free(reg);
