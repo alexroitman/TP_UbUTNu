@@ -321,7 +321,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 					recv(socket_memoria->socket, &error, sizeof(error), 0);
 					if(consultaOk != -1){
 						if (error == -1) {
-							log_error(logger, "Memoria llena, hago JOURNAL");
+							log_error(loggerError, "Memoria llena, hago JOURNAL");
 							cargarPaqueteJournal(paqueteJournal, "JOURNAL");
 							serializado = serializarJournal(paqueteJournal);
 							enviarPaquete(socket_memoria->socket, serializado,
@@ -334,11 +334,16 @@ int despacharQuery(char* consulta, t_list* sockets) {
 						}
 						type header = leerHeader(socket_memoria->socket);
 						tRegistroRespuesta* reg = malloc(sizeof(tRegistroRespuesta));
-						desSerializarRegistro(reg,socket_memoria->socket);
-						log_debug(logger,"Value: %s",reg->value);
+						desSerializarRegistro(reg, socket_memoria->socket);
+						if (reg->timestamp > 0) {
+							log_debug(logger, "Value: %s", reg->value);
+						}else{
+							log_error(loggerError,"No existe la tabla o registro");
+						}
 						free(reg->value);
 						free(reg);
-						metricsSelect(cons,(clock()-comienzo)/CLOCKS_PER_SEC);
+						metricsSelect(cons,
+								(clock() - comienzo) / CLOCKS_PER_SEC);
 						consultaOk = 1;
 					}else{
 						consultaOk = socket_memoria->id * -1;

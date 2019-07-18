@@ -45,7 +45,7 @@ void ejecutarConsulta(int socket, type header) {
 			log_debug(logger, "El value es: %s", pagina->value);
 		} else {
 			error = pedirRegistroALFS(socket_lfs, packSelect, reg);
-			if (reg->key != -1) {
+			if (reg->timestamp != -1) {
 				pagina->key = reg->key;
 				pagina->timestamp = reg->timestamp;
 				strcpy(pagina->value, reg->value);
