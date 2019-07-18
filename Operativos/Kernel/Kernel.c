@@ -59,7 +59,7 @@ int main(){
 	inicializarTodo();
 	SC = malloc(sizeof(tMemoria));
 	SC->numeroMemoria = -1;
-	t_infoMem* socket_memoria = malloc(sizeof(t_infoMem*));
+	t_infoMem* socket_memoria = malloc(sizeof(t_infoMem));
 	socket_memoria->socket = levantarCliente(miConfig->puerto_mem, miConfig->ip_mem);
 	socket_memoria->id = 1;
 	tMemoria *mem = malloc(sizeof(tMemoria));
@@ -298,7 +298,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 	tDrop* paqueteDrop = malloc(sizeof(tDrop));
 	tDescribe* paqueteDescribe = malloc(sizeof(tDescribe));
 	type typeHeader;
-	char* serializado = "";
+	char* serializado = string_new();
 	int consultaOk = 0;
 	tempSplit = string_n_split(consulta, 2, " ");
 	log_debug(logger, "header %s", tempSplit[0]);
