@@ -655,6 +655,8 @@ void validarAgregadoDePagina(bool leyoConsola, int error,int socket, tSegmento* 
 			}
 		} else {
 			agregarPaginaAMemoria(miSegmento, pagina,modificado);
+			error = 1;
+			send(socket, &error, sizeof(int), 0);
 		}
 	}else{
 		if(!leyoConsola){
