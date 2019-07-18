@@ -504,11 +504,13 @@ void mandarInsertDePaginasModificadas(t_list* paginasModificadas,char* nombreTab
 	while(miPagina != NULL){
 		memcpy(miInsert->value, (memoria + miPagina->offsetMemoria + 6), tamanioMaxValue);
 		memcpy(&(miInsert->key), (memoria + miPagina->offsetMemoria), 2);
+		memcpy(&(miInsert->timestamp), (memoria + miPagina->offsetMemoria) + 2, 4);
 
 		miInsert->value_long = strlen(miInsert->value) + 1;
 		miInsert->length = sizeof(miInsert->type) + sizeof(miInsert->nombre_tabla_long)
 						+ miInsert->nombre_tabla_long + sizeof(miInsert->key)
-						+ sizeof(miInsert->value_long) + miInsert->value_long;
+						+ sizeof(miInsert->value_long) + miInsert->value_long
+						+sizeof(miInsert->timestamp);
 		char* serializado = serializarInsert(miInsert);
 		enviarPaquete(socket_lfs, serializado, miInsert->length);
 		index++;

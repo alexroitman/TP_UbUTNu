@@ -289,6 +289,10 @@ char* serializarInsert(tInsert* packageInsert) {
 	memcpy(serializedPackage + offset, (packageInsert->value), size_to_send);
 	offset += size_to_send;
 
+	size_to_send = sizeof(int);
+	memcpy(serializedPackage + offset, &packageInsert->timestamp, size_to_send);
+	offset += size_to_send;
+
 	return serializedPackage;
 }
 
@@ -311,7 +315,7 @@ int desSerializarInsert(tInsert* packageInsert, int socket) {
 
 	if (!status)
 		return 0;
-	packageInsert->key = malloc(sizeof(uint16_t));
+	//packageInsert->key = malloc(sizeof(uint16_t));
 	status = recv(socket, &packageInsert->key, sizeof(packageInsert->key), 0); //recibo el key
 	if (!status)
 		return 0;
@@ -326,12 +330,16 @@ int desSerializarInsert(tInsert* packageInsert, int socket) {
 
 	if (!status)
 		return 0;
+	status = recv(socket, &packageInsert->timestamp, sizeof(packageInsert->timestamp), 0);
 
+	if (!status)
+			return 0;
 	free(buffer);
 	packageInsert->length = sizeof(packageInsert->type)
 			+ sizeof(packageInsert->nombre_tabla_long)
 			+ packageInsert->nombre_tabla_long + sizeof(packageInsert->key)
-			+ sizeof(packageInsert->value_long) + packageInsert->value_long;
+			+ sizeof(packageInsert->value_long) + packageInsert->value_long
+			+ sizeof(packageInsert->timestamp);
 	packageInsert->type = INSERT;
 	return status;
 
