@@ -84,7 +84,7 @@ int main(){
 		pthread_create(&hiloGossip,NULL,(void*) gossip,NULL);
 		pthread_create(&hiloMetrics,NULL,(void*)metrics,NULL);
 		pthread_create(&hiloInnotify, NULL, (void*) innotificar, NULL);
-		pthread_create(&hiloDescribe,NULL,describe,(void*)sockets);
+		pthread_create(&hiloDescribe,NULL,describe,NULL);
 		char consulta[256] = "";
 		for(int i = 0; i < miConfig->MULT_PROC; i++){
 			pthread_detach(cpus[i]);
@@ -186,8 +186,12 @@ int main(){
 	sem_destroy(&mutexSocket);*/
 }
 
-void describe (void* lista){
-	t_list* sockets = (t_list*) lista;
+void describe (){
+	t_list* sockets = list_create();
+	t_infoMem* mem = malloc(sizeof(t_infoMem));
+	mem->id =((tMemoria*)list_get(memorias,0))->numeroMemoria;
+	mem->socket = levantarClienteNoBloqueante(miConfig->puerto_mem,miConfig->ip_mem);
+	list_add_in_index(sockets,0,mem);
 	while(1){
 		usleep(miConfig->metadata_refresh*1000);
 		despacharQuery("DESCRIBE\n",sockets);
@@ -360,9 +364,12 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				int error = 0;
 				int comienzo = clock();
 				log_debug(logger,"Se recibio un INSERT");
-				char* sinFin = string_substring_until(consulta,string_length(consulta)-1 );
+				char* sinFin = string_new();
+				string_append(&sinFin, string_substring_until(consulta,strlen(consulta)-1 ));
 				cargarPaqueteInsert(paqueteInsert, sinFin);
+
 				serializado = serializarInsert(paqueteInsert);
+				log_debug(logger,"cargue el paquete y serialize");
 				consistencias cons = consTabla(paqueteInsert->nombre_tabla);
 				socket_memoria = devolverSocket(cons,sockets,paqueteInsert->key);
 				if(socket_memoria->id != -1){
@@ -468,9 +475,6 @@ int despacharQuery(char* consulta, t_list* sockets) {
 					string_substring_until(consulta,string_length(consulta)-1  ) );
 			serializado = serializarDescribe(paqueteDescribe);
 			socket_memoria = list_get(sockets,0);
-			log_debug(logger,"int del socket: %d", socket_memoria->socket);
-			log_debug(logger,"voy a usar este socket: %d",socket_memoria->id);
-			log_debug(logger,"esto serializo: %s",serializado);
 			consultaOk = enviarPaquete(socket_memoria->socket,serializado,paqueteDescribe->length);
 			if(consultaOk != -1){
 				t_describe* response = malloc(sizeof(t_describe));
@@ -572,65 +576,66 @@ void CPU(){
 	list_add_in_index(listaDeLSockets,contMult,sockets);
 	sem_post(&mutexContMult);
 	while(continuar){
-		sem_wait(&mutexMems);
-		if(memorias->elements_count > sockets->elements_count){
-			for(int i = 0; i < memorias->elements_count;i++){
-				tMemoria* mem = (tMemoria*) list_get(memorias,i);
-						bool compararNumeroMem(void* elem){
-							t_infoMem* mem2 = (t_infoMem*) elem;
-							return mem2->id == mem->numeroMemoria;
-						}
-						if(list_filter(sockets,compararNumeroMem)->elements_count == 0){
-							t_infoMem *sock = malloc(sizeof(t_infoMem));
-							sock->socket = levantarClienteNoBloqueante(mem->puerto,mem->ip);
-							if(sock->socket != -1){
-								sock->id = mem->numeroMemoria;
-								list_add(sockets,sock);
-								log_debug(logger,"agregue esta memoria %d",sock->id);
-								bool compararNumeroMem2(void* elem){
-									tMemoria* mem2 = (tMemoria*) elem;
-									return mem2->numeroMemoria == mem->numeroMemoria;
-								}
-								sem_wait(&mutexCaido);
-								if(list_filter(memoriasCaidas,compararNumeroMem2)->elements_count != 0){
-									list_remove_by_condition(memoriasCaidas,compararNumeroMem2);
-								}
-								sem_post(&mutexCaido);
-							}
-						}
-			}
-		}
-		sem_post(&mutexMems);
-		sem_wait(&mutexCaido);
-		if(memoriasCaidas->elements_count != 0){
-			int size_to_send = sizeof(type);
-			char* serializedPackage = malloc(size_to_send);
-			type gossip = SIGNAL;
-			memcpy(serializedPackage,&(gossip),size_to_send);
-			for(int i = 0; i < memoriasCaidas->elements_count;i++){
-				tMemoria* mem = (tMemoria*) list_get(memoriasCaidas,i);
-				bool compararNumeroMem(void* elem){
-					t_infoMem* mem2 = (t_infoMem*) elem;
-					return mem2->id == mem->numeroMemoria;
-				}
-				if(list_filter(sockets,compararNumeroMem)->elements_count != 0){
-					int info = enviarPaquete(((t_infoMem*)list_get(sockets,0))->socket,serializedPackage,size_to_send);
-					if(info == -1){
-						list_remove_by_condition(sockets,compararNumeroMem);
-					}else{
-						list_remove(memoriasCaidas,i);
-					}
-				}
-			}
-			free(serializedPackage);
-		}
-		sem_post(&mutexCaido);
+
 		script *unScript;
 		char* consulta = malloc(256);
 		sem_wait(&semReady);
 		sem_wait(&mutexReady);
 		unScript = ( script *) queue_pop(colaReady);
 		sem_post(&mutexReady);
+		sem_wait(&mutexMems);
+				if(memorias->elements_count > sockets->elements_count){
+					for(int i = 0; i < memorias->elements_count;i++){
+						tMemoria* mem = (tMemoria*) list_get(memorias,i);
+								bool compararNumeroMem(void* elem){
+									t_infoMem* mem2 = (t_infoMem*) elem;
+									return mem2->id == mem->numeroMemoria;
+								}
+								if(list_filter(sockets,compararNumeroMem)->elements_count == 0){
+									t_infoMem *sock = malloc(sizeof(t_infoMem));
+									sock->socket = levantarClienteNoBloqueante(mem->puerto,mem->ip);
+									if(sock->socket != -1){
+										sock->id = mem->numeroMemoria;
+										list_add(sockets,sock);
+										log_debug(logger,"agregue esta memoria %d",sock->id);
+										bool compararNumeroMem2(void* elem){
+											tMemoria* mem2 = (tMemoria*) elem;
+											return mem2->numeroMemoria == mem->numeroMemoria;
+										}
+										sem_wait(&mutexCaido);
+										if(list_filter(memoriasCaidas,compararNumeroMem2)->elements_count != 0){
+											list_remove_by_condition(memoriasCaidas,compararNumeroMem2);
+										}
+										sem_post(&mutexCaido);
+									}
+								}
+					}
+				}
+				sem_post(&mutexMems);
+				sem_wait(&mutexCaido);
+				if(memoriasCaidas->elements_count != 0){
+					int size_to_send = sizeof(type);
+					char* serializedPackage = malloc(size_to_send);
+					type gossip = SIGNAL;
+					memcpy(serializedPackage,&(gossip),size_to_send);
+					for(int i = 0; i < memoriasCaidas->elements_count;i++){
+						tMemoria* mem = (tMemoria*) list_get(memoriasCaidas,i);
+						bool compararNumeroMem(void* elem){
+							t_infoMem* mem2 = (t_infoMem*) elem;
+							return mem2->id == mem->numeroMemoria;
+						}
+						if(list_filter(sockets,compararNumeroMem)->elements_count != 0){
+							int info = enviarPaquete(((t_infoMem*)list_get(sockets,0))->socket,serializedPackage,size_to_send);
+							if(info == -1){
+								list_remove_by_condition(sockets,compararNumeroMem);
+							}else{
+								list_remove(memoriasCaidas,i);
+							}
+						}
+					}
+					free(serializedPackage);
+				}
+				sem_post(&mutexCaido);
 		unScript->estado = exec;
 		int info;
 		log_debug(logger,"Se esta corriendo el script: %d", unScript->id);
@@ -1001,11 +1006,12 @@ consistencias consTabla (char* nombre){
 }
 
 t_infoMem* devolverSocket(consistencias cons, t_list* sockets, int key){
-	int* pos = malloc(sizeof(int));
-	tMemoria* mem;
+	int pos = -1;
+	tMemoria* mem = malloc(sizeof(tMemoria));
 	t_infoMem* ret = malloc(sizeof(t_infoMem));
 	bool compararNumeroMem(void* elem){
 		t_infoMem* mem2 = (t_infoMem*) elem;
+		log_debug(logger,"este es el socket que me llego: %d", mem2->id);
 		return mem2->id == mem->numeroMemoria;
 	}
 	switch(cons){
@@ -1019,19 +1025,23 @@ t_infoMem* devolverSocket(consistencias cons, t_list* sockets, int key){
 		}
 		break;
 	case shc:
-		pos[0] = SHC(key);
-		mem->numeroMemoria = pos[0];
-		if(pos[0] !=-1){
-			return (t_infoMem*)list_find(sockets,compararNumeroMem);
+		pos = SHC(key);
+		mem->numeroMemoria = pos;
+		if(pos !=-1){
+			ret = (t_infoMem*)list_find(sockets,compararNumeroMem);
+			return ret;
 		}else{
 			ret->id = -1;
 			return ret;
 		}
 		break;
 	case ec:
-		pos[0] = EC((int) time(NULL));
-		if(pos[0]!=-1){
-			return (t_infoMem*)list_find(sockets,compararNumeroMem);
+		pos = EC((int) time(NULL));
+		if(pos!=-1){
+			mem->numeroMemoria = pos;
+			log_debug(logger,"aca esta el resultado de aplicar la consistencia: %d", mem->numeroMemoria);
+			ret = (t_infoMem*)list_find(sockets,compararNumeroMem);
+			return ret;
 		}else{
 			ret->id = -1;
 			return ret;
@@ -1061,7 +1071,8 @@ int SHC(int key){
 	int tamanio = list_size(list_filter(listaMemsSHC,hayCaida));
 	sem_post(&mutexSHC);
 	if(tamanio != 0){
-		tMemoria* mem= list_get(listaMemsSHC,(tamanio % key));
+		tMemoria* mem= (tMemoria*)list_get(listaMemsSHC,(key % tamanio));
+		log_debug(logger,"lo mando a esta memoria: %d", mem->numeroMemoria);
 		return mem->numeroMemoria;
 	}else{
 		return -1;
@@ -1071,9 +1082,11 @@ int SHC(int key){
 int EC(int time){
 	sem_wait(&mutexEC);
 	int tamanio = list_size(list_filter(listaMemsEC,hayCaida));
+	log_debug(logger,"este es el tamanio: %d", tamanio);
 	sem_post(&mutexEC);
 	if(tamanio != 0){
-		tMemoria* mem= list_get(listaMemsEC,(tamanio % time));
+		log_debug(logger,"este es el time: %d", time);
+		tMemoria* mem= (tMemoria*)list_get(listaMemsEC,(time % tamanio));
 		return mem->numeroMemoria;
 	}else{
 		return -1;

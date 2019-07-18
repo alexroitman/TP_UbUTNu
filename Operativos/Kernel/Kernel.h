@@ -66,7 +66,7 @@ typedef struct{
 	int t_gossip;
 }configKernel;
 
-void describe (void* lista);
+void describe ();
 type leerConsola(); //Lee la consulta y devuelve el string
 type validarSegunHeader(char* header);
 bool analizarConsulta();
