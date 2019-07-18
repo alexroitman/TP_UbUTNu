@@ -508,6 +508,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				socket_memoria = list_get(sockets,i);
 				enviarPaquete(socket_memoria->socket, serializado, paqueteJournal->length);
 			}
+			consultaOk = 1;
 			free(serializado);
 			break;
 		case DROP:
@@ -614,6 +615,7 @@ void CPU(){
 										sem_post(&mutexCaido);
 									}
 								}
+								usleep(miConfig->sleep*1000);
 					}
 				}
 				sem_post(&mutexMems);
