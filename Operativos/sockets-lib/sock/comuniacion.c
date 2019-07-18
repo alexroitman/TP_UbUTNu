@@ -11,6 +11,13 @@ type leerHeader(int socket) {
 	return header;
 }
 
+unsigned long long obtenerTimestamp() {
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return (unsigned long long) (tv.tv_sec) * 1000
+			+ (unsigned long long) (tv.tv_usec) / 1000;
+}
+
 char* serializarGossip(tGossip* packGossip) {
 	char* serializedPackage = malloc(sizeof(type) +
 			sizeof(packGossip->cant_memorias)
