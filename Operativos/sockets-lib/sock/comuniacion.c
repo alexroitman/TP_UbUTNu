@@ -644,10 +644,6 @@ int desSerializarRegistro(tRegistroRespuesta* reg, int socket) {
 	status = recv(socket, &reg->timestamp, sizeof(reg->timestamp), 0);
 	if (!status)
 		return 0;
-	printf("value: %s \n",reg->value);
-	printf("value long: %d \n",reg->value_long);
-	printf("time: %d \n",reg->timestamp);
-	printf("KEY: %d\n",reg->key);
 
 	//free(buffer);
 

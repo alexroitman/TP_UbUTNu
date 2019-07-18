@@ -343,6 +343,7 @@ int agregarPaginaAMemoria(tSegmento* seg, tPagina* pagina, bool modificado) {
 		pagTabla->ultimoTime = (int) time(NULL);
 		list_add(seg->tablaPaginas, (elem_tabla_pag*) pagTabla);
 		log_debug(logger, "Pagina cargada en memoria.");
+		log_warning(logger,"Flag modificado de la key %d es %d",pagina->key,pagTabla->modificado);
 		return 1;
 	} else {
 		log_error(logger, "Tamanio de value demasiado grande");
@@ -460,7 +461,7 @@ bool fueModificado(void* pag){
 
 
 int ejecutarLRU(){
-	log_debug(logger,"Ejecutando LRU");
+	log_warning(logger,"Ejecutando LRU");
 	t_list* LRUPaginaPorSegmento;
 	LRUPaginaPorSegmento = list_create();
 
@@ -492,8 +493,12 @@ int ejecutarLRU(){
 
 	elem_tabla_pag* pagBorrar = malloc(sizeof(elem_tabla_pag));
 	int indexMin = listMinTimestamp(LRUPaginaPorSegmento, pagBorrar);
-	log_debug(logger,"Se eliminara la pagina: %d",pagBorrar->index);
+	//int key = *((int*) memoria + pagBorrar->offsetMemoria);
+	//log_debug(logger,"Se eliminara la pagina: %d",pagBorrar->index);
+	uint16_t key;
+	memcpy(&key,memoria + pagBorrar->offsetMemoria,2);
 	tSegmento* segmento = obtenerSegmentoDeTabla(tablaSegmentos,indexMin);
+	log_warning(logger,"Voy a reemplazar la key %d de la tabla %s",key,segmento->path);
 	list_remove(segmento->tablaPaginas,pagBorrar->index);
 	actualizarIndexLista(segmento->tablaPaginas);
 	eliminarDeMemoria(pagBorrar);
@@ -646,6 +651,7 @@ void validarAgregadoDePagina(bool leyoConsola, int error,int socket, tSegmento* 
 	if (error == -1) {
 		errorLRU = ejecutarLRU();
 		if (errorLRU == -1) {
+			log_error(logger,"Memoria FULL");
 			if (leyoConsola) {
 				ejecutarJournal();
 				agregarPaginaAMemoria(miSegmento, pagina,modificado);
