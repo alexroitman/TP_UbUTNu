@@ -468,7 +468,9 @@ int despacharQuery(char* consulta, t_list* sockets) {
 					string_substring_until(consulta,string_length(consulta)-1  ) );
 			serializado = serializarDescribe(paqueteDescribe);
 			socket_memoria = list_get(sockets,0);
+			log_debug(logger,"int del socket: %d", socket_memoria->socket);
 			log_debug(logger,"voy a usar este socket: %d",socket_memoria->id);
+			log_debug(logger,"esto serializo: %s",serializado);
 			consultaOk = enviarPaquete(socket_memoria->socket,serializado,paqueteDescribe->length);
 			if(consultaOk != -1){
 				t_describe* response = malloc(sizeof(t_describe));
@@ -1044,11 +1046,11 @@ t_infoMem* devolverSocket(consistencias cons, t_list* sockets, int key){
 
 bool hayCaida(void* recibo){
 	tMemoria* mem = (tMemoria*) recibo;
-	bool estaCaida = false;
+	bool estaCaida = true;
 	for(int i = 0;i<memoriasCaidas->elements_count;i++){
 		tMemoria* mem2 = list_get(memoriasCaidas,i);
 		if(mem->numeroMemoria == mem2->numeroMemoria){
-			estaCaida = true;
+			estaCaida = false;
 		}
 	}
 	return estaCaida;
