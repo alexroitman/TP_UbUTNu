@@ -455,7 +455,13 @@ int despacharQuery(char* consulta, t_list* sockets) {
 						consultaOk = socket_memoria->id * -1;
 					}else{
 						consultaOk = 1;
-						despacharQuery("DESCRIBE\n",sockets);
+						t_metadata* meta = malloc(sizeof(t_metadata));
+						strcpy(meta->nombre_tabla,paqueteCreate->nombre_tabla);
+						meta->consistencia = obtCons(paqueteCreate->consistencia);
+						meta->particiones = paqueteCreate->particiones;
+						meta->tiempo_compactacion = paqueteCreate->compaction_time;
+						list_add(listaTablas,meta);
+						log_debug(logger,"Agrego la tabla %s a mi lista de memorias",meta->nombre_tabla);
 					}
 				}else{
 					log_error(loggerError,"No existen memorias disponibles para el criterio de la tabla");
@@ -473,11 +479,13 @@ int despacharQuery(char* consulta, t_list* sockets) {
 			log_debug(logger,"Se recibio un RUN con la siguiente path: %s", tempSplit[1]);
 			char* sinFin = string_substring_until(tempSplit[1],string_length(tempSplit[1])-1 );
 			unScript = malloc(sizeof(script));
-			unScript->path = sinFin;
+			unScript->path = malloc(strlen(sinFin)+1);
+			strcpy(unScript->path, sinFin);
 			unScript->pos = 0;
 			unScript->estado = new;
 			unScript->id = contScript;
 			contScript++;
+			free(sinFin);
 			sem_wait(&mutexNew);
 			queue_push(colaNew, unScript);
 			log_debug(logger,"Se cargo a la cola de new el script id: %d", unScript->id);
@@ -1019,8 +1027,10 @@ void ejecutarDescribe(t_describe *response){
 		strcpy(nombre, metadata->nombre_tabla);
 		bool mismoNombre(void* elemento) {
 						t_metadata* tabla = malloc(sizeof(t_metadata));
-						tabla = (t_metadata*) elemento;
-						return (!strcmp(tabla->nombre_tabla,nombre));
+						memcpy(tabla,(t_metadata*) elemento,sizeof(t_metadata));
+						int res =!(strcmp(tabla->nombre_tabla,nombre));
+						free(tabla);
+						return res;
 					}
 		if(list_is_empty(list_filter(listaTablas,mismoNombre))){
 			list_add(listaTablas,metadata);
@@ -1221,8 +1231,7 @@ void innotificar() {
 }
 
 void liberar(void* dato){
-	tMemoria* mem = (tMemoria*) dato;
-	free(mem);
+	free(dato);
 }
 
 void finalizarEjecucion() {
@@ -1233,6 +1242,8 @@ void finalizarEjecucion() {
 	log_destroy(loggerError);
 	free(SC);
 	list_destroy_and_destroy_elements(memorias,liberar);
+	list_destroy_and_destroy_elements(memLoads,liberar);
+	list_destroy_and_destroy_elements(listaTablas,liberar);
 	sem_destroy(&semReady);
 	sem_destroy(&semNew);
 	sem_destroy(&mutexNew);

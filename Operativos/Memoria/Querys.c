@@ -209,7 +209,7 @@ void ejecutarConsulta(int socket, type header) {
 		break;
 	case GOSSIPKERNEL:
 		log_debug(logger,"Llego gossip kernel");
-		gossipKernel= malloc(sizeof(tGossip));
+		gossipKernel = malloc(sizeof(tGossip));
 		gossipKernel->memorias = malloc(
 				tablaGossip->elements_count * sizeof(tMemoria));
 		devolverTablaGossip(gossipKernel, socket);
@@ -401,6 +401,7 @@ void innotificar() {
 						log_debug(logger,"El directorio %s se modifico", event->name);
 					} else {
 						log_debug(logger,"El archivo %s se modifico", event->name);
+						config = config_create(pathConfig);
 						cargarConfig();
 					}
 				}

@@ -14,7 +14,7 @@
 #include <signal.h>
 #include <sys/inotify.h>
 #define EVENT_SIZE  ( sizeof (struct inotify_event) + 24 )
-
+char* pathConfig;
 #define BUF_LEN     ( 1024 * EVENT_SIZE )
 #ifndef MEMORIA_MEMORIA_H_
 #define MEMORIA_MEMORIA_H_
@@ -24,7 +24,7 @@
 #define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
 t_log *logger;
 t_config* config;
-
+char* pathConfig;
 bool leyoConsola;
 bool recibioSocket;
 tSelect* packSelect;
@@ -81,8 +81,8 @@ typedef struct {
 
 typedef struct {
 	int numeroMemoria;
-	int puerto_escucha;
-	int puerto_fs;
+	char* puerto_escucha;
+	char* puerto_fs;
 	char* ip_fs;
 	char** ip_seeds;
 	char** puerto_seeds;
@@ -92,7 +92,7 @@ typedef struct {
 	int retardoJournal;
 	int retardoGossiping;
 	char* mi_IP;
-	int puerto_gossip;
+	char* puerto_gossip;
 } t_miConfig;
 
 
