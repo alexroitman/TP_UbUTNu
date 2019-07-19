@@ -17,6 +17,7 @@ t_list* memtable;
 config_FS* configLFS;
 metadataFS* configMetadata;
 pthread_mutex_t mem_table_mutex;
+//pthread_mutex_t cantidadDeDumpeos_mutex;
 t_dictionary* bloqueoTablas;
 // ---------------MAIN-----------------
 
@@ -35,7 +36,8 @@ int main(void) {
 	levantarMetadataFS();
 	levantarConfigLFS();
 	pthread_mutex_init(&mem_table_mutex, NULL);
-	//bloqueoTablas=dictionary_create();
+	//pthread_mutex_init(&cantidadDeDumpeos_mutex, NULL);
+	bloqueoTablas = dictionary_create();
 	// ---------------Pruebas con bitmap propio-----------------
 	crearBitmapNuestro();
 
@@ -43,6 +45,7 @@ int main(void) {
 
 	// Abro hilo de consola
 	paramsConsola = malloc(sizeof(tHiloConsola));
+	(paramsConsola->header)=malloc(sizeof(type));
 	*(paramsConsola->header) = NIL;
 	pthread_create(&hiloConsola, NULL, (void*) abrirHiloConsola, paramsConsola);
 	pthread_create(&hiloDumpeo, NULL, (void*) hiloDump, NULL);
@@ -73,7 +76,7 @@ void levantarMetadataFS() {
 	configMetadata->blockSize = config_get_int_value(aux, "BLOCK_SIZE");
 	configMetadata->blocks = config_get_int_value(aux, "BLOCKS");
 	configMetadata->magicNumber = malloc(
-			strlen(config_get_string_value(aux, "MAGIC_NUMBER")));
+			strlen(config_get_string_value(aux, "MAGIC_NUMBER"))+1);
 	strcpy(configMetadata->magicNumber,
 			config_get_string_value(aux, "MAGIC_NUMBER"));
 	config_destroy(aux);
@@ -85,10 +88,10 @@ void levantarMetadataFS() {
 void levantarConfigLFS() {
 	t_config *aux = config_create("../LFS.config");
 	configLFS->puerto = malloc(
-			strlen(config_get_string_value(aux, "PUERTO_ESCUCHA")));
+			strlen(config_get_string_value(aux, "PUERTO_ESCUCHA"))+1);
 	strcpy(configLFS->puerto, config_get_string_value(aux, "PUERTO_ESCUCHA"));
 	configLFS->dirMontaje = malloc(
-			strlen(config_get_string_value(aux, "PUNTO_MONTAJE")));
+			strlen(config_get_string_value(aux, "PUNTO_MONTAJE"))+1);
 	strcpy(configLFS->dirMontaje,
 			config_get_string_value(aux, "PUNTO_MONTAJE"));
 	configLFS->retardo = config_get_int_value(aux, "RETARDO");
@@ -143,7 +146,7 @@ void receptorDeSockets(int* socket) {
 							packSelect->key);
 					log_debug(logger, "sali del Select");
 					tRegistroRespuesta* registro = malloc(
-													sizeof(tRegistroRespuesta));
+							sizeof(tRegistroRespuesta));
 					if (!errorHandler) {
 
 						if (!registro)
@@ -165,7 +168,8 @@ void receptorDeSockets(int* socket) {
 							free(registroSerializado);
 						}
 						free(registro);
-					} else if (errorHandler == noExisteKey || errorHandler == noExisteTabla) {
+					} else if (errorHandler == noExisteKey
+							|| errorHandler == noExisteTabla) {
 						registro->tipo = REGISTRO;
 						registro->timestamp = -1;
 						registro->value = "";
@@ -198,7 +202,7 @@ void receptorDeSockets(int* socket) {
 				packInsert->type = header;
 				log_debug(logger, "Tabla %s con key %d y value %s y time %d\n",
 						packInsert->nombre_tabla, packInsert->key,
-						packInsert->value,packInsert->timestamp);
+						packInsert->value, packInsert->timestamp);
 				errorHandler = insertarEnMemtable(packInsert);
 			}
 			free(packInsert);
@@ -492,7 +496,7 @@ void abrirHiloCompactacion() {
 			if (strcmp(a_directory->d_name, ".")
 					&& strcmp(a_directory->d_name, "..")) {
 
-				char* table_name = malloc(strlen(a_directory->d_name));
+				char* table_name = malloc(strlen(a_directory->d_name)+1);
 				memcpy(table_name, a_directory->d_name,
 						strlen(a_directory->d_name) + 1);
 
@@ -508,9 +512,13 @@ void abrirHiloCompactacion() {
 }
 
 void hiloCompactar(void* nombre_tabla) {
-//	pthread_mutex_t mutexTabla;
-//	pthread_mutex_init(&mutexTabla, NULL);
-//	dictionary_put(bloqueoTablas,nombre_tabla,&mutexTabla);
+
+	pthread_mutex_t mutexTabla;
+	log_debug(logger, "inicializo mutex");
+	pthread_mutex_init(&mutexTabla, NULL);
+	log_debug(logger, "agrego al dic");
+	dictionary_put(bloqueoTablas, nombre_tabla, &mutexTabla);
+
 	while (1) {
 		log_debug(logger, "intento compactar %s", (char*) nombre_tabla);
 		if (!verificadorDeTabla((char*) nombre_tabla)) {
@@ -532,10 +540,15 @@ void hiloCompactar(void* nombre_tabla) {
 			log_debug(logger, "intento cierro");
 			pthread_exit(NULL);
 		}
-		if (cantidadDeDumpeos > 0) {
+
+
+
+		int dumps = contadorDeArchivos(nombre_tabla, "tmp");
+		log_debug(logger, "%d", dumps);
+
+		if (dumps > 0) {
 			log_debug(logger, "compacto");
 			compactacion((char*) nombre_tabla);
-
 		}
 	}
 }
@@ -604,7 +617,7 @@ int agregar_tabla_a_memtable(char* tabla) {
 	}
 	int cantidad_anterior;
 	int indice_agregado;
-	tabla_nueva->nombreTabla = string_new();
+	tabla_nueva->nombreTabla = malloc(strlen(tabla)+1);
 	strcpy(tabla_nueva->nombreTabla, tabla);
 	tabla_nueva->registros = list_create();
 	pthread_mutex_lock(&mem_table_mutex);
@@ -619,7 +632,8 @@ int existe_tabla_en_memtable(char* posible_tabla) {
 		if (strcmp(UnaTabla->nombreTabla, posible_tabla) == 0)
 			return true;
 		return false;
-	}pthread_mutex_lock(&mem_table_mutex);
+	}
+	pthread_mutex_lock(&mem_table_mutex);
 	t_tabla* tabla_encontrada = (t_tabla*) list_find(memtable,
 			(void*) &es_tabla);
 	pthread_mutex_unlock(&mem_table_mutex);
@@ -657,7 +671,7 @@ int Create(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES,
 	free(ruta);
 	pthread_t threadComp;
 	log_debug(logger, "%s", NOMBRE_TABLA);
-	char* table_name = malloc(strlen(NOMBRE_TABLA));
+	char* table_name = malloc(strlen(NOMBRE_TABLA)+1);
 	memcpy(table_name, NOMBRE_TABLA, strlen(NOMBRE_TABLA) + 1);
 
 	pthread_create(&threadComp, NULL, (void*) hiloCompactar,
@@ -738,8 +752,9 @@ int Drop(char* NOMBRE_TABLA) {
 		free(binario_a_limpiar);
 		config_destroy(binario);
 	}
-	if (cantidadDeDumpeos >= 1) {
-		for (int j = 1; j <= cantidadDeDumpeos; j++) {
+	int dump=contadorDeArchivos(NOMBRE_TABLA, "tmp");
+	if (dump >= 1) {
+		for (int j = 1; j <= dump; j++) {
 			char* temporal_a_limpiar = string_new();
 			string_append_with_format(&temporal_a_limpiar, "%s/%d.tmp", ruta,
 					j - 1);
@@ -806,7 +821,7 @@ int Select(registro** reg, char* NOMBRE_TABLA, int KEY) {
 	if (registry != NULL)
 		list_add(registros, registry);
 //	log_debug(logger, "me voy a fijar a Temp");
-	t_list* temporales = SelectTemp(ruta, KEY);
+	t_list* temporales = SelectTemp(ruta, KEY,NOMBRE_TABLA);
 	//faltan los tempc IGUAL A TEMP
 	//signal
 	if (temporales->elements_count > 0)
@@ -854,7 +869,7 @@ t_list* Describe() {
 			if (strcmp(a_directory->d_name, ".")
 					&& strcmp(a_directory->d_name, "..")) {
 				char* a_table_path = string_new();
-				char* table_name = malloc(strlen(a_directory->d_name));
+				char* table_name = malloc(strlen(a_directory->d_name)+1);
 				memcpy(table_name, a_directory->d_name,
 						strlen(a_directory->d_name) + 1);
 				string_append(&a_table_path, tablas_path);
@@ -995,15 +1010,16 @@ int SelectFS(char* ruta, int KEY, registro** reg) {
 	return todoJoya;
 }
 
-t_list* SelectTemp(char* ruta, int KEY) {
+t_list* SelectTemp(char* ruta, int KEY,char* nombre_tabla) {
 	t_list* listRegistros = list_create();
 //	Ejecuto lo siguiento por cada temporal creado (uno por dumpeo)
-	for (int aux = 1; aux <= cantidadDeDumpeos; aux++) {
+	int dump=contadorDeArchivos(nombre_tabla, "tmp");
+	for (int aux = 1; aux <= dump; aux++) {
 		//wait
 		char* rutaTemporal = string_new();
 		string_append(&rutaTemporal, ruta);
 		string_append(&rutaTemporal, ("/"));
-		string_append_with_format(&rutaTemporal, "%d", aux-1);
+		string_append_with_format(&rutaTemporal, "%d", aux - 1);
 		string_append(&rutaTemporal, ".tmp");
 		t_config* particion = config_create(rutaTemporal);
 		int size = config_get_int_value(particion, "SIZE");
@@ -1118,6 +1134,26 @@ int verificadorDeTabla(char* tabla) {
 	return status;
 }
 
+int contadorDeArchivos(char* tabla, char* ext) {
+	int i = 0;
+	while (1) {
+
+		char* ruta = string_new();
+		string_append_with_format(&ruta,"%sTablas/%s/%d.%s",configLFS->dirMontaje,tabla,i,ext);
+
+		int file;
+		file = open(ruta, O_RDONLY, S_IRUSR | S_IWUSR);
+		if (file == -1) {
+			break;
+		}
+		i++;
+		close(file);
+		free(ruta);
+	}
+		return i;
+
+}
+
 int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo) {
 	char* ruta = string_new();
 	string_append(&ruta, NOMBRE_TABLA);
@@ -1164,11 +1200,16 @@ off_t obtener_bit_libre() {
 int dumpeoMemoria() {
 	void paraDumpearTabla(t_tabla* tabla) {
 		char* tablaParaDumpeo = string_new();
+		int dump=contadorDeArchivos(tabla->nombreTabla, "tmp");
 		string_append_with_format(&tablaParaDumpeo, "%sTablas/%s/%d.tmp",
-				configLFS->dirMontaje, tabla->nombreTabla, cantidadDeDumpeos);
+				configLFS->dirMontaje, tabla->nombreTabla, dump);
+
+		pthread_mutex_t* mutex = dictionary_get(bloqueoTablas,tabla->nombreTabla);
+		pthread_mutex_lock(mutex);
 		int fd = creat(tablaParaDumpeo, (mode_t) 0600);
 		close(fd);
 		dumpearTabla(tabla->registros, tablaParaDumpeo);
+		pthread_mutex_unlock(mutex);
 	}
 	void destruidor(t_tabla *tabla) {
 		free(tabla->nombreTabla);
@@ -1181,20 +1222,20 @@ int dumpeoMemoria() {
 		list_destroy_and_destroy_elements(tabla->registros,
 				(void*) destruidor2);
 	}
-	if (list_is_empty(memtable))
-	{
+	if (list_is_empty(memtable)) {
 //		TODO: poner define para memtable vacia
 		return 1;
-	}pthread_mutex_lock(&mem_table_mutex);
-	t_list* dumpMem=list_duplicate(memtable);
-	memtable=list_create();
+	}
+	pthread_mutex_lock(&mem_table_mutex);
+	t_list* dumpMem = list_duplicate(memtable);
+	memtable = list_create();
 	pthread_mutex_unlock(&mem_table_mutex);
-
 
 	list_iterate(dumpMem, (void*) &paraDumpearTabla);
 	list_clean_and_destroy_elements(dumpMem, (void*) destruidor);
-
+	//pthread_mutex_lock(&cantidadDeDumpeos_mutex);
 	cantidadDeDumpeos++;
+	//pthread_mutex_unlock(&cantidadDeDumpeos_mutex);
 	log_debug(logger, "termine el dump");
 	return 0;
 }
@@ -1211,6 +1252,8 @@ void dumpearTabla(t_list* registros, char* ruta) {
 	//wait
 	config_save(tmp);
 	//signal
+	log_debug(logger, "guarde cvonfig");
+
 	char* bloqueDumpeo = string_new();
 	string_append_with_format(&bloqueDumpeo, "%sBloques/%d.bin",
 			configLFS->dirMontaje, bit_index);
@@ -1304,11 +1347,12 @@ void actualizarBloquesEnTemporal(t_config* tmp, off_t bloque) {
 }
 
 //
-int dumpeosCompactacion = 0;
 int compactacion(char* nombre_tabla) {
-//TODO: RENOMBRAR TODOS//SEMAFOROS!!!!!!!!!
-
-	for (int j = 0; j < cantidadDeDumpeos; j++) {
+	int dumpeosCompactacion = 0;
+	pthread_mutex_t* mutex = dictionary_get(bloqueoTablas, nombre_tabla);
+	pthread_mutex_lock(mutex);
+	int dump=contadorDeArchivos(nombre_tabla, "tmp");
+	for (int j = 0; j < dump; j++) {
 		char* rutaARenombrar = string_new();
 		string_append_with_format(&rutaARenombrar,
 				"mv %sTablas/%s/%d.tmp %sTablas/%s/%d.tmpc",
@@ -1318,15 +1362,18 @@ int compactacion(char* nombre_tabla) {
 		free(rutaARenombrar);
 		dumpeosCompactacion++;
 	}
+	pthread_mutex_unlock(mutex);
 
+	//pthread_mutex_lock(&cantidadDeDumpeos_mutex);
 	cantidadDeDumpeos = 0;
-
+	//pthread_mutex_unlock(&cantidadDeDumpeos_mutex);
 	char* temporales = string_new();
 	char* binarios = string_new();
 	t_list* lista_bin = list_create();
 	t_list* lista_Temp = list_create();
 	t_list* listaCompactada = list_create();
-	int error = obtener_temporales(nombre_tabla, &temporales);
+	int error = obtener_temporales(nombre_tabla, &temporales,
+			dumpeosCompactacion);
 	int errorbinario = levantarbinarios(nombre_tabla, &binarios);
 	if (!string_is_empty(temporales))
 		crearListaRegistros(&temporales, lista_Temp);
@@ -1389,9 +1436,12 @@ int compactacion(char* nombre_tabla) {
 	int part = config_get_int_value(t, "PARTITIONS");
 
 	//wait
-	liberar_bloques(nombre_tabla, part);
+
+	pthread_mutex_lock(mutex);
+	liberar_bloques(nombre_tabla, part, dumpeosCompactacion);
 	log_debug(logger, "%d", listaCompactada->elements_count);
 	guardar_en_disco(listaCompactada, part, nombre_tabla);
+	pthread_mutex_unlock(mutex);
 	//signal
 
 	dumpeosCompactacion = 0;
@@ -1399,7 +1449,8 @@ int compactacion(char* nombre_tabla) {
 	return 0;
 }
 
-void liberar_bloques(char* nombre_tabla, int cantParticiones) {
+void liberar_bloques(char* nombre_tabla, int cantParticiones,
+		int dumpeosCompactacion) {
 
 	t_bitarray* bitmap = levantarBitmap();
 	log_debug(logger, "Empiezo con tmp");
@@ -1595,7 +1646,8 @@ int levantarbinarios(char* nombre_tabla, char** bloquesUnificados) {
 	return todoJoya;
 }
 
-int obtener_temporales(char* nombre_tabla, char** bloquesUnificados) {
+int obtener_temporales(char* nombre_tabla, char** bloquesUnificados,
+		int dumpeosCompactacion) {
 
 	for (int aux = 1; aux <= dumpeosCompactacion; aux++) {
 		char* rutaTemporal = string_new();
@@ -1658,9 +1710,7 @@ void crearBitmapNuestro() {
 	t_bitarray* structBitarray = bitarray_create_with_mode(bitarray, size,
 			MSB_FIRST);
 	for (int i = 0; i < configMetadata->blocks; i++) {
-		if (i == 10)
-			bitarray_set_bit(structBitarray, i);
-		else
+
 			bitarray_clean_bit(structBitarray, i);
 	}
 	char* path = string_from_format("%s/Metadata/Bitmap.bin",
