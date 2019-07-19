@@ -109,7 +109,7 @@ Metadata* obtener_metadata(char* ruta);
 // AUXILIARES DE SELECT
 int SelectFS(char* NOMBRE_TABLA, int KEY, registro** registro);
 t_list* selectEnMemtable( uint16_t key, char* tabla);
-t_list* SelectTemp(char* ruta, int KEY);
+t_list* SelectTemp(char* ruta, int KEY,char* nombre_tabla);
 
 // TABLAS
 int crearMetadata(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME);
@@ -120,6 +120,7 @@ t_bitarray* levantarBitmap();
 off_t obtener_bit_libre();
 
 // DUMPEO Y COMPACTACION
+int contadorDeArchivos(char* tabla, char* ext);
 void hiloDump();
 void bajarAMemoria(int* fd2, char* registroParaEscribir, t_config* tmp);
 void dumpearTabla(t_list* registros, char* ruta);
@@ -130,9 +131,8 @@ int compactacion(char* nombre_tabla);
 void guardar_en_disco(t_list* binarios, int cantParticiones,char* nombre_tabla);
 void crearListaRegistros(char** string, t_list* lista);
 int levantarbinarios(char* nombre_tabla, char** bloquesUnificados);
-int obtener_temporales(char* nombre_tabla, char** bloquesUnificados);
-void liberar_bloques(char* nombre_tabla, int cantParticiones);
-
+int obtener_temporales(char* nombre_tabla, char** bloquesUnificados,int dumpeosCompactacion) ;
+void liberar_bloques(char* nombre_tabla, int cantParticiones,int dumpeosCompactacion);
 // OTROS
 char* direccionarTabla(char* tabla);
 void crearBitmapNuestro(); // Solo lo usamos para pruebas
