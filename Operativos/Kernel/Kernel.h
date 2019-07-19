@@ -16,6 +16,7 @@
 #include <commons/collections/queue.h>
 #include <commons/collections/list.h>
 #include <commons/config.h>
+#include <commons/collections/dictionary.h>
 
 #ifndef KERNEL_KERNEL_H_
 #define KERNEL_KERNEL_H_
@@ -66,6 +67,10 @@ typedef struct{
 	int t_gossip;
 }configKernel;
 
+typedef struct{
+	tMemoria* mem;
+	int cont;
+}tMemLoad;
 void describe ();
 type leerConsola(); //Lee la consulta y devuelve el string
 type validarSegunHeader(char* header);

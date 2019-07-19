@@ -43,6 +43,7 @@ void ejecutarConsulta(int socket, type header) {
 			error = 1;
 			//enviarRegistroAKernel(reg, socket_kernel, leyoConsola);
 			log_debug(logger, "El value es: %s", pagina->value);
+			log_debug(logger, "El time es es: %llu", pagina->timestamp);
 		} else {
 			error = pedirRegistroALFS(socket_lfs, packSelect, reg);
 			if (reg->timestamp != -1) {
@@ -96,7 +97,7 @@ void ejecutarConsulta(int socket, type header) {
 				log_debug(logger,
 						"Encontro el segmento en tabla pero no tiene la pagina en memoria");
 				pagina->key = packInsert->key;
-				pagina->timestamp = (int) time (NULL);
+				pagina->timestamp = obtenerTimestamp();
 				strcpy(pagina->value,packInsert->value);
 				error = agregarPaginaAMemoria(miSegmento,pagina,true);
 
@@ -106,7 +107,7 @@ void ejecutarConsulta(int socket, type header) {
 			//No encontro el segmento en tabla de segmentos
 			log_debug(logger, "No encontro el segmento en tabla de segmentos");
 			pagina->key = packInsert->key;
-			pagina->timestamp = (int) time(NULL);
+			pagina->timestamp = obtenerTimestamp();
 			strcpy(pagina->value, packInsert->value);
 			cargarSegmentoEnTabla(packInsert->nombre_tabla, tablaSegmentos);
 			miSegmento = obtenerUltimoSegmentoDeTabla(tablaSegmentos);
@@ -217,6 +218,7 @@ void ejecutarConsulta(int socket, type header) {
 		break;
 	case SIGNAL:
 		log_debug(logger,"Kernel quiere saber si estoy vivo");
+		send(socket,&miConfig->numeroMemoria,sizeof(int),0);
 		break;
 	case NIL:
 		log_error(logger, "No entendi la consulta");

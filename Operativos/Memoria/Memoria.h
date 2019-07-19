@@ -65,7 +65,7 @@ typedef struct {
 	int offsetMemoria;
 	bool modificado;
 	int index;
-	int ultimoTime;
+	unsigned long long ultimoTime;
 }elem_tabla_pag;
 
 typedef struct {
@@ -74,7 +74,7 @@ typedef struct {
 }tSegmento;
 
 typedef struct {
-	int timestamp;
+	unsigned long long timestamp;
 	u_int16_t key;
 	char* value;
 } tPagina;
