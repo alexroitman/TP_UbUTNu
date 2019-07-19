@@ -217,6 +217,7 @@ void ejecutarConsulta(int socket, type header) {
 		break;
 	case SIGNAL:
 		log_debug(logger,"Kernel quiere saber si estoy vivo");
+		send(socket,&miConfig->numeroMemoria,sizeof(int),0);
 		break;
 	case NIL:
 		log_error(logger, "No entendi la consulta");
