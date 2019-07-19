@@ -7,6 +7,7 @@ int tam_pag;
 
 int main() {
 	tamanioMaxValue = 10;
+	pathConfig = malloc(256);
 	signal(SIGINT, finalizarEjecucion);
 	logger = log_create("../Memoria.log", "Memoria.c", 1, LOG_LEVEL_DEBUG);
 	miConfig = malloc(sizeof(t_miConfig));
@@ -607,33 +608,38 @@ void pedirPathConfig(){
 	int error = 1;
 	while (error == 1) {
 		char* buffer = malloc(256);
-		char* pathConfig = malloc(256);
+
 		log_info(logger,
 				"Por favor ingrese el path de su archivo de configuracion");
 		fgets(buffer, 256, stdin);
 		strncpy(pathConfig, buffer, strlen(buffer) - 1);
 		config = config_create(pathConfig);
-
 		if (config != NULL) {
-			miConfig = cargarConfig();
 			error = 0;
+			miConfig = cargarConfig();
+
 		}else{
 			log_info(logger, "Error de apertura de config ");
 			error = 1;
 		}
 
 		free(buffer);
-		free(pathConfig);
+		//free(pathConfig);
 	}
 
 }
 
 t_miConfig* cargarConfig() {
 
-	miConfig->puerto_escucha = (int) config_get_string_value(config,
-			"PUERTO");
-	miConfig->puerto_fs = (int) config_get_string_value(config, "PUERTO_FS");
-	miConfig->ip_fs = config_get_string_value(config, "IP");
+	miConfig->puerto_escucha = malloc(strlen(config_get_string_value(config, "PUERTO"))+1);
+	strcpy(miConfig->puerto_escucha, config_get_string_value(config, "PUERTO"));
+	//miConfig->puerto_escucha = (int) config_get_string_value(config,"PUERTO");
+	miConfig->puerto_fs = malloc(strlen(config_get_string_value(config, "PUERTO_FS"))+1);
+	strcpy(miConfig->puerto_fs, config_get_string_value(config, "PUERTO_FS"));
+	//miConfig->puerto_fs = (int) config_get_string_value(config, "PUERTO_FS");
+	miConfig->ip_fs = malloc(strlen(config_get_string_value(config, "IP"))+1);
+	strcpy(miConfig->ip_fs, config_get_string_value(config, "IP"));
+	//miConfig->ip_fs = config_get_string_value(config, "IP");
 	miConfig->tam_mem = config_get_int_value(config, "TAM_MEM");
 	miConfig->retardoJournal = config_get_int_value(config,"RETARDO_JOURNAL");
 	miConfig->retardoMemoria = config_get_int_value(config,"RETARDO_MEM");
@@ -642,9 +648,13 @@ t_miConfig* cargarConfig() {
 	miConfig->puerto_seeds = config_get_array_value(config,"PUERTO_SEEDS");
 	miConfig->retardoGossiping = config_get_int_value(config,"RETARDO_GOSSIPING");
 	miConfig->numeroMemoria = config_get_int_value(config,"MEMORY_NUMBER");
-	//miConfig->miPuerto = config_get_string_value(config,"MI_PUERTO");
-	miConfig->mi_IP = config_get_string_value(config, "MI_IP");
-	miConfig->puerto_gossip = (int) config_get_string_value(config, "PUERTO_GOSSIP");
+	//miConfig->mi_IP = config_get_string_value(config, "MI_IP");
+	miConfig->mi_IP = malloc(strlen(config_get_string_value(config, "MI_IP"))+1);
+	strcpy(miConfig->mi_IP, config_get_string_value(config, "MI_IP"));
+	//miConfig->puerto_gossip = (int) config_get_string_value(config, "PUERTO_GOSSIP");
+	miConfig->puerto_gossip = malloc(strlen(config_get_string_value(config, "PUERTO_GOSSIP"))+1);
+	strcpy(miConfig->puerto_gossip, config_get_string_value(config, "PUERTO_GOSSIP"));
+	config_destroy(config);
 	log_debug(logger, "Levanta archivo de config");
 	return miConfig;
 }
@@ -697,17 +707,12 @@ void finalizarEjecucion() {
 	printf("------------------------\n");
 	printf("¿chau chau adios?\n");
 	printf("------------------------\n");
-	free(miConfig->ip_fs);
-	free(miConfig->ip_seeds);
-	free(miConfig->mi_IP);
-	free(miConfig->puerto_seeds);
-	free(miConfig);
-	free(config);
+	//free(config);
 	close(socket_lfs);
 	close(socket_kernel);
 	close(socket_sv);
 //	list_iterate(tablaSegmentos, liberarPaginas);
-	list_destroy_and_destroy_elements(tablaGossip, free);
+//	list_destroy_and_destroy_elements(tablaGossip, free);
 	free(tablaSegmentos);
 	free(tablaGossip);
 	//free(header);
