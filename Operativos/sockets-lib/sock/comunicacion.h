@@ -134,8 +134,8 @@ typedef struct {
 } tAdd;
 
 typedef struct {
-	char puerto[5];
-	char ip[12];
+	char puerto[6];
+	char ip[16];
 	int numeroMemoria;
 }tMemoria;
 typedef struct {

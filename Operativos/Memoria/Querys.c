@@ -115,10 +115,12 @@ void ejecutarConsulta(int socket, type header) {
 			error = agregarPaginaAMemoria(miSegmento,pagina,true);
 
 		}
+
 		validarAgregadoDePagina(leyoConsola,&error,socket, miSegmento, pagina,true);
 		free(packInsert->nombre_tabla);
 		free(packInsert->value);
 		free(packInsert);
+
 
 
 		break;
@@ -132,7 +134,6 @@ void ejecutarConsulta(int socket, type header) {
 		free(packCreate->nombre_tabla);
 		free(packCreate);
 		free(createAEnviar);
-
 		break;
 
 	case DROP:
@@ -155,13 +156,14 @@ void ejecutarConsulta(int socket, type header) {
 		free(packDrop->nombre_tabla);
 		free(packDrop);
 		free(dropSerializado);
-
 		break;
+
 	case JOURNAL:
 		packJournal = malloc(sizeof(tJournal));
 		cargarPackJournal(packJournal, leyoConsola, paramsConsola->consulta, socket);
 		ejecutarJournal();
 		break;
+
 	case DESCRIBE:
 		packDescribe = malloc(sizeof(tDescribe));
 		packDescResp = malloc(sizeof(t_describe));
@@ -228,14 +230,11 @@ void ejecutarConsulta(int socket, type header) {
 	case NIL:
 		log_error(logger, "No entendi la consulta");
 		break;
-
 	}
-
 	free(miSegmento);
 	free(pagina->value);
 	free(pagina);
 	free(pagTabla);
-
 
 }
 

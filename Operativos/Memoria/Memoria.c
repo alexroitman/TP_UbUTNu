@@ -171,8 +171,8 @@ void realizarGossiping() {
 						seeds[i] = -1;
 						log_debug(logger,"Error al enviar tabla a seed %d",i);
 					}
-					free(packGossip);
 					free(packGossip->memorias);
+					free(packGossip);
 					free(serializado);
 				}else{
 					log_debug(logger,"No me pude conectar con mi seed %d",i);
