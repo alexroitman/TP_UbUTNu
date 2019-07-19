@@ -11,6 +11,13 @@ type leerHeader(int socket) {
 	return header;
 }
 
+unsigned long long obtenerTimestamp() {
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return ((unsigned long long) (tv.tv_sec)) * 1000
+			+ ((unsigned long long) (tv.tv_usec)) / 1000;
+}
+
 char* serializarGossip(tGossip* packGossip) {
 	char* serializedPackage = malloc(sizeof(type) +
 			sizeof(packGossip->cant_memorias)
@@ -107,14 +114,14 @@ void cargarPaqueteInsertLFS(tInsert *pack, char* cons) {
 		pack->nombre_tabla_long = strlen(spliteado[1]) + 1;
 		pack->key = atoi(spliteado[2]);
 		if(spliteado[4]==NULL)
-			pack->timestamp=time(NULL);
+			pack->timestamp=obtenerTimestamp();
 		else
-			pack->timestamp=atoi(spliteado[4]);
+			pack->timestamp=atol(spliteado[4]);
 		strcpy(pack->value, value[1]);
 		pack->value_long = strlen(value[1]) + 1;
 		pack->length = sizeof(pack->type) + sizeof(pack->nombre_tabla_long)
 				+ pack->nombre_tabla_long + sizeof(pack->key)
-				+ sizeof(pack->value_long) + pack->value_long;
+				+ sizeof(pack->value_long) + pack->value_long + sizeof(pack->timestamp);
 	} else {
 		printf("no entendi tu consulta\n");
 	}
@@ -287,7 +294,7 @@ char* serializarInsert(tInsert* packageInsert) {
 	memcpy(serializedPackage + offset, (packageInsert->value), size_to_send);
 	offset += size_to_send;
 
-	size_to_send = sizeof(int);
+	size_to_send = sizeof(packageInsert->timestamp);
 	memcpy(serializedPackage + offset, &packageInsert->timestamp, size_to_send);
 
 	return serializedPackage;
@@ -614,7 +621,7 @@ char* serializarRegistro(tRegistroRespuesta* reg) {
 	memcpy(serializedPackage + offset, (reg->value), size_to_send);
 	offset += size_to_send;
 
-	size_to_send = sizeof(int);
+	size_to_send = sizeof(reg->timestamp);
 	memcpy(serializedPackage + offset, &reg->timestamp, size_to_send);
 
 	return serializedPackage;
