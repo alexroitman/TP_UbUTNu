@@ -126,7 +126,6 @@ void inicializarTablaGossip() {
 }
 
 void realizarGossiping() {
-	/*
 	int cant = 0;
 	while (miConfig->puerto_seeds[cant] != NULL) {
 		cant++;
@@ -158,12 +157,13 @@ void realizarGossiping() {
 					int tam_tot = cantMemorias * sizeof(tMemoria) + sizeof(type)
 							+ sizeof(int);
 					error = enviarPaquete(seeds[i], serializado, tam_tot);
-					if (recv(seeds[i], &(*header), sizeof(type),
+					type head;
+					if (recv(seeds[i], &head, sizeof(type),
 					MSG_WAITALL) > 0 && error >= 0) {
 						//log_debug(logger, "llego algo del cliente %d", clienteGossip);
 						recibioSocket = true;
 						sem_wait(&mutexJournal);
-						ejecutarConsulta(seeds[i]);
+						ejecutarConsulta(seeds[i],head);
 						sem_post(&mutexJournal);
 					}else{
 						seeds[i] = -1;
@@ -180,9 +180,9 @@ void realizarGossiping() {
 
 	}else{
 		log_debug(logger,"No tengo seeds");
-	}*/
+	}
 
-	if ((miConfig->puerto_seeds)[0] != NULL && (miConfig->ip_seeds)[0] != NULL) {
+	/*if ((miConfig->puerto_seeds)[0] != NULL && (miConfig->ip_seeds)[0] != NULL) {
 
 		while (1) {
 			int clienteGossip;
@@ -226,7 +226,7 @@ void realizarGossiping() {
 				free(serializado);
 			}
 		}
-	}
+	}*/
 
 }
 

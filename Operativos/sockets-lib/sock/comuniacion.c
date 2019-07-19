@@ -598,7 +598,7 @@ int desSerializarJournal(tJournal* packageJournal, int socket){
 }
 char* serializarRegistro(tRegistroRespuesta* reg) {
 	reg->length = sizeof(reg->tipo) + sizeof(reg->value_long) + reg->value_long
-			+ sizeof(int) + sizeof(uint16_t);
+			+ sizeof(unsigned long long) + sizeof(uint16_t);
 
 	char *serializedPackage = malloc(reg->length);
 	int offset = 0;

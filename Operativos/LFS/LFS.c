@@ -43,6 +43,7 @@ int main(void) {
 
 	// Abro hilo de consola
 	paramsConsola = malloc(sizeof(tHiloConsola));
+	paramsConsola->header = malloc(sizeof(type));
 	*(paramsConsola->header) = NIL;
 	pthread_create(&hiloConsola, NULL, (void*) abrirHiloConsola, paramsConsola);
 	pthread_create(&hiloDumpeo, NULL, (void*) hiloDump, NULL);
@@ -167,11 +168,11 @@ void receptorDeSockets(int* socket) {
 						free(registro);
 					} else if (errorHandler == noExisteKey || errorHandler == noExisteTabla) {
 						registro->tipo = REGISTRO;
-						registro->timestamp = -1;
+						registro->timestamp = 0;
 						registro->value = "";
 						registro->key = 0;
 						registro->value_long = 1;
-						log_debug(logger, "guarde valores en el registro");
+						//log_debug(logger, "guarde valores en el registro");
 						char* registroSerializado = serializarRegistro(
 								registro);
 						//TODO: handlear error de serializarRegistro
@@ -364,7 +365,7 @@ void abrirHiloConsola(void* params) {
 			if (!packInsertConsola)
 				logeoDeErroresLFS(errorDeMalloc, logger);
 			cargarPaqueteInsertLFS(packInsertConsola, paramsConsola->consulta);
-			log_debug(logger, "%d", packInsertConsola->timestamp);
+			log_debug(logger, "%llu", packInsertConsola->timestamp);
 			errorHandler = insertarEnMemtable(packInsertConsola);
 			free(packInsertConsola->value);
 			free(packInsertConsola->nombre_tabla);
@@ -788,13 +789,13 @@ int Select(registro** reg, char* NOMBRE_TABLA, int KEY) {
 	if (!errorHandler)
 		return noExisteTabla;
 	t_list* registros = list_create();
-//	log_debug(logger, "me voy a fijar a memtable");
+	log_debug(logger, "me voy a fijar a memtable");
 	t_list* memtable = selectEnMemtable(KEY, NOMBRE_TABLA);
 	pthread_mutex_lock(&mem_table_mutex);
 	if (memtable->elements_count > 0)
 		list_add_all(registros, memtable);
 	pthread_mutex_unlock(&mem_table_mutex);
-//	log_debug(logger, "me voy a fijar a FS");
+	log_debug(logger, "me voy a fijar a FS");
 	registro* registry = malloc(sizeof(registro));
 	if (!registry)
 		return errorDeMalloc;
@@ -805,7 +806,7 @@ int Select(registro** reg, char* NOMBRE_TABLA, int KEY) {
 		return errorHandler;
 	if (registry != NULL)
 		list_add(registros, registry);
-//	log_debug(logger, "me voy a fijar a Temp");
+	log_debug(logger, "me voy a fijar a Temp");
 	t_list* temporales = SelectTemp(ruta, KEY);
 	//faltan los tempc IGUAL A TEMP
 	//signal
@@ -971,7 +972,7 @@ int SelectFS(char* ruta, int KEY, registro** reg) {
 		while (registros[j] != NULL) {
 			char** datos_registro = string_split(registros[j], ";");
 			if (atoi(datos_registro[1]) == KEY) {
-				(*reg)->timestamp = atol(datos_registro[0]);
+				(*reg)->timestamp = atoll(datos_registro[0]);
 				(*reg)->key = atoi(datos_registro[1]);
 				(*reg)->value = malloc(strlen(datos_registro[2]) + 1);
 				if ((*reg)->value == NULL)
@@ -1033,14 +1034,14 @@ t_list* SelectTemp(char* ruta, int KEY) {
 			char** registros = string_split(bloquesUnificados, "\n");
 //		Recorro y divido los datos unificado del archivos temporal, almacenando solo las keys que coincidan con la solicitada
 			while (registros[j] != NULL) {
-				registro* registro = malloc(sizeof(registro));
+				registro* reg = malloc(sizeof(registro));
 				char** datos_registro = string_split(registros[j], ";");
 				if (atoi(datos_registro[1]) == KEY) {
-					registro->timestamp = atoi(datos_registro[0]);
-					registro->key = atoi(datos_registro[1]);
-					registro->value = malloc(strlen(datos_registro[2]) + 1);
-					strcpy(registro->value, datos_registro[2]);
-					list_add(listRegistros, registro);
+					reg->timestamp = atoll(datos_registro[0]);
+					reg->key = atoi(datos_registro[1]);
+					reg->value = malloc(strlen(datos_registro[2]) + 1);
+					strcpy(reg->value, datos_registro[2]);
+					list_add(listRegistros, reg);
 				}
 				string_iterate_lines(datos_registro, (void*) free);
 				free(datos_registro);
@@ -1220,9 +1221,9 @@ void dumpearTabla(t_list* registros, char* ruta) {
 	char* registroParaEscribir = string_new();
 	void dumpearRegistros(registro* UnRegistro) {
 		log_debug(logger, "Entre a dumpearRegistros");
-		log_debug(logger, "voy a dumpear unRegistro con: %d;%d;%s\n",
+		log_debug(logger, "voy a dumpear unRegistro con: %llu;%d;%s\n",
 				UnRegistro->timestamp, UnRegistro->key, UnRegistro->value);
-		string_append_with_format(&registroParaEscribir, "%d;%d;%s\n",
+		string_append_with_format(&registroParaEscribir, "%llu;%d;%s\n",
 				UnRegistro->timestamp, UnRegistro->key, UnRegistro->value);
 		log_debug(logger, "voy a escribir esto: %s", registroParaEscribir);
 	}
@@ -1531,11 +1532,11 @@ void crearListaRegistros(char** string, t_list* lista) {
 		while (registros[j] != NULL) {
 			registro* reg = malloc(sizeof(registro));
 			datos_registro = string_split(registros[j], ";");
-			reg->timestamp = atoi(datos_registro[0]);
+			reg->timestamp = atoll(datos_registro[0]);
 			reg->key = atoi(datos_registro[1]);
 			reg->value = malloc(strlen(datos_registro[2]) + 1);
 			strcpy(reg->value, datos_registro[2]);
-			log_debug(logger, "%d;%d;%s", reg->timestamp, reg->key, reg->value);
+			log_debug(logger, "%llu;%d;%s", reg->timestamp, reg->key, reg->value);
 			list_add(lista, reg);
 			j++;
 		}
