@@ -128,6 +128,7 @@ void inicializarTablaGossip() {
 }
 
 void realizarGossiping() {
+	/*
 	int cant = 0;
 	while (miConfig->puerto_seeds[cant] != NULL) {
 		cant++;
@@ -182,9 +183,9 @@ void realizarGossiping() {
 
 	}else{
 		log_debug(logger,"No tengo seeds");
-	}
+	}*/
 
-	/*if ((miConfig->puerto_seeds)[0] != NULL && (miConfig->ip_seeds)[0] != NULL) {
+	if ((miConfig->puerto_seeds)[0] != NULL && (miConfig->ip_seeds)[0] != NULL) {
 
 		while (1) {
 			int clienteGossip;
@@ -228,7 +229,7 @@ void realizarGossiping() {
 				free(serializado);
 			}
 		}
-	}*/
+	}
 
 }
 
@@ -710,15 +711,15 @@ void finalizarEjecucion() {
 	printf("------------------------\n");
 	printf("¿chau chau adios?\n");
 	printf("------------------------\n");
-	//free(config);
+	free(config);
 	close(socket_lfs);
 	close(socket_kernel);
 	close(socket_sv);
-//	list_iterate(tablaSegmentos, liberarPaginas);
-//	list_destroy_and_destroy_elements(tablaGossip, free);
+	list_iterate(tablaSegmentos, liberarPaginas);
+	list_destroy_and_destroy_elements(tablaGossip, free);
 	free(tablaSegmentos);
 	free(tablaGossip);
-	//free(header);
+//	free(header);
 	free(memoria);
 	free(paramsConsola);
 	sem_destroy(&mutexJournal);

@@ -165,17 +165,42 @@ void ejecutarConsulta(int socket, type header) {
 		break;
 
 	case DESCRIBE:
+		log_debug(logger,"Llega un Describe");
 		packDescribe = malloc(sizeof(tDescribe));
 		packDescResp = malloc(sizeof(t_describe));
 		desSerializarDescribe(packDescribe, socket);
 		char* serializado = serializarDescribe(packDescribe);
-		enviarPaquete(socket_lfs,serializado,packDescribe->length);
-		desserializarDescribe_Response(packDescResp,socket_lfs);
-		char* respSerializada = serializarDescribe_Response(packDescResp);
-		int length = packDescResp->cant_tablas * sizeof(t_metadata) + sizeof(uint16_t);
-		enviarPaquete(socket,respSerializada,length);
+		log_debug(logger,"Serializo la consulta de Describe");
+		int bytes = enviarPaquete(socket_lfs, serializado,
+				packDescribe->length);
+		if (bytes > 0) {
+			log_debug(logger, "Envio %d bytes de desc req", bytes);
+			desserializarDescribe_Response(packDescResp, socket_lfs);
+			if (packDescResp->cant_tablas == 0) {
+				log_debug(logger, "Recibi metadatas NULL");
+				t_describe* describe = malloc(sizeof(t_describe));
+				describe->cant_tablas = 0;
+				char* serializedPackage;
+				serializedPackage = serializarDescribe_Response(describe);
+				send(socket, serializedPackage, sizeof(describe->cant_tablas),
+						0);
+				dispose_package(&serializedPackage);
+			} else {
+				log_debug(logger, "Recibi %d tablas",
+						packDescResp->cant_tablas);
+				char* respSerializada = serializarDescribe_Response(
+						packDescResp);
+				int length = packDescResp->cant_tablas * sizeof(t_metadata)
+						+ sizeof(uint16_t);
+				enviarPaquete(socket, respSerializada, length);
+				log_debug(logger, "Envio %d tablas a kernel",
+						packDescResp->cant_tablas);
+				//free(respSerializada);
+			}
+		}
+
 		free(packDescResp->tablas);
-		free(respSerializada);
+
 		free(serializado);
 		free(packDescResp);
 		free(packDescribe->nombre_tabla);

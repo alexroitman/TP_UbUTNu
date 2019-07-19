@@ -498,11 +498,13 @@ char* serializarDescribe_Response(t_describe *package) {
 	int size_to_send;
 
 	size_to_send = sizeof(package->cant_tablas);
+//	printf("size to send %d \n",size_to_send);
 	memcpy(serializedPackage + offset, &(package->cant_tablas), size_to_send);
 	offset += size_to_send;
 
 	for (int x = 0; x < package->cant_tablas; x++) {
 		size_to_send = sizeof(t_metadata);
+//		printf("size to send %d \n",size_to_send);
 		memcpy(serializedPackage + offset, &(package->tablas[x]), size_to_send);
 		offset += size_to_send;
 
@@ -513,14 +515,17 @@ char* serializarDescribe_Response(t_describe *package) {
 
 int desserializarDescribe_Response(t_describe* package, int socket) {
 
-	int status = recv(socket, &(package->cant_tablas), sizeof(package->cant_tablas), 0); //recibo el nombre de la key
+	int status = recv(socket, &(package->cant_tablas), sizeof(package->cant_tablas), MSG_WAITALL); //recibo el nombre de la key
 	if (!status)
 		return 0;
 
 	package->tablas = malloc(package->cant_tablas * sizeof(t_metadata));
-	for (int x = 0; x < package->cant_tablas; x++) {
-		status = recv(socket, &package->tablas[x], sizeof(t_metadata), 0);
+	if (package->cant_tablas > 0) {
+		for (int x = 0; x < package->cant_tablas; x++) {
+			status = recv(socket, &package->tablas[x], sizeof(t_metadata), 0);
+		}
 	}
+
 	return status;
 }
 

@@ -83,9 +83,9 @@ void levantarMetadataFS() {
 	strcpy(configMetadata->magicNumber,
 			config_get_string_value(aux, "MAGIC_NUMBER"));
 	config_destroy(aux);
-	log_debug(logger, "%d", configMetadata->blockSize);
-	log_debug(logger, "%d", configMetadata->blocks);
-	log_debug(logger, "%s", configMetadata->magicNumber);
+//	log_debug(logger, "%d", configMetadata->blockSize);
+//	log_debug(logger, "%d", configMetadata->blocks);
+//	log_debug(logger, "%s", configMetadata->magicNumber);
 }
 
 void levantarConfigLFS() {
@@ -101,11 +101,11 @@ void levantarConfigLFS() {
 	configLFS->tamanioValue = config_get_int_value(aux, "TAMANIO_VALUE");
 	configLFS->tiempoDumpeo = config_get_int_value(aux, "TIEMPO_DUMP");
 	config_destroy(aux);
-	log_debug(logger, "%s", configLFS->puerto);
-	log_debug(logger, "%s", configLFS->dirMontaje);
-	log_debug(logger, "%d", configLFS->retardo);
-	log_debug(logger, "%d", configLFS->tamanioValue);
-	log_debug(logger, "%d", configLFS->tiempoDumpeo);
+//	log_debug(logger, "%s", configLFS->puerto);
+//	log_debug(logger, "%s", configLFS->dirMontaje);
+//	log_debug(logger, "%d", configLFS->retardo);
+//	log_debug(logger, "%d", configLFS->tamanioValue);
+//	log_debug(logger, "%d", configLFS->tiempoDumpeo);
 }
 
 void hiloDump() {
@@ -132,13 +132,17 @@ void receptorDeSockets(int* socket) {
 
 		switch (header) {
 		case SELECT:
-			log_debug(logger, "Comando SELECT recibido");
+			log_debug(logger, "Comando SELECT recibido por socket: %d", *socket);
 			tSelect* packSelect = malloc(sizeof(tSelect));
-			if (!packSelect)
+			if (!packSelect){
 				errorHandler = errorDeMalloc;
+				logeoDeErroresLFS(errorHandler, logger);
+			}
 			else {
+				log_debug(logger, "VOY A DESSERIALIZAR %d",*socket);
 				desSerializarSelect(packSelect, *socket);
 				//TODO: handlear error de desSerializarSelect
+				log_debug(logger, "TABLA %s",packSelect->nombre_tabla);
 				packSelect->type = header;
 				registro* reg = malloc(sizeof(registro));
 				if (!reg)
@@ -195,7 +199,7 @@ void receptorDeSockets(int* socket) {
 			break;
 
 		case INSERT:
-			log_debug(logger, "Comando INSERT recibido");
+			log_debug(logger, "Comando INSERT recibido por socket: %d", *socket);
 			tInsert* packInsert = malloc(sizeof(tInsert));
 			if (!packInsert)
 				errorHandler = errorDeMalloc;
@@ -212,7 +216,7 @@ void receptorDeSockets(int* socket) {
 			break;
 
 		case CREATE:
-			log_debug(logger, "Comando CREATE recibido");
+			log_debug(logger, "Comando CREATE recibido por socket: %d", *socket);
 			tCreate* packCreate = malloc(sizeof(tCreate));
 			if (!packCreate) {
 				errorHandler = errorDeMalloc;
@@ -228,22 +232,28 @@ void receptorDeSockets(int* socket) {
 			break;
 
 		case ADD:
-			log_debug(logger, "Comando ADD recibido");
 			break;
 
 		case DESCRIBE:
-			log_debug(logger, "Comando DESCRIBE recibido");
+			log_debug(logger, "Comando DESCRIBE recibido por socket: %d", *socket);
 			tDescribe* packDescribe = malloc(sizeof(tDescribe));
 			t_metadata* metadata = malloc(sizeof(t_metadata));
 			if (!packDescribe || !metadata)
 				logeoDeErroresLFS(errorDeMalloc, logger);
 			t_list* metadatas;
+			log_debug(logger, "Voy a des serializar");
 			desSerializarDescribe(packDescribe, *socket);
-			if (!strcmp(packDescribe->nombre_tabla, ""))
+			log_debug(logger, "sali de serializar");
+			if (!strcmp(packDescribe->nombre_tabla, "")){
+				log_debug(logger, "Describe general");
 				metadatas = Describe();
-			else
+			}
+			else{
+				log_debug(logger, "Describe general");
 				metadatas = DESCRIBEespecifico(packDescribe->nombre_tabla);
+			}
 			if (metadatas != NULL) {
+				log_debug(logger, "Las metadatas no son NULL");
 				t_describe* describe = malloc(sizeof(t_describe));
 				if (!describe)
 					logeoDeErroresLFS(errorDeMalloc, logger);
@@ -263,9 +273,8 @@ void receptorDeSockets(int* socket) {
 				char* cantidad_de_tablas_string = string_itoa(
 						cantidad_de_tablas);
 				free(cantidad_de_tablas_string);
-				int b = send(*socket, serializedPackage,
-						cantidad_de_tablas * sizeof(t_metadata)
-								+ sizeof(describe->cant_tablas), 0);
+				log_debug(logger,"summa rara: %d",  cantidad_de_tablas * sizeof(t_metadata) + sizeof(describe->cant_tablas));
+				int b = send(*socket, serializedPackage, cantidad_de_tablas * sizeof(t_metadata) + sizeof(describe->cant_tablas), 0);
 				log_debug(logger, "envie %d bytes", b);
 				dispose_package(&serializedPackage);
 				free(describe->tablas);
@@ -275,6 +284,7 @@ void receptorDeSockets(int* socket) {
 				}
 				list_destroy(metadatas);
 			} else {
+				log_debug(logger, "Recibi metadatas NULL");
 				t_describe* describe = malloc(sizeof(t_describe));
 				if (!describe)
 					logeoDeErroresLFS(errorDeMalloc, logger);
@@ -282,14 +292,10 @@ void receptorDeSockets(int* socket) {
 				if (!describe->tablas)
 					logeoDeErroresLFS(errorDeMalloc, logger);
 				describe->cant_tablas = 0;
-				t_metadata meta;
-				meta.consistencia = SC;
-				strcpy(meta.nombre_tabla, "NO_TABLE");
-				describe->tablas[0] = meta;
 				char* serializedPackage;
 				serializedPackage = serializarDescribe_Response(describe);
 				send(*socket, serializedPackage,
-						sizeof(t_metadata) + sizeof(describe->cant_tablas), 0);
+						sizeof(describe->cant_tablas), 0);
 				dispose_package(&serializedPackage);
 				//list_destroy(metadatas);
 			}
@@ -298,38 +304,21 @@ void receptorDeSockets(int* socket) {
 			break;
 
 		case DROP:
-			/*
-			 log_debug(logger, "Comando DROP recibido");
-			 tDrop* packDrop = malloc(sizeof(tDrop));
-			 if (!packDrop) {
+		 log_debug(logger, "Comando DROP recibido por socket: %d", *socket);
+		 tDrop* packDrop = malloc(sizeof(tDrop));
+		 if (!packDrop) {
 			 errorHandler = errorDeMalloc;
 			 break;
-			 }
-			 errorHandler = desSerializarDrop(packDrop, socket_cli);
-			 if (errorHandler)
-
+		 }
+		 errorHandler = desSerializarDrop(packDrop, socket_cli);
+		 if (errorHandler)
 			 packDrop->type = header;
-			 errorHandler = Drop(packDrop->nombre_tabla);
-			 free(packDrop);
-			 */
-			dumpeoMemoria();
-			compactacion("FELO");
-			break;
+		 errorHandler = Drop(packDrop->nombre_tabla);
+		 free(packDrop);
+		 break;
 
-		case JOURNAL:
-			log_debug(logger, "Comando JOURNAL recibido");
-			break;
-
-		case NIL:
-			log_debug(logger, "Comando NIL recibido");
-			break;
-
-		case REGISTRO:
-			log_debug(logger, "Comando REGISTRO recibido");
-			break;
-
-		case RUN:
-			log_debug(logger, "Comando RUN recibido");
+		default:
+			log_debug(logger, "Comando no reconocido");
 			break;
 		}
 		logeoDeErroresLFS(errorHandler, logger);
@@ -452,19 +441,18 @@ void abrirHiloSockets() {
 		logeoDeErroresLFS(noLevantoServidor, logger);
 	log_debug(logger, "%d", socket_sv);
 	socket_cli = aceptarCliente(socket_sv);
-	log_debug(logger, "%d", socket_cli);
+	log_debug(logger, "levante un cliente con socket: %d", socket_cli);
 	send(socket_cli, &configLFS->tamanioValue, 4, 0);
 	pthread_create(&threadPrincipal, NULL, (void*) receptorDeSockets,
 			&socket_cli);
 	while (1) {
-		log_debug(logger, "entre al while para crear una nueva memoria");
-		int socketNuevo;
+//		log_debug(logger, "entre al while para crear una nueva memoria");
+		int *socketNuevo = malloc(sizeof(int));
 		pthread_t threadNuevo;
-		socketNuevo = aceptarCliente(socket_sv);
-		send(socketNuevo, &configLFS->tamanioValue, 4, 0);
-		pthread_create(&threadNuevo, NULL, (void*) receptorDeSockets,
-				&socketNuevo);
-		log_debug(logger, "levante cliente");
+		*socketNuevo = aceptarCliente(socket_sv);
+		send(*socketNuevo, &configLFS->tamanioValue, 4, 0);
+		pthread_create(&threadNuevo, NULL, (void*) receptorDeSockets, socketNuevo);
+		log_debug(logger, "levante otro cliente con socket: %d", *socketNuevo);
 	}
 }
 
@@ -493,9 +481,9 @@ void abrirHiloCompactacion() {
 	log_debug(logger, tablas_path);
 	tables_directory = opendir(tablas_path);
 	if (tables_directory) {
-		log_debug(logger, "Entre al if");
+//		log_debug(logger, "Entre al if");
 		while ((a_directory = readdir(tables_directory)) != NULL) {
-			log_debug(logger, "Entre al while");
+//			log_debug(logger, "Entre al while");
 			if (strcmp(a_directory->d_name, ".")
 					&& strcmp(a_directory->d_name, "..")) {
 
@@ -517,15 +505,12 @@ void abrirHiloCompactacion() {
 void hiloCompactar(void* nombre_tabla) {
 
 	pthread_mutex_t mutexTabla;
-	log_debug(logger, "inicializo mutex");
 	pthread_mutex_init(&mutexTabla, NULL);
-	log_debug(logger, "agrego al dic");
 	dictionary_put(bloqueoTablas, nombre_tabla, &mutexTabla);
 
 	while (1) {
 		log_debug(logger, "intento compactar %s", (char*) nombre_tabla);
 		if (!verificadorDeTabla((char*) nombre_tabla)) {
-			log_debug(logger, "cieroo compactar");
 			pthread_exit(NULL);
 		}
 		char* tablas_path = string_new();
@@ -537,7 +522,6 @@ void hiloCompactar(void* nombre_tabla) {
 		free(tablas_path);
 		int retardoCompac = config_get_int_value(configComp, "COMPACTION_TIME");
 		config_destroy(configComp);
-		log_debug(logger, "%d", retardoCompac);
 		usleep(retardoCompac * 1000);
 		if (!verificadorDeTabla((char*) nombre_tabla)) {
 			log_debug(logger, "intento cierro");
@@ -547,8 +531,6 @@ void hiloCompactar(void* nombre_tabla) {
 
 
 		int dumps = contadorDeArchivos(nombre_tabla, "tmp");
-		log_debug(logger, "%d", dumps);
-
 		if (dumps > 0) {
 			log_debug(logger, "compacto");
 			compactacion((char*) nombre_tabla);
@@ -808,6 +790,7 @@ int Select(registro** reg, char* NOMBRE_TABLA, int KEY) {
 	t_list* registros = list_create();
 	log_debug(logger, "me voy a fijar a memtable");
 	t_list* memtable = selectEnMemtable(KEY, NOMBRE_TABLA);
+	log_debug(logger, "sali de memtable: %d", memtable->elements_count);
 	pthread_mutex_lock(&mem_table_mutex);
 	if (memtable->elements_count > 0)
 		list_add_all(registros, memtable);
@@ -816,16 +799,18 @@ int Select(registro** reg, char* NOMBRE_TABLA, int KEY) {
 	registro* registry = malloc(sizeof(registro));
 	if (!registry)
 		return errorDeMalloc;
-
 	//wait
 	errorHandler = SelectFS(ruta, KEY, &registry);
 	if (errorHandler)
 		return errorHandler;
-	if (registry != NULL)
+	if (registry != NULL){
 		list_add(registros, registry);
+		log_debug(logger, "puntero que devuelve FS no es NULL");
+	}
 
+	log_debug(logger, "me voy a fijar a temporales");
 	t_list* temporales = SelectTemp(ruta, KEY,NOMBRE_TABLA);
-
+	log_debug(logger, "sali de temporales: %d", temporales->elements_count);
 	//faltan los tempc IGUAL A TEMP
 	//signal
 	if (temporales->elements_count > 0)
@@ -1215,7 +1200,8 @@ int dumpeoMemoria() {
 		pthread_mutex_lock(mutex);
 		int fd = creat(tablaParaDumpeo, (mode_t) 0600);
 		close(fd);
-		dumpearTabla(tabla->registros, tablaParaDumpeo);
+		if(!list_is_empty(tabla->registros))
+			dumpearTabla(tabla->registros, tablaParaDumpeo);
 		pthread_mutex_unlock(mutex);
 	}
 	void destruidor(t_tabla *tabla) {
