@@ -71,8 +71,8 @@ void ejecutarConsulta(int socket, type header) {
 		}
 		free(reg->value);
 		free(reg);
-		free(packSelect);
 		free(packSelect->nombre_tabla);
+		free(packSelect);
 		break;
 	case INSERT:
 		packInsert = malloc(sizeof(tInsert));
@@ -116,9 +116,9 @@ void ejecutarConsulta(int socket, type header) {
 		}
 		validarAgregadoDePagina(leyoConsola,error,socket, miSegmento, pagina,true);
 
-		free(packInsert);
 		free(packInsert->nombre_tabla);
 		free(packInsert->value);
+		free(packInsert);
 
 		break;
 	case CREATE:
@@ -127,10 +127,10 @@ void ejecutarConsulta(int socket, type header) {
 		char* createAEnviar = serializarCreate(packCreate);
 		enviarPaquete(socket_lfs, createAEnviar, packCreate->length);
 		log_debug(logger, "Mando la consulta a LFS");
-		free(packCreate);
 		free(createAEnviar);
 		free(packCreate->consistencia);
 		free(packCreate->nombre_tabla);
+		free(packCreate);
 		break;
 
 	case DROP:
@@ -150,16 +150,17 @@ void ejecutarConsulta(int socket, type header) {
 		char* dropSerializado = serializarDrop(packDrop);
 		enviarPaquete(socket_lfs, dropSerializado, packDrop->length);
 		log_debug(logger, "Envio DROP a LFS");
-		free(packDrop);
 		free(packDrop->nombre_tabla);
+		free(packDrop);
 		free(dropSerializado);
-
 		break;
+
 	case JOURNAL:
 		packJournal = malloc(sizeof(tJournal));
 		cargarPackJournal(packJournal, leyoConsola, paramsConsola->consulta, socket);
 		ejecutarJournal();
 		break;
+
 	case DESCRIBE:
 		packDescribe = malloc(sizeof(tDescribe));
 		packDescResp = malloc(sizeof(t_describe));
@@ -188,10 +189,10 @@ void ejecutarConsulta(int socket, type header) {
 		//close(socket);
 		//int socketResp = levantarCliente(packGossip->memorias[0].puerto , packGossip->memorias[0].ip);
 		devolverTablaGossip(gossipResp,socket);
-		free(packGossip);
-		free(gossipResp);
 		free(packGossip->memorias);
 		free(gossipResp->memorias);
+		free(packGossip);
+		free(gossipResp);
 		break;
 	case RESPGOSS:
 		packGossip = malloc(sizeof(tGossip));
@@ -199,8 +200,8 @@ void ejecutarConsulta(int socket, type header) {
 		actualizarTablaGossip(packGossip);
 		//FD_CLR(socket,&active_fd_set);
 		//close(socket);
-		free(packGossip);
 		free(packGossip->memorias);
+		free(packGossip);
 		log_debug(logger,"cant elementos tabla: %d",tablaGossip->elements_count);
 		/*
 		desSerializarGossiping(RESPGOSS);
@@ -213,8 +214,8 @@ void ejecutarConsulta(int socket, type header) {
 		gossipKernel->memorias = malloc(
 				tablaGossip->elements_count * sizeof(tMemoria));
 		devolverTablaGossip(gossipKernel, socket);
-		free(gossipKernel);
 		free(gossipKernel->memorias);
+		free(gossipKernel);
 		break;
 	case SIGNAL:
 		log_debug(logger,"Kernel quiere saber si estoy vivo");
@@ -223,14 +224,11 @@ void ejecutarConsulta(int socket, type header) {
 	case NIL:
 		log_error(logger, "No entendi la consulta");
 		break;
-
 	}
-
 	free(miSegmento);
+	free(pagina->value);
 	free(pagina);
 	free(pagTabla);
-	free(pagina->value);
-
 }
 
 int pedirRegistroALFS(int socket, tSelect* packSelect, tRegistroRespuesta* reg) {
