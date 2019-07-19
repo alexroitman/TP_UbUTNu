@@ -44,8 +44,8 @@ t_list *memorias;
 t_list *listaTablas;
 t_list *listaDeLSockets;
 t_list *memoriasCaidas;
+t_list *memLoads;
 configKernel *miConfig;
-t_config* config;
 int contScript;
 bool continuar = true;
 int contMult = 0;
@@ -56,25 +56,35 @@ int cantMemorias = 1;
 
 int main(){
 	signal(SIGINT, finalizarEjecucion);
+	miConfig = malloc(sizeof(configKernel));
 	inicializarTodo();
 	SC = malloc(sizeof(tMemoria));
 	SC->numeroMemoria = -1;
 	t_infoMem* socket_memoria = malloc(sizeof(t_infoMem));
 	socket_memoria->socket = levantarCliente(miConfig->puerto_mem, miConfig->ip_mem);
-	socket_memoria->id = 1;
 	tMemoria *mem = malloc(sizeof(tMemoria));
 	strcpy(mem->ip,miConfig->ip_mem);
 	strcpy(mem->puerto,miConfig->puerto_mem);
-	mem->numeroMemoria = 1;
+	int size_to_send = sizeof(type);
+	char* serializedPackage = malloc(size_to_send);
+	type signal = SIGNAL;
+	memcpy(serializedPackage,&(signal),size_to_send);
+	enviarPaquete(socket_memoria->socket,serializedPackage,size_to_send);
+	free(serializedPackage);
+	recv(socket_memoria->socket,&mem->numeroMemoria,sizeof(int),0);
+	socket_memoria->id = mem->numeroMemoria;
 	list_add(memorias,mem);
-	log_debug(logger,"Sockets inicializados con exito");
-	log_debug(logger,"Se tendra un nivel de multiprocesamiento de: %d cpus", miConfig->MULT_PROC);
+	tMemLoad* memload = malloc(sizeof(tMemLoad));
+	memload->mem = mem;
+	memload->cont = 0;
+	list_add(memLoads,memload);
+	log_debug(logger,"Este es el numero de mi memoria principal: %d",mem->numeroMemoria);
 	log_debug(logger, "Realizando describe general");
 	pthread_t cpus[miConfig->MULT_PROC];
 	t_list *sockets = list_create();
 	listaDeLSockets = list_create();
 	memoriasCaidas = list_create();
-	list_add_in_index(sockets,0,socket_memoria);
+	list_add(sockets,socket_memoria);
 	list_add_in_index(listaDeLSockets,contMult,sockets);
 	despacharQuery("describe\n",sockets);
 	if(levantarCpus(cpus)){
@@ -84,7 +94,7 @@ int main(){
 		pthread_create(&hiloGossip,NULL,(void*) gossip,NULL);
 		pthread_create(&hiloMetrics,NULL,(void*)metrics,NULL);
 		pthread_create(&hiloInnotify, NULL, (void*) innotificar, NULL);
-		pthread_create(&hiloDescribe,NULL,describe,NULL);
+		pthread_create(&hiloDescribe,NULL,(void*) describe,NULL);
 		char consulta[256] = "";
 		for(int i = 0; i < miConfig->MULT_PROC; i++){
 			pthread_detach(cpus[i]);
@@ -137,11 +147,13 @@ int main(){
 						return mem2->id == mem->numeroMemoria;
 					}
 					if(list_filter(sockets,compararNumeroMem)->elements_count != 0){
-						int info = enviarPaquete(((t_infoMem*)list_get(sockets,0))->socket,serializedPackage,size_to_send);
+						t_infoMem* memoria = (t_infoMem*)list_find(sockets,compararNumeroMem);
+						int info = enviarPaquete(memoria->socket,serializedPackage,size_to_send);
 						if(info == -1){
 							list_remove_by_condition(sockets,compararNumeroMem);
 						}else{
 							list_remove(memoriasCaidas,i);
+							recv(memoria->socket,&info,sizeof(int),0);
 						}
 					}
 				}
@@ -282,6 +294,11 @@ void metrics(){
 		metricsSHC.acumtSelect = 0;
 		metricsSHC.contInsert = 0;
 		metricsSHC.contSelect = 0;
+		for(int i = 0;i < memLoads->elements_count;i++){
+			tMemLoad* load = (tMemLoad*) list_get(memLoads,i);
+			load->cont = 0;
+			list_replace(memLoads,i,load);
+		}
 		sem_post(&mutexMetrics);
 		sleep(30);
 	}
@@ -438,6 +455,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 						consultaOk = socket_memoria->id * -1;
 					}else{
 						consultaOk = 1;
+						despacharQuery("DESCRIBE\n",sockets);
 					}
 				}else{
 					log_error(loggerError,"No existen memorias disponibles para el criterio de la tabla");
@@ -551,6 +569,16 @@ int despacharQuery(char* consulta, t_list* sockets) {
 			latencyWrite = metricsSHC.acumtInsert / 30;
 			log_debug(logger, "READ LATENCY: %d, WRITE LATENCY: %d, READS: %d, WRITES: %d",
 					latencyRead,latencyWrite,metricsSHC.contSelect,metricsSHC.contInsert);
+			int total = metricsEC.contInsert + metricsEC.contSelect
+					+ metricsSC.contInsert + metricsSC.contSelect+
+					metricsSHC.contInsert + metricsSHC.contSelect;
+			for(int i = 0; i<memLoads->elements_count;i++){
+				tMemLoad* unLoad = (tMemLoad*)list_get(memLoads,i);
+				tMemoria* mem = unLoad->mem;
+				log_warning(loggerWarning,"Memory load de la mem: %d",mem->numeroMemoria);
+				log_debug(logger,"%d% de un total de: %d",((unLoad->cont*100)/total),total);
+			}
+
 			sem_post(&mutexMetrics);
 			consultaOk = 1;
 			break;
@@ -582,7 +610,6 @@ void CPU(){
 	list_add_in_index(listaDeLSockets,contMult,sockets);
 	sem_post(&mutexContMult);
 	while(continuar){
-
 		script *unScript;
 		char* consulta = malloc(256);
 		sem_wait(&semReady);
@@ -632,11 +659,13 @@ void CPU(){
 							return mem2->id == mem->numeroMemoria;
 						}
 						if(list_filter(sockets,compararNumeroMem)->elements_count != 0){
-							int info = enviarPaquete(((t_infoMem*)list_get(sockets,0))->socket,serializedPackage,size_to_send);
+							t_infoMem* memoria = (t_infoMem*)list_find(sockets,compararNumeroMem);
+							int info = enviarPaquete(memoria->socket,serializedPackage,size_to_send);
 							if(info == -1){
 								list_remove_by_condition(sockets,compararNumeroMem);
 							}else{
 								list_remove(memoriasCaidas,i);
+								recv(memoria->socket,&info,sizeof(int),0);
 							}
 						}
 					}
@@ -746,6 +775,10 @@ void actualizarTablaGossip(tGossip* packGossip){
 		sem_wait(&mutexMems);
 		if(list_filter(memorias,compararNumeroMem)->elements_count == 0){
 			list_add(memorias,mem);
+			tMemLoad* memload = malloc(sizeof(tMemLoad));
+			memload->mem = mem;
+			memload->cont = 0;
+			list_add(memLoads,memload);
 		}
 		sem_post(&mutexMems);
 	}
@@ -1075,10 +1108,11 @@ bool hayCaida(void* recibo){
 
 int SHC(int key){
 	sem_wait(&mutexSHC);
-	int tamanio = list_size(list_filter(listaMemsSHC,hayCaida));
+	t_list* memsDisp = list_filter(listaMemsSHC,hayCaida);
+	int tamanio = memsDisp->elements_count;
 	sem_post(&mutexSHC);
 	if(tamanio != 0){
-		tMemoria* mem= (tMemoria*)list_get(listaMemsSHC,(key % tamanio));
+		tMemoria* mem= (tMemoria*)list_get(memsDisp,(key % tamanio));
 		log_debug(logger,"lo mando a esta memoria: %d", mem->numeroMemoria);
 		return mem->numeroMemoria;
 	}else{
@@ -1088,12 +1122,12 @@ int SHC(int key){
 
 int EC(int time){
 	sem_wait(&mutexEC);
-	int tamanio = list_size(list_filter(listaMemsEC,hayCaida));
-	log_debug(logger,"este es el tamanio: %d", tamanio);
+	t_list* memsDisp = list_filter(listaMemsEC,hayCaida);
+	int tamanio = memsDisp->elements_count;
 	sem_post(&mutexEC);
 	if(tamanio != 0){
 		log_debug(logger,"este es el time: %d", time);
-		tMemoria* mem= (tMemoria*)list_get(listaMemsEC,(time % tamanio));
+		tMemoria* mem= (tMemoria*)list_get(memsDisp,(time % tamanio));
 		return mem->numeroMemoria;
 	}else{
 		return -1;
@@ -1101,15 +1135,19 @@ int EC(int time){
 }
 
 void cargarConfig(t_config* config){
-	miConfig = malloc(sizeof(configKernel));
-	miConfig->ip_mem = config_get_string_value(config,"IP");
+	config = config_create("../Kernel.config");
+	miConfig->ip_mem = malloc(strlen(config_get_string_value(config,"IP"))+1);
+	strcpy(miConfig->ip_mem,config_get_string_value(config,"IP"));
 	miConfig->metadata_refresh = config_get_int_value(config, "METADATA_REFRESH");
 	miConfig->MULT_PROC = config_get_int_value(config, "MULTIPROCESAMIENTO");
-	miConfig->puerto_mem = config_get_string_value(config,"PUERTO_MEMORIA");
+	miConfig->puerto_mem = malloc(strlen(config_get_string_value(config,"PUERTO_MEMORIA"))+1);
+	strcpy(miConfig->puerto_mem,config_get_string_value(config,"PUERTO_MEMORIA"));
 	miConfig->sleep = config_get_int_value(config,"SLEEP_EJECUCION");
 	miConfig->quantum = config_get_int_value(config,"QUANTUM");
 	miConfig->t_gossip = config_get_int_value(config,"TIEMPO_GOSSIP");
-
+	log_debug(logger,"este es mi quantum: %d", miConfig->quantum);
+	log_debug(logger,"Se tendra un nivel de multiprocesamiento de: %d cpus", miConfig->MULT_PROC);
+	config_destroy(config);
 }
 
 void inicializarTodo(){
@@ -1118,7 +1156,7 @@ void inicializarTodo(){
 	loggerError = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_ERROR);
 	loggerWarning = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_WARNING);
 	log_debug(logger,"Cargando configuracion");
-	config = config_create("Kernel.config");
+	t_config* config;
 	cargarConfig(config);
 	log_debug(logger,"Configuracion cargada con exito");
 	log_debug(logger,"Inicializando semaforos");
@@ -1139,7 +1177,7 @@ void inicializarTodo(){
 	listaMemsSHC = list_create();
 	listaTablas = list_create();
 	memorias = list_create();
-
+	memLoads = list_create();
 }
 
 void innotificar() {
@@ -1148,7 +1186,7 @@ void innotificar() {
 		int file_descriptor = inotify_init();
 		if (file_descriptor < 0)
 			perror("inotify_init");
-		int watch_descriptor = inotify_add_watch(file_descriptor, "/", IN_MODIFY | IN_CREATE | IN_DELETE);
+		int watch_descriptor = inotify_add_watch(file_descriptor, "../", IN_MODIFY | IN_CREATE | IN_DELETE);
 		int length = read(file_descriptor, buffer, BUF_LEN);
 		if (length < 0)
 			perror("read");
@@ -1171,6 +1209,7 @@ void innotificar() {
 						printf("The directory %s was modified.\n", event->name);
 					else {
 						printf("The file %s was modified.\n", event->name);
+						t_config* config;
 						cargarConfig(config);
 					}
 				}
@@ -1182,6 +1221,11 @@ void innotificar() {
 	}
 }
 
+void liberar(void* dato){
+	tMemoria* mem = (tMemoria*) dato;
+	free(mem);
+}
+
 void finalizarEjecucion() {
 	printf("------------------------\n");
 	printf("¿chau chau adios?\n");
@@ -1189,10 +1233,7 @@ void finalizarEjecucion() {
 	log_destroy(logger);
 	log_destroy(loggerError);
 	free(SC);
-	list_iterate(listaMemsEC,free);
-	list_iterate(listaMemsSHC,free);
-	list_iterate(memorias,free);
-	//list_iterate(memoriasCaidas,free);
+	list_destroy_and_destroy_elements(memorias,liberar);
 	sem_destroy(&semReady);
 	sem_destroy(&semNew);
 	sem_destroy(&mutexNew);
