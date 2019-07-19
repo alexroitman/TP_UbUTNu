@@ -238,6 +238,9 @@ int pedirRegistroALFS(int socket, tSelect* packSelect, tRegistroRespuesta* reg) 
 	log_debug(logger, "Pido registro a LFS");
 	char* selectAEnviar = serializarSelect(packSelect);
 	int bytes = enviarPaquete(socket, selectAEnviar, packSelect->length);
+	log_debug(logger,
+			"mande %d bytes pido la tabla %s con la key %d por el socket %d",
+			bytes, packSelect->nombre_tabla, packSelect->key, socket);
 	free(selectAEnviar);
 	if (bytes > 0) {
 		type header = leerHeader(socket);

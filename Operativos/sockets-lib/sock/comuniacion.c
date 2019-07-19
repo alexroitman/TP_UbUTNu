@@ -238,8 +238,6 @@ int desSerializarSelect(tSelect* packageSelect, int socket) {
 	int status;
 	int buffer_size;
 	char *buffer = malloc(buffer_size = sizeof(uint32_t));
-
-	uint32_t nombrelong;
 	status = recv(socket, buffer, sizeof((packageSelect->nombre_tabla_long)),
 			0); //recibo la longitud
 	memcpy(&(packageSelect->nombre_tabla_long), buffer, buffer_size);
@@ -476,7 +474,6 @@ int desSerializarDescribe(tDescribe* packageDescribe, int socket) {
 	int buffer_size;
 	char *buffer = malloc(buffer_size = sizeof(uint32_t));
 
-	uint32_t nombrelong;
 	status = recv(socket, buffer, sizeof((packageDescribe->nombre_tabla_long)), 0); //recibo la longitud
 	memcpy(&(packageDescribe->nombre_tabla_long), buffer, buffer_size);
 	if (!status)
@@ -494,9 +491,8 @@ int desSerializarDescribe(tDescribe* packageDescribe, int socket) {
 
 char* serializarDescribe_Response(t_describe *package) {
 
-	char *serializedPackage = malloc(
-			sizeof(package->cant_tablas)
-					+ package->cant_tablas * sizeof(t_metadata));
+	char *serializedPackage;
+	serializedPackage = malloc(sizeof(package->cant_tablas) + package->cant_tablas * sizeof(t_metadata));
 
 	int offset = 0;
 	int size_to_send;
@@ -517,9 +513,7 @@ char* serializarDescribe_Response(t_describe *package) {
 
 int desserializarDescribe_Response(t_describe* package, int socket) {
 
-	package->cant_tablas=malloc(sizeof(uint16_t));
 	int status = recv(socket, &(package->cant_tablas), sizeof(package->cant_tablas), 0); //recibo el nombre de la key
-
 	if (!status)
 		return 0;
 
@@ -558,7 +552,6 @@ int desSerializarDrop(tDrop* packageDrop, int socket) {
 	int buffer_size;
 	char *buffer = malloc(buffer_size = sizeof(uint32_t));
 
-	uint32_t nombrelong;
 	status = recv(socket, buffer, sizeof((packageDrop->nombre_tabla_long)), 0); //recibo la longitud
 	memcpy(&(packageDrop->nombre_tabla_long), buffer, buffer_size);
 	if (!status)

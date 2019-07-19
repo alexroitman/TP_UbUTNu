@@ -391,11 +391,11 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				cargarPaqueteInsert(paqueteInsert, sinFin);
 
 				serializado = serializarInsert(paqueteInsert);
-				log_debug(logger,"cargue el paquete y serialize");
+
 				consistencias cons = consTabla(paqueteInsert->nombre_tabla);
 				socket_memoria = devolverSocket(cons,sockets,paqueteInsert->key);
 				if(socket_memoria->id != -1){
-					log_debug(logger,"%s",paqueteInsert->value);
+
 					consultaOk = enviarPaquete(socket_memoria->socket, serializado, paqueteInsert->length);
 					recv(socket_memoria->socket, &error, sizeof(int), 0);
 					log_warning(loggerWarning, "este es el error: %d",error);
@@ -445,7 +445,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				char* sinFin = string_substring_until(consulta,string_length(consulta)-1 );
 				cargarPaqueteCreate(paqueteCreate,sinFin);
 				serializado = serializarCreate(paqueteCreate);
-				log_debug(logger,"serialize todo");
+
 				socket_memoria = devolverSocket(obtCons(paqueteCreate->consistencia)
 						,sockets,1);
 				log_debug(logger,"voy a usar este socket: %d",socket_memoria->id);
@@ -918,9 +918,9 @@ int validarAdd(char* consulta){
 }
 
 void ejecutarAdd(char* consulta){
-	log_debug(logger,"entre");
+
 	char** split = string_split(consulta," ");
-	log_debug(logger,"voy a generar la memoria");
+
 	tMemoria* memAdd;
 	memAdd = (tMemoria*)generarMem(consulta);
 	bool mismoId(void* elemento) {
@@ -1032,8 +1032,7 @@ consistencias consTabla (char* nombre){
 	bool mismoNombre(void* elemento) {
 		t_metadata* tabla = malloc(sizeof(t_metadata));
 		tabla = (t_metadata*) elemento;
-		log_debug(logger,"nombre tabla: %s",tabla->nombre_tabla);
-		log_debug(logger,"nombre que quiero: %s", nombre);
+
 		return (!strcmp(tabla->nombre_tabla,nombre));
 	}
 	if(list_any_satisfy(listaTablas,mismoNombre)){
@@ -1051,7 +1050,7 @@ t_infoMem* devolverSocket(consistencias cons, t_list* sockets, int key){
 	t_infoMem* ret = malloc(sizeof(t_infoMem));
 	bool compararNumeroMem(void* elem){
 		t_infoMem* mem2 = (t_infoMem*) elem;
-		log_debug(logger,"este es el socket que me llego: %d", mem2->id);
+
 		return mem2->id == mem->numeroMemoria;
 	}
 	switch(cons){
@@ -1079,7 +1078,7 @@ t_infoMem* devolverSocket(consistencias cons, t_list* sockets, int key){
 		pos = EC((int) time(NULL));
 		if(pos!=-1){
 			mem->numeroMemoria = pos;
-			log_debug(logger,"aca esta el resultado de aplicar la consistencia: %d", mem->numeroMemoria);
+
 			ret = (t_infoMem*)list_find(sockets,compararNumeroMem);
 			return ret;
 		}else{
@@ -1126,7 +1125,7 @@ int EC(int time){
 	int tamanio = memsDisp->elements_count;
 	sem_post(&mutexEC);
 	if(tamanio != 0){
-		log_debug(logger,"este es el time: %d", time);
+
 		tMemoria* mem= (tMemoria*)list_get(memsDisp,(time % tamanio));
 		return mem->numeroMemoria;
 	}else{

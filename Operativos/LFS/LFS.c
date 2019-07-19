@@ -17,6 +17,11 @@ t_list* memtable;
 config_FS* configLFS;
 metadataFS* configMetadata;
 pthread_mutex_t mem_table_mutex;
+pthread_t hiloSocket;
+pthread_t hiloCompactacion;
+pthread_t hiloConsola;
+pthread_t hiloInnotify;
+pthread_t hiloDumpeo;
 //pthread_mutex_t cantidadDeDumpeos_mutex;
 t_dictionary* bloqueoTablas;
 // ---------------MAIN-----------------
@@ -24,11 +29,7 @@ t_dictionary* bloqueoTablas;
 int main(void) {
 	configLFS = malloc(sizeof(config_FS));
 	configMetadata = malloc(sizeof(metadataFS));
-	pthread_t hiloSocket;
-	pthread_t hiloCompactacion;
-	pthread_t hiloConsola;
-	pthread_t hiloInnotify;
-	pthread_t hiloDumpeo;
+
 
 	// ---------------Inicializacion-----------------
 	memtable = inicializarMemtable();
@@ -877,7 +878,9 @@ t_list* Describe() {
 						strlen(a_directory->d_name) + 1);
 				string_append(&a_table_path, tablas_path);
 				string_append(&a_table_path, table_name);
+
 				Metadata* metadata = obtener_metadata(a_table_path);
+
 				strcpy(metadata->nombre_tabla, table_name);
 				log_debug(logger, "DESCRIBE general, tabla: %s", table_name);
 				list_add(metadatas, metadata);
@@ -1052,7 +1055,8 @@ t_list* SelectTemp(char* ruta, int KEY,char* nombre_tabla) {
 			char** registros = string_split(bloquesUnificados, "\n");
 //		Recorro y divido los datos unificado del archivos temporal, almacenando solo las keys que coincidan con la solicitada
 			while (registros[j] != NULL) {
-				registro* reg = malloc(sizeof(registro));
+				registro* reg;
+				reg= malloc(sizeof(registro));
 				char** datos_registro = string_split(registros[j], ";");
 				if (atoi(datos_registro[1]) == KEY) {
 					reg->timestamp = atoll(datos_registro[0]);
@@ -1508,11 +1512,9 @@ void liberar_bloques(char* nombre_tabla, int cantParticiones,
 		t_config* tmp = config_create(tablaParaDumpeo);
 		free(tablaParaDumpeo);
 		char** bloques = config_get_array_value(tmp, "BLOCKS");
+		config_destroy(tmp);
 		int s = 0;
 		while (bloques[s] != NULL) {
-
-			char* bloque = string_new();
-
 			bitarray_clean_bit(bitmap, atoi(bloques[s]));
 			char* bloque_a_limpiar = string_new();
 			string_append_with_format(&bloque_a_limpiar, "rm %sBloques/%s.bin",
@@ -1546,7 +1548,7 @@ void guardar_en_disco(t_list* binarios, int cantParticiones, char* nombre_tabla)
 
 		char* registroParaEscribir = string_new();
 		void dumpearRegistros(registro* UnRegistro) {
-			string_append_with_format(&registroParaEscribir, "%d;%d;%s\n",
+			string_append_with_format(&registroParaEscribir, "%llu;%d;%s\n",
 					UnRegistro->timestamp, UnRegistro->key, UnRegistro->value);
 		}
 
@@ -1554,21 +1556,17 @@ void guardar_en_disco(t_list* binarios, int cantParticiones, char* nombre_tabla)
 		t_config* tmp = config_create(tablaParaDumpeo);
 
 		char* bloque = string_new();
-
-//		if (!list_is_empty(listaParticionada)) {
 		off_t bit = obtener_bit_libre();
 		char* nuevoBloque = string_new();
 		string_append_with_format(&nuevoBloque, "[%d]", bit);
 		config_set_value(tmp, "BLOCKS", nuevoBloque);
-
-		string_append_with_format(&bloque, "%sBloques/%d.bin",
-				configLFS->dirMontaje, bit);
-
+		string_append_with_format(&bloque, "%sBloques/%d.bin", configLFS->dirMontaje, bit);
 		int fd2 = open(bloque, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);
 		log_debug(logger, "bajo a memoria en esta ruta %s", bloque);
 		bajarAMemoria(&fd2, registroParaEscribir, tmp);
 		close(fd2);
-//		}
+		free(bloque);
+		free(nuevoBloque);
 		free(registroParaEscribir);
 
 	}
@@ -1719,10 +1717,10 @@ void crearBitmapNuestro() {
 	char* path = string_from_format("%s/Metadata/Bitmap.bin",
 			configLFS->dirMontaje);
 	FILE* file = fopen(path, "wb+");
-	fwrite(structBitarray->bitarray, sizeof(char), configMetadata->blocks / 8,
-			file);
+	fwrite(structBitarray->bitarray, sizeof(char), configMetadata->blocks / 8, file);
 	fclose(file);
 	bitarray_destroy(structBitarray);
+	free(bitarray);
 	free(path);
 }
 
@@ -1766,6 +1764,11 @@ void finalizarEjecutcion() {
 	close(socket_sv);
 	list_destroy_and_destroy_elements(memtable, free);
 	free(configLFS->dirMontaje);
+//	pthread_cancel(hiloConsola);
+//	pthread_cancel(hiloDumpeo);
+//	pthread_cancel(hiloCompactacion);
+//	pthread_cancel(hiloSocket);
+//	pthread_cancel(hiloInnotify);
 	raise(SIGTERM);
 }
 
