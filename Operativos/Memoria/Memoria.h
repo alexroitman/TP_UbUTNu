@@ -53,6 +53,7 @@ pthread_t hiloInnotify;
 pthread_t hiloGossip;
 
 sem_t mutexJournal;
+sem_t mutexLRU;
 
 typedef struct{
 	type* header;
@@ -128,7 +129,7 @@ void eliminarDeMemoria(void* elemento);
 void liberarPaginasDelSegmento(tSegmento* miSegmento, t_list* tablaSegmentos);
 void mandarInsertDePaginasModificadas(t_list* paginasModificadas,char* nombreTabla, int socket_lfs);
 void borrarPaginasModificadas(t_list* paginasModificadas, t_list* tablaPaginasMiSegmento);
-void validarAgregadoDePagina(bool leyoConsola, int error,int socket, tSegmento* miSegmento,
+void validarAgregadoDePagina(bool leyoConsola, int* error,int socket, tSegmento* miSegmento,
 		tPagina* pagina, bool modificado);
 void finalizarEjecucion();
 void enviarMensajeAKernel();

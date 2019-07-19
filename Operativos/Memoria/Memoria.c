@@ -43,6 +43,7 @@ int main() {
 	tablaSegmentos = list_create();
 	//header = malloc(sizeof(type));
 	sem_init(&mutexJournal,0,1);
+	sem_init(&mutexLRU,0,1);
 	leyoConsola = true;
 	recibioSocket = true;
 	//*header = NIL;
@@ -659,12 +660,14 @@ t_miConfig* cargarConfig() {
 	return miConfig;
 }
 
-void validarAgregadoDePagina(bool leyoConsola, int error,int socket, tSegmento* miSegmento,
+void validarAgregadoDePagina(bool leyoConsola, int* error,int socket, tSegmento* miSegmento,
 		tPagina* pagina, bool modificado) {
 
 	int errorLRU;
-	if (error == -1) {
+	if (*error == -1) {
+		sem_wait(&mutexLRU);
 		errorLRU = ejecutarLRU();
+		sem_post(&mutexLRU);
 		if (errorLRU == -1) {
 			log_error(logger,"Memoria FULL");
 			if (leyoConsola) {
@@ -672,17 +675,17 @@ void validarAgregadoDePagina(bool leyoConsola, int error,int socket, tSegmento* 
 				agregarPaginaAMemoria(miSegmento, pagina,modificado);
 			} else {
 				//le envio el error a kernel para que me devuelva un JOURNAL y la consulta denuevo
-				send(socket, &error, sizeof(int), 0);
+				send(socket, error, sizeof(int), 0);
 			}
 		} else {
 			agregarPaginaAMemoria(miSegmento, pagina,modificado);
-			error = 1;
-			send(socket, &error, sizeof(int), 0);
+			*error = 1;
+			send(socket, error, sizeof(int), 0);
 		}
 	}else{
 		if(!leyoConsola){
 			//le aviso a kernel que la consulta termino OK
-			send(socket,&error,sizeof(int),0);
+			send(socket,error,sizeof(int),0);
 		}
 	}
 }
