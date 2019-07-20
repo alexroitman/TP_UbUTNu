@@ -46,7 +46,7 @@ void ejecutarConsulta(int socket, type header) {
 			log_debug(logger, "El time es es: %llu", pagina->timestamp);
 		} else {
 			error = pedirRegistroALFS(socket_lfs, packSelect, reg);
-			if (reg->timestamp != 0) {
+			if (reg->timestamp != 0 && strcmp(reg->value, "")) {
 				log_debug(logger, "El value es: %s", reg->value);
 				pagina->key = reg->key;
 				pagina->timestamp = reg->timestamp;
@@ -299,37 +299,58 @@ void* leerQuery(void* params) {
 	while (1) {
 		tHiloConsola* parametros = (tHiloConsola*) params;
 		leyoConsola = false;
+		bool consultaOk = false;
 		type head;
 		fgets(parametros->consulta, 256, stdin);
 		char** tempSplit;
 		tempSplit = string_n_split(parametros->consulta, 2, " ");
 		if (!strcmp(tempSplit[0], "SELECT")) {
 			log_debug(logger,"llega SELECT");
-			head = SELECT;
+			if (validarSelect(parametros->consulta)) {
+				head = SELECT;
+				consultaOk = true;
+			}
 		}
 		if (!strcmp(tempSplit[0], "INSERT")) {
 			log_debug(logger,"llega INSERT");
-			head = INSERT;
+			if(validarInsert(parametros->consulta)){
+				head = INSERT;
+				consultaOk = true;
+			}
+
 		}
 		if (!strcmp(tempSplit[0], "CREATE")) {
 			log_debug(logger,"llega CREATE");
-			head = CREATE;
+			if(validarCreate(parametros->consulta)){
+				head = CREATE;
+				consultaOk = true;
+			}
+
 		}
 		if(!strcmp(tempSplit[0], "DROP")){
 			log_debug(logger,"llega DROP");
-			head = DROP;
+			if(strcmp(tempSplit[1],"")){
+				head = DROP;
+				consultaOk = true;
+			}
 		}
 		if(!strcmp(tempSplit[0], "JOURNAL\n")){
 			log_debug(logger,"llega JOURNAL");
 			head = JOURNAL;
+			consultaOk = true;
 		}
 		leyoConsola = true;
 		free(tempSplit[0]);
 		free(tempSplit[1]);
 		free(tempSplit);
-		sem_wait(&mutexJournal);
-		ejecutarConsulta(-1,head);
-		sem_post(&mutexJournal);
+		if(consultaOk){
+			sem_wait(&mutexJournal);
+			ejecutarConsulta(-1, head);
+			sem_post(&mutexJournal);
+		}else{
+			log_error(logger,"Error de sintaxis en la consulta");
+		}
+
 
 	}
 }

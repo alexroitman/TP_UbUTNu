@@ -981,43 +981,7 @@ int leerLinea(char* path, int linea, char* leido){
 	return 0; //devuelve 0 si no se encontro la linea
 
 }
-int validarSelect(char* consulta){
-	char** split = string_split(consulta," ");
-	int i = 0;
-	while(split[i] != NULL){
-		i++;
-	}
-	string_iterate_lines(split,free);
-	free(split);
-	return 3 == i;
-}
-int validarInsert(char* consulta){
-	char** value = string_split(consulta,"\"");
-	char** split = string_split(value[0]," ");
-	int i = 0;
-	while(split[i] != NULL){
-		i++;
-	}
-	int j = 0;
-	while(value[j] != NULL){
-			j++;
-		}
-	string_iterate_lines(split,free);
-	free(split);
-	string_iterate_lines(value,free);
-	free(value);
-	return ((3 == i) && (3 == j)) ;
-}
-int validarCreate(char* consulta){
-	char** split = string_split(consulta," ");
-	int i = 0;
-	while(split[i] != NULL){
-		i++;
-	}
-	string_iterate_lines(split,free);
-	free(split);
-	return 5 == i;
-}
+
 
 int validarAdd(char* consulta){
 	char** split = string_split(consulta," ");

@@ -145,6 +145,9 @@ typedef struct {
 }tGossip;
 type leerHeader(int socket);
 unsigned long long obtenerTimestamp();
+int validarSelect(char* consulta);
+int validarCreate(char* consulta);
+int validarInsert(char* consulta);
 void cargarPaqueteSelect(tSelect *pack, char* cons);
 void cargarPaqueteInsert(tInsert *pack, char* cons);
 void cargarPaqueteCreate(tCreate *pack, char* cons);

@@ -18,6 +18,44 @@ unsigned long long obtenerTimestamp() {
 			+ ((unsigned long long) (tv.tv_usec)) / 1000;
 }
 
+int validarSelect(char* consulta){
+	char** split = string_split(consulta," ");
+	int i = 0;
+	while(split[i] != NULL){
+		i++;
+	}
+	string_iterate_lines(split,free);
+	free(split);
+	return 3 == i;
+}
+int validarInsert(char* consulta){
+	char** value = string_split(consulta,"\"");
+	char** split = string_split(value[0]," ");
+	int i = 0;
+	while(split[i] != NULL){
+		i++;
+	}
+	int j = 0;
+	while(value[j] != NULL){
+			j++;
+		}
+	string_iterate_lines(split,free);
+	free(split);
+	string_iterate_lines(value,free);
+	free(value);
+	return ((3 == i) && (3 == j)) ;
+}
+int validarCreate(char* consulta){
+	char** split = string_split(consulta," ");
+	int i = 0;
+	while(split[i] != NULL){
+		i++;
+	}
+	string_iterate_lines(split,free);
+	free(split);
+	return 5 == i;
+}
+
 char* serializarGossip(tGossip* packGossip) {
 	char* serializedPackage = malloc(sizeof(type) +
 			sizeof(packGossip->cant_memorias)
