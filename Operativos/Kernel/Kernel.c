@@ -298,44 +298,34 @@ type validarSegunHeader(char* header) {
 }
 
 void metricsInsert(consistencias cons,unsigned long long time){
-	log_warning(loggerWarning,"metric insert para cons: %d", cons);
 	switch(cons){
 	case sc:
 		metricsSC.acumtInsert += time;
 		metricsSC.contInsert++;
-		log_warning(loggerWarning,"t insert: %llu y cont insert: %d",metricsSC.acumtInsert,metricsSC.contInsert);
 		break;
 	case ec:
 		metricsEC.acumtInsert += time;
 		metricsEC.contInsert++;
-		log_warning(loggerWarning,"t insert: %llu y cont insert: %d",metricsEC.acumtInsert,metricsEC.contInsert);
-
 		break;
 	case shc:
 		metricsSHC.acumtInsert += time;
 		metricsSHC.contInsert++;
-		log_warning(loggerWarning,"t insert: %llu y cont insert: %d",metricsSHC.acumtInsert,metricsSHC.contInsert);
-
 		break;
 	}
 }
 void metricsSelect(consistencias cons,unsigned long long time){
-	log_warning(loggerWarning,"metric insert para cons: %d", cons);
 	switch(cons){
 	case sc:
 		metricsSC.acumtSelect += time;
 		metricsSC.contSelect++;
-		log_warning(loggerWarning,"t select: %llu y cont select: %d",metricsSC.acumtSelect,metricsSC.contSelect);
 		break;
 	case ec:
 		metricsEC.acumtSelect += time;
 		metricsEC.contSelect++;
-		log_warning(loggerWarning,"t select: %llu y cont select: %d",metricsEC.acumtSelect,metricsEC.contSelect);
 		break;
 	case shc:
 		metricsSHC.acumtSelect += time;
 		metricsSHC.contSelect++;
-		log_warning(loggerWarning,"t select: %llu y cont select: %d",metricsSHC.acumtSelect,metricsSHC.contSelect);
 		break;
 	}
 }
