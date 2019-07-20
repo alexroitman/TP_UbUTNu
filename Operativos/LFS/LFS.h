@@ -100,7 +100,7 @@ int existe_tabla_en_memtable(char* posible_tabla);
 int Create(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME);
 int Insert (char* NOMBRE_TABLA, uint16_t KEY, char* VALUE, int Timestamp);
 int Drop(char* NOMBRE_TABLA);
-int Select(registro** reg, char* NOMBRE_TABLA, uint16_t KEY);
+int Select(registro* reg, char* NOMBRE_TABLA, uint16_t KEY);
 t_list* Describe();
 t_list* DESCRIBEespecifico(char* NOMBRE_TABLA) ;
 

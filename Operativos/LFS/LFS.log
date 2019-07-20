@@ -559,3 +559,272 @@
 [DEBUG] 16:24:38:719 LFS/(25201:25217): DESCRIBE general, tabla: GUIDO
 [DEBUG] 16:24:38:719 LFS/(25201:25217): envie 122 bytes
 [DEBUG] 16:25:03:259 LFS/(25201:25217): Comando DESCRIBE recibido
+[DEBUG] 15:16:21:168 LFS/(12568:12581): entre al hilo
+[DEBUG] 15:16:31:563 LFS/(12568:12580): levante un cliente con socket: 5
+[DEBUG] 15:16:39:271 LFS/(12568:12580): levante otro cliente con socket: 7
+[DEBUG] 15:16:46:854 LFS/(12568:12580): levante otro cliente con socket: 8
+[DEBUG] 15:16:55:44 LFS/(12568:12598): Comando DESCRIBE recibido por socket: 8
+[DEBUG] 15:17:10:67 LFS/(12568:12598): Comando DESCRIBE recibido por socket: 8
+[DEBUG] 15:17:14:339 LFS/(12568:12598): Comando DESCRIBE recibido por socket: 8
+[DEBUG] 15:17:14:351 LFS/(12568:12598): Comando DESCRIBE recibido por socket: 8
+[DEBUG] 15:17:14:387 LFS/(12568:12591): Comando CREATE recibido por socket: 7
+[DEBUG] 15:17:14:434 LFS/(12568:12591): Comando CREATE recibido por socket: 7
+[DEBUG] 15:17:14:666 LFS/(12568:12598): Comando SELECT recibido por socket: 8
+[DEBUG] 15:17:14:667 LFS/(12568:12598): TABLA ANIMALS
+[DEBUG] 15:17:14:667 LFS/(12568:12598): Se ha solicitado la key 126 de la tabla ANIMALS.
+[DEBUG] 15:17:14:667 LFS/(12568:12598): la ruta del config es: ../../FS_LISSANDRA/Tablas/ANIMALS/0.bin
+[INFO] 15:17:52:610 LFS/(12568:12598): La Key solicitada no pudo ser seleccionada, es inexistente
+[DEBUG] 15:17:52:612 LFS/(12568:12591): Comando INSERT recibido por socket: 7
+[DEBUG] 15:17:52:612 LFS/(12568:12584): Comando INSERT recibido por socket: 5
+[DEBUG] 15:17:52:612 LFS/(12568:12584): Tabla ANIMALS con key 65 y value tigers y time 1563646634388
+
+[DEBUG] 15:17:52:612 LFS/(12568:12591): Tabla ANIMALS con key 126 y value beasts y time 1563646634575
+
+[DEBUG] 15:17:52:720 LFS/(12568:12598): Comando DESCRIBE recibido por socket: 8
+[DEBUG] 15:17:52:720 LFS/(12568:12598): DESCRIBE general, tabla: ANIMALS
+[DEBUG] 15:17:52:720 LFS/(12568:12598): DESCRIBE general, tabla: METALS
+[DEBUG] 15:17:52:720 LFS/(12568:12598): summa rara: 50
+[DEBUG] 15:17:52:720 LFS/(12568:12598): envie 50 bytes
+[DEBUG] 15:17:52:769 LFS/(12568:12591): Comando SELECT recibido por socket: 7
+[DEBUG] 15:17:52:769 LFS/(12568:12591): TABLA ANIMALS
+[DEBUG] 15:17:52:770 LFS/(12568:12591): Se ha solicitado la key 65 de la tabla ANIMALS.
+[DEBUG] 15:17:52:770 LFS/(12568:12591): la ruta del config es: ../../FS_LISSANDRA/Tablas/ANIMALS/1.bin
+[DEBUG] 15:18:18:655 LFS/(12568:12598): Comando DESCRIBE recibido por socket: 8
+[DEBUG] 15:18:18:655 LFS/(12568:12598): DESCRIBE general, tabla: ANIMALS
+[DEBUG] 15:18:18:655 LFS/(12568:12598): DESCRIBE general, tabla: METALS
+[DEBUG] 15:18:18:655 LFS/(12568:12598): summa rara: 50
+[DEBUG] 15:18:18:655 LFS/(12568:12598): envie 50 bytes
+[DEBUG] 15:18:18:656 LFS/(12568:12591): El registro encontrado es: 1563646634388;65;tigers
+[DEBUG] 15:18:18:656 LFS/(12568:12578): Entre a dumpearTabla
+[DEBUG] 15:18:18:656 LFS/(12568:12591): ENTRO AL SEGUNDO IF
+[DEBUG] 15:18:18:656 LFS/(12568:12591): Tipo: 8
+[DEBUG] 15:18:18:656 LFS/(12568:12591): Timestamp: 1563646634388
+[DEBUG] 15:18:18:656 LFS/(12568:12591): Value: tigers
+[DEBUG] 15:18:18:657 LFS/(12568:12591): Key: 65
+[DEBUG] 15:18:18:657 LFS/(12568:12591): Value_long: 7
+[DEBUG] 15:18:18:658 LFS/(12568:12578): El bloque libre a escribir es: [5]
+[DEBUG] 15:18:18:659 LFS/(12568:12578): Entre a dumpearRegistros
+[DEBUG] 15:18:18:659 LFS/(12568:12578): Entre a dumpearRegistros
+[DEBUG] 15:18:18:791 LFS/(12568:12584): Comando SELECT recibido por socket: 5
+[DEBUG] 15:18:18:791 LFS/(12568:12584): TABLA METALS
+[DEBUG] 15:18:18:791 LFS/(12568:12584): Se ha solicitado la key 136 de la tabla METALS.
+[DEBUG] 15:18:18:792 LFS/(12568:12584): la ruta del config es: ../../FS_LISSANDRA/Tablas/METALS/1.bin
+[DEBUG] 15:18:52:237 LFS/(12568:12598): Comando DESCRIBE recibido por socket: 8
+[DEBUG] 15:18:52:237 LFS/(12568:12591): Comando INSERT recibido por socket: 7
+[DEBUG] 15:18:52:237 LFS/(12568:12598): DESCRIBE general, tabla: ANIMALS
+[DEBUG] 15:18:52:237 LFS/(12568:12598): DESCRIBE general, tabla: METALS
+[DEBUG] 15:18:52:237 LFS/(12568:12598): summa rara: 50
+[DEBUG] 15:18:52:238 LFS/(12568:12598): envie 50 bytes
+[DEBUG] 15:18:52:238 LFS/(12568:12591): Tabla METALS con key 136 y value aluminiferous y time 1563646672662
+
+[INFO] 15:18:52:256 LFS/(12568:12584): La Key solicitada no pudo ser seleccionada, es inexistente
+[DEBUG] 15:18:52:269 LFS/(12568:12616): En ListaDeRegistros 1563646634388
+[DEBUG] 15:18:52:269 LFS/(12568:12616): En ListaDeRegistros el timestamp es: 1563646634388
+[DEBUG] 15:18:52:269 LFS/(12568:12616): En ListaDeRegistros 1563646634575
+[DEBUG] 15:18:52:270 LFS/(12568:12616): En ListaDeRegistros el timestamp es: 1563646634575
+[DEBUG] 15:18:52:546 LFS/(12568:12591): Comando SELECT recibido por socket: 7
+[DEBUG] 15:18:52:546 LFS/(12568:12591): TABLA METALS
+[DEBUG] 15:18:52:547 LFS/(12568:12591): Se ha solicitado la key 136 de la tabla METALS.
+[DEBUG] 15:18:52:547 LFS/(12568:12591): la ruta del config es: ../../FS_LISSANDRA/Tablas/METALS/1.bin
+[DEBUG] 15:19:06:163 LFS/(12568:12591): El registro encontrado es: 1563646672662;136;aluminiferous
+[DEBUG] 15:19:06:163 LFS/(12568:12591): ENTRO AL SEGUNDO IF
+[DEBUG] 15:19:06:163 LFS/(12568:12591): Tipo: 8
+[DEBUG] 15:19:06:163 LFS/(12568:12591): Timestamp: 1563646672662
+[DEBUG] 15:19:06:163 LFS/(12568:12591): Value: aluminiferous
+[DEBUG] 15:19:06:163 LFS/(12568:12591): Key: 136
+[DEBUG] 15:19:06:163 LFS/(12568:12591): Value_long: 14
+[DEBUG] 15:19:06:164 LFS/(12568:12598): Comando INSERT recibido por socket: 8
+[DEBUG] 15:19:06:164 LFS/(12568:12578): Entre a dumpearTabla
+[DEBUG] 15:19:06:164 LFS/(12568:12598): Tabla ANIMALS con key 135 y value tortoises y time 1563646732388
+
+[DEBUG] 15:19:06:164 LFS/(12568:12578): El bloque libre a escribir es: [5]
+[DEBUG] 15:19:06:164 LFS/(12568:12578): Entre a dumpearRegistros
+[DEBUG] 15:19:06:164 LFS/(12568:12598): Comando INSERT recibido por socket: 8
+[DEBUG] 15:19:06:164 LFS/(12568:12598): Tabla ANIMALS con key 87 y value primates y time 1563646732528
+
+[DEBUG] 15:19:06:232 LFS/(12568:12584): Comando SELECT recibido por socket: 5
+[DEBUG] 15:19:06:232 LFS/(12568:12584): TABLA ANIMALS
+[DEBUG] 15:19:06:233 LFS/(12568:12584): Se ha solicitado la key 105 de la tabla ANIMALS.
+[DEBUG] 15:19:21:447 LFS/(12568:12584): la ruta del config es: ../../FS_LISSANDRA/Tablas/ANIMALS/1.bin
+[DEBUG] 15:19:21:447 LFS/(12568:12598): Comando DESCRIBE recibido por socket: 8
+[DEBUG] 15:19:21:448 LFS/(12568:12598): DESCRIBE general, tabla: ANIMALS
+[DEBUG] 15:19:21:448 LFS/(12568:12598): DESCRIBE general, tabla: METALS
+[DEBUG] 15:19:21:448 LFS/(12568:12598): summa rara: 50
+[DEBUG] 15:19:21:448 LFS/(12568:12598): envie 50 bytes
+[DEBUG] 15:19:42:319 LFS/(12568:12598): Comando DESCRIBE recibido por socket: 8
+[DEBUG] 15:19:42:319 LFS/(12568:12591): Comando INSERT recibido por socket: 7
+[DEBUG] 15:19:42:319 LFS/(12568:12578): Entre a dumpearTabla
+[DEBUG] 15:19:42:319 LFS/(12568:12598): DESCRIBE general, tabla: ANIMALS
+[DEBUG] 15:19:42:319 LFS/(12568:12598): DESCRIBE general, tabla: METALS
+[DEBUG] 15:19:42:319 LFS/(12568:12598): summa rara: 50
+[DEBUG] 15:19:42:319 LFS/(12568:12598): envie 50 bytes
+[DEBUG] 15:19:42:319 LFS/(12568:12578): El bloque libre a escribir es: [6]
+[DEBUG] 15:19:42:320 LFS/(12568:12578): Entre a dumpearRegistros
+[DEBUG] 15:19:42:320 LFS/(12568:12578): Entre a dumpearRegistros
+[DEBUG] 15:19:42:320 LFS/(12568:12591): Tabla METALS con key 66 y value ferro y time 1563646732340
+
+[DEBUG] 15:19:42:322 LFS/(12568:12591): Comando INSERT recibido por socket: 7
+[DEBUG] 15:19:42:322 LFS/(12568:12591): Tabla METALS con key 71 y value ferrous y time 1563646732461
+
+[DEBUG] 15:19:42:322 LFS/(12568:12591): Comando INSERT recibido por socket: 7
+[DEBUG] 15:19:42:322 LFS/(12568:12591): Tabla METALS con key 64 y value moly y time 1563646746209
+
+[DEBUG] 15:22:00:718 LFS/(12748:12762): entre al hilo
+[DEBUG] 15:22:12:479 LFS/(12748:12761): levante un cliente con socket: 5
+[DEBUG] 15:22:18:661 LFS/(12748:12761): levante otro cliente con socket: 7
+[DEBUG] 15:22:25:556 LFS/(12748:12761): levante otro cliente con socket: 8
+[DEBUG] 15:22:29:145 LFS/(12748:12781): Comando DESCRIBE recibido por socket: 8
+[DEBUG] 15:22:44:171 LFS/(12748:12781): Comando DESCRIBE recibido por socket: 8
+[DEBUG] 15:22:59:175 LFS/(12748:12781): Comando DESCRIBE recibido por socket: 8
+[DEBUG] 15:22:59:283 LFS/(12748:12781): Comando DESCRIBE recibido por socket: 8
+[DEBUG] 15:22:59:303 LFS/(12748:12781): Comando DESCRIBE recibido por socket: 8
+[DEBUG] 15:22:59:321 LFS/(12748:12774): Comando CREATE recibido por socket: 7
+[DEBUG] 15:22:59:385 LFS/(12748:12774): Comando CREATE recibido por socket: 7
+[DEBUG] 15:22:59:603 LFS/(12748:12781): Comando SELECT recibido por socket: 8
+[DEBUG] 15:22:59:604 LFS/(12748:12781): TABLA ANIMALS
+[DEBUG] 15:22:59:604 LFS/(12748:12781): Se ha solicitado la key 126 de la tabla ANIMALS.
+[DEBUG] 15:22:59:606 LFS/(12748:12781): la ruta del config es: ../../FS_LISSANDRA/Tablas/ANIMALS/0.bin
+[DEBUG] 15:23:38:227 LFS/(12748:12774): Comando INSERT recibido por socket: 7
+[DEBUG] 15:23:38:227 LFS/(12748:12767): Comando INSERT recibido por socket: 5
+[INFO] 15:23:38:228 LFS/(12748:12781): La Key solicitada no pudo ser seleccionada, es inexistente
+[DEBUG] 15:23:38:230 LFS/(12748:12774): Tabla ANIMALS con key 126 y value beasts y time 1563646979495
+
+[DEBUG] 15:23:38:230 LFS/(12748:12767): Tabla ANIMALS con key 65 y value tigers y time 1563646979369
+
+[DEBUG] 15:23:38:317 LFS/(12748:12781): Comando DESCRIBE recibido por socket: 8
+[DEBUG] 15:23:38:317 LFS/(12748:12781): DESCRIBE general, tabla: ANIMALS
+[DEBUG] 15:23:38:317 LFS/(12748:12781): DESCRIBE general, tabla: METALS
+[DEBUG] 15:23:38:317 LFS/(12748:12781): summa rara: 50
+[DEBUG] 15:23:38:317 LFS/(12748:12781): envie 50 bytes
+[DEBUG] 15:23:38:370 LFS/(12748:12774): Comando SELECT recibido por socket: 7
+[DEBUG] 15:23:38:370 LFS/(12748:12774): TABLA ANIMALS
+[DEBUG] 15:23:38:370 LFS/(12748:12774): Se ha solicitado la key 65 de la tabla ANIMALS.
+[DEBUG] 15:23:38:370 LFS/(12748:12774): la ruta del config es: ../../FS_LISSANDRA/Tablas/ANIMALS/1.bin
+[DEBUG] 15:23:39:690 LFS/(12748:12774): El registro encontrado es: 1563646979369;65;tigers
+[DEBUG] 15:23:39:690 LFS/(12748:12774): ENTRO AL SEGUNDO IF
+[DEBUG] 15:23:39:690 LFS/(12748:12774): Tipo: 8
+[DEBUG] 15:23:39:690 LFS/(12748:12774): Timestamp: 1563646979369
+[DEBUG] 15:23:39:690 LFS/(12748:12774): Value: tigers
+[DEBUG] 15:23:39:690 LFS/(12748:12774): Key: 65
+[DEBUG] 15:23:39:690 LFS/(12748:12774): Value_long: 7
+[DEBUG] 15:23:39:819 LFS/(12748:12767): Comando SELECT recibido por socket: 5
+[DEBUG] 15:23:39:819 LFS/(12748:12767): TABLA METALS
+[DEBUG] 15:23:39:819 LFS/(12748:12767): Se ha solicitado la key 136 de la tabla METALS.
+[DEBUG] 15:23:39:819 LFS/(12748:12767): la ruta del config es: ../../FS_LISSANDRA/Tablas/METALS/1.bin
+[DEBUG] 15:24:07:802 LFS/(12748:12781): Comando DESCRIBE recibido por socket: 8
+[DEBUG] 15:24:07:802 LFS/(12748:12759): Entre a dumpearTabla
+[DEBUG] 15:24:07:802 LFS/(12748:12781): DESCRIBE general, tabla: ANIMALS
+[DEBUG] 15:24:07:802 LFS/(12748:12781): DESCRIBE general, tabla: METALS
+[DEBUG] 15:24:07:802 LFS/(12748:12781): summa rara: 50
+[DEBUG] 15:24:07:802 LFS/(12748:12781): envie 50 bytes
+[DEBUG] 15:24:07:804 LFS/(12748:12759): El bloque libre a escribir es: [5]
+[DEBUG] 15:24:07:804 LFS/(12748:12759): Entre a dumpearRegistros
+[DEBUG] 15:24:07:804 LFS/(12748:12759): Entre a dumpearRegistros
+[INFO] 15:24:07:805 LFS/(12748:12767): La Key solicitada no pudo ser seleccionada, es inexistente
+[DEBUG] 15:24:08:69 LFS/(12748:12774): Comando SELECT recibido por socket: 7
+[DEBUG] 15:24:08:69 LFS/(12748:12774): TABLA METALS
+[DEBUG] 15:24:08:69 LFS/(12748:12774): Se ha solicitado la key 136 de la tabla METALS.
+[DEBUG] 15:24:08:69 LFS/(12748:12774): la ruta del config es: ../../FS_LISSANDRA/Tablas/METALS/1.bin
+[INFO] 15:24:09:842 LFS/(12748:12774): La Key solicitada no pudo ser seleccionada, es inexistente
+[DEBUG] 15:24:09:894 LFS/(12748:12767): Comando SELECT recibido por socket: 5
+[DEBUG] 15:24:09:895 LFS/(12748:12767): TABLA ANIMALS
+[DEBUG] 15:24:09:895 LFS/(12748:12767): Se ha solicitado la key 105 de la tabla ANIMALS.
+[DEBUG] 15:24:09:895 LFS/(12748:12767): la ruta del config es: ../../FS_LISSANDRA/Tablas/ANIMALS/1.bin
+[INFO] 15:24:11:522 LFS/(12748:12767): La Key solicitada no pudo ser seleccionada, es inexistente
+[DEBUG] 15:24:11:529 LFS/(12748:12767): Comando SELECT recibido por socket: 5
+[DEBUG] 15:24:11:529 LFS/(12748:12767): TABLA METALS
+[DEBUG] 15:24:11:529 LFS/(12748:12767): Se ha solicitado la key 64 de la tabla METALS.
+[DEBUG] 15:24:11:529 LFS/(12748:12767): la ruta del config es: ../../FS_LISSANDRA/Tablas/METALS/1.bin
+[INFO] 15:24:13:906 LFS/(12748:12767): La Key solicitada no pudo ser seleccionada, es inexistente
+[DEBUG] 15:24:13:909 LFS/(12748:12767): Comando INSERT recibido por socket: 5
+[DEBUG] 15:24:13:909 LFS/(12748:12767): Tabla ANIMALS con key 105 y value biological y time 1563647047889
+
+[DEBUG] 15:24:13:918 LFS/(12748:12800): En ListaDeRegistros 1563646979495
+[DEBUG] 15:24:13:919 LFS/(12748:12800): En ListaDeRegistros el timestamp es: 1563646979495
+[DEBUG] 15:24:13:919 LFS/(12748:12800): En ListaDeRegistros 1563646979369
+[DEBUG] 15:24:13:920 LFS/(12748:12800): En ListaDeRegistros el timestamp es: 1563646979369
+[DEBUG] 15:24:13:961 LFS/(12748:12774): Comando SELECT recibido por socket: 7
+[DEBUG] 15:24:13:962 LFS/(12748:12774): TABLA METALS
+[DEBUG] 15:24:13:962 LFS/(12748:12774): Se ha solicitado la key 136 de la tabla METALS.
+[DEBUG] 15:24:13:962 LFS/(12748:12774): la ruta del config es: ../../FS_LISSANDRA/Tablas/METALS/1.bin
+[INFO] 15:24:15:778 LFS/(12748:12774): La Key solicitada no pudo ser seleccionada, es inexistente
+[DEBUG] 15:24:15:916 LFS/(12748:12781): Comando SELECT recibido por socket: 8
+[DEBUG] 15:24:15:916 LFS/(12748:12781): TABLA METALS
+[DEBUG] 15:24:15:918 LFS/(12748:12781): Se ha solicitado la key 71 de la tabla METALS.
+[DEBUG] 15:24:15:918 LFS/(12748:12781): la ruta del config es: ../../FS_LISSANDRA/Tablas/METALS/2.bin
+[INFO] 15:24:22:338 LFS/(12748:12781): La Key solicitada no pudo ser seleccionada, es inexistente
+[DEBUG] 15:24:22:339 LFS/(12748:12759): Entre a dumpearTabla
+[DEBUG] 15:24:22:339 LFS/(12748:12774): Comando INSERT recibido por socket: 7
+[DEBUG] 15:24:22:339 LFS/(12748:12774): Tabla METALS con key 136 y value aluminiferous y time 1563647018289
+
+[DEBUG] 15:24:22:339 LFS/(12748:12759): El bloque libre a escribir es: [5]
+[DEBUG] 15:24:22:339 LFS/(12748:12759): Entre a dumpearRegistros
+[DEBUG] 15:24:22:340 LFS/(12748:12774): Comando INSERT recibido por socket: 7
+[DEBUG] 15:24:22:340 LFS/(12748:12774): Tabla METALS con key 66 y value ferro y time 1563647047906
+
+[DEBUG] 15:24:22:340 LFS/(12748:12774): Comando INSERT recibido por socket: 7
+[DEBUG] 15:24:22:340 LFS/(12748:12774): Tabla METALS con key 71 y value ferrous y time 1563647048002
+
+[DEBUG] 15:24:22:341 LFS/(12748:12774): Comando INSERT recibido por socket: 7
+[DEBUG] 15:24:22:341 LFS/(12748:12774): Tabla METALS con key 64 y value moly y time 1563647049875
+
+[DEBUG] 15:24:22:341 LFS/(12748:12774): Comando INSERT recibido por socket: 7
+[DEBUG] 15:24:22:341 LFS/(12748:12774): Tabla METALS con key 16 y value chemicals y time 1563647055796
+
+[DEBUG] 15:24:22:394 LFS/(12748:12781): Comando SELECT recibido por socket: 8
+[DEBUG] 15:24:22:394 LFS/(12748:12781): TABLA METALS
+[DEBUG] 15:24:22:394 LFS/(12748:12781): Se ha solicitado la key 16 de la tabla METALS.
+[DEBUG] 15:24:22:394 LFS/(12748:12781): la ruta del config es: ../../FS_LISSANDRA/Tablas/METALS/1.bin
+[DEBUG] 15:24:31:811 LFS/(12748:12781): El registro encontrado es: 1563647055796;16;chemicals
+[DEBUG] 15:24:31:811 LFS/(12748:12759): Entre a dumpearTabla
+[DEBUG] 15:24:31:811 LFS/(12748:12781): ENTRO AL SEGUNDO IF
+[DEBUG] 15:24:31:811 LFS/(12748:12781): Tipo: 8
+[DEBUG] 15:24:31:811 LFS/(12748:12781): Timestamp: 1563647055796
+[DEBUG] 15:24:31:811 LFS/(12748:12781): Value: chemicals
+[DEBUG] 15:24:31:811 LFS/(12748:12781): Key: 16
+[DEBUG] 15:24:31:811 LFS/(12748:12781): Value_long: 10
+[DEBUG] 15:24:31:813 LFS/(12748:12759): El bloque libre a escribir es: [6]
+[DEBUG] 15:24:31:813 LFS/(12748:12759): Entre a dumpearRegistros
+[DEBUG] 15:24:31:813 LFS/(12748:12759): Entre a dumpearRegistros
+[DEBUG] 15:24:31:813 LFS/(12748:12759): Entre a dumpearRegistros
+[DEBUG] 15:24:31:814 LFS/(12748:12759): Entre a dumpearRegistros
+[DEBUG] 15:24:31:814 LFS/(12748:12759): Entre a dumpearRegistros
+[DEBUG] 15:24:31:839 LFS/(12748:12800): En ListaDeRegistros 1563647047889
+[DEBUG] 15:24:31:839 LFS/(12748:12800): En ListaDeRegistros el timestamp es: 1563647047889
+[DEBUG] 15:24:31:839 LFS/(12748:12800): En ListaDeRegistros 1563646979495
+[DEBUG] 15:24:31:839 LFS/(12748:12800): En ListaDeRegistros el timestamp es: 1563646979495
+[DEBUG] 15:24:31:839 LFS/(12748:12800): En ListaDeRegistros 1563646979369
+[DEBUG] 15:24:31:839 LFS/(12748:12800): En ListaDeRegistros el timestamp es: 1563646979369
+[DEBUG] 15:24:31:858 LFS/(12748:12781): Comando DESCRIBE recibido por socket: 8
+[DEBUG] 15:24:31:858 LFS/(12748:12781): DESCRIBE general, tabla: ANIMALS
+[DEBUG] 15:24:31:858 LFS/(12748:12781): DESCRIBE general, tabla: METALS
+[DEBUG] 15:24:31:858 LFS/(12748:12781): summa rara: 50
+[DEBUG] 15:24:31:859 LFS/(12748:12781): envie 50 bytes
+[DEBUG] 15:24:31:884 LFS/(12748:12781): Comando SELECT recibido por socket: 8
+[DEBUG] 15:24:31:884 LFS/(12748:12781): TABLA METALS
+[DEBUG] 15:24:31:884 LFS/(12748:12781): Se ha solicitado la key 16 de la tabla METALS.
+[DEBUG] 15:24:31:884 LFS/(12748:12781): la ruta del config es: ../../FS_LISSANDRA/Tablas/METALS/1.bin
+[DEBUG] 15:24:32:705 LFS/(12748:12781): En SelectTemp 1563647055796
+[DEBUG] 15:24:32:705 LFS/(12748:12781): En SelectTemp el timestamp es: 1563647055796
+[DEBUG] 15:24:32:705 LFS/(12748:12781): El registro encontrado es: 1563647055796;16;chemicals
+[DEBUG] 15:24:32:706 LFS/(12748:12781): ENTRO AL SEGUNDO IF
+[DEBUG] 15:24:32:706 LFS/(12748:12781): Tipo: 8
+[DEBUG] 15:24:32:706 LFS/(12748:12781): Timestamp: 1563647055796
+[DEBUG] 15:24:32:706 LFS/(12748:12781): Value: chemicals
+[DEBUG] 15:24:32:706 LFS/(12748:12781): Key: 16
+[DEBUG] 15:24:32:706 LFS/(12748:12781): Value_long: 10
+[DEBUG] 15:24:32:874 LFS/(12748:12781): Comando SELECT recibido por socket: 8
+[DEBUG] 15:24:32:874 LFS/(12748:12781): TABLA ANIMALS
+[DEBUG] 15:24:32:874 LFS/(12748:12781): Se ha solicitado la key 105 de la tabla ANIMALS.
+[DEBUG] 15:24:32:874 LFS/(12748:12781): la ruta del config es: ../../FS_LISSANDRA/Tablas/ANIMALS/1.bin
+[DEBUG] 15:24:33:734 LFS/(12748:12781): El registro encontrado es: 1563647047889;105;biological
+[DEBUG] 15:24:33:734 LFS/(12748:12781): ENTRO AL SEGUNDO IF
+[DEBUG] 15:24:33:734 LFS/(12748:12781): Tipo: 8
+[DEBUG] 15:24:33:734 LFS/(12748:12781): Timestamp: 1563647047889
+[DEBUG] 15:24:33:734 LFS/(12748:12781): Value: biological
+[DEBUG] 15:24:33:734 LFS/(12748:12781): Key: 105
+[DEBUG] 15:24:33:734 LFS/(12748:12781): Value_long: 11
+[DEBUG] 15:24:33:797 LFS/(12748:12774): Comando SELECT recibido por socket: 7
+[DEBUG] 15:24:33:797 LFS/(12748:12774): TABLA ANIMALS
+[DEBUG] 15:24:33:797 LFS/(12748:12774): Se ha solicitado la key 135 de la tabla ANIMALS.
+[DEBUG] 15:24:33:797 LFS/(12748:12774): la ruta del config es: ../../FS_LISSANDRA/Tablas/ANIMALS/1.bin

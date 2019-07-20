@@ -428,7 +428,10 @@ int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla,tPa
 	bool buscarKey(void* elemento){
 		elem_tabla_pag* elemPagAux;
 		elemPagAux = (elem_tabla_pag*)elemento;
-		return (*(uint16_t*)(memoria + elemPagAux->offsetMemoria)) == key;
+		//return (*(uint16_t*)(memoria + elemPagAux->offsetMemoria)) == key;
+		int miKey;
+		memcpy(&miKey,memoria + elemPagAux->offsetMemoria,2);
+		return miKey == key;
 	}
 
 	if(!list_is_empty((t_list*)miseg->tablaPaginas)){
@@ -483,9 +486,10 @@ int ejecutarLRU(){
 
 	void paginaMenorTimePorSeg(void* seg){
 		tSegmento* miSeg = (tSegmento*) seg;
+		log_debug(logger,"el segmento %s tiene %d paginas",miSeg->path,miSeg->tablaPaginas->elements_count);
 		t_list* tablaPagsOrdenada = list_sorted(miSeg->tablaPaginas,pagLRU);
 		tablaPagsOrdenada = list_filter(tablaPagsOrdenada,filtrarFlagModificado);
-		log_debug(logger,"size de %s: %d",miSeg->path,list_size(tablaPagsOrdenada));
+		//log_debug(logger,"size de %s: %d",miSeg->path,list_size(tablaPagsOrdenada));
 		if(!list_is_empty(tablaPagsOrdenada)){
 			elem_tabla_pag* pag = list_get(tablaPagsOrdenada,0);
 			list_add(LRUPaginaPorSegmento,pag);
@@ -493,6 +497,7 @@ int ejecutarLRU(){
 
 	}
 
+	log_debug(logger,"cantidad de segmentos: %d",tablaSegmentos->elements_count);
 	list_iterate(tablaSegmentos,paginaMenorTimePorSeg);
 	if(list_is_empty(LRUPaginaPorSegmento)){
 		return -1;
@@ -513,20 +518,24 @@ int ejecutarLRU(){
 }
 
 int listMinTimestamp(t_list* listaPaginas,elem_tabla_pag* pagina){
-	int size = list_size(listaPaginas);
-	elem_tabla_pag* pagAux = list_get(listaPaginas, 0);
+	//int size = list_size(listaPaginas);
+	int size = listaPaginas->elements_count;
+	//elem_tabla_pag* pagAux = list_get(listaPaginas, 0);
+	elem_tabla_pag* pagAux = malloc(sizeof(elem_tabla_pag));
+	*pagAux = *(elem_tabla_pag*) list_get(listaPaginas,0);
 	*pagina = *pagAux;
-	int min = pagAux->ultimoTime;
+	unsigned long long min = pagAux->ultimoTime;
 	int i;
 	int indexMin=0;
 	for (i = 1; i < size; i++) {
-		pagAux = list_get(listaPaginas,i);
+		*pagAux = *(elem_tabla_pag*)list_get(listaPaginas,i);
 		if(pagAux->ultimoTime < min){
 			min = pagAux->ultimoTime;
 			*pagina = *pagAux;
 			indexMin = i;
 		}
 	}
+	free(pagAux);
 	return indexMin;
 }
 
@@ -711,7 +720,7 @@ void finalizarEjecucion() {
 	printf("------------------------\n");
 	printf("¿chau chau adios?\n");
 	printf("------------------------\n");
-	free(config);
+	free(miConfig);
 	close(socket_lfs);
 	close(socket_kernel);
 	close(socket_sv);

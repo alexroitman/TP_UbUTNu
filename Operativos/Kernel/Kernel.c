@@ -234,10 +234,6 @@ void describe (){
 		usleep(miConfig->metadata_refresh*1000);
 		int info = despacharQuery("DESCRIBE\n",sockets);
 		if(info<=0){
-			bool compararNumeroMem(void* elem){
-				tMemoria* mem2 = (tMemoria*) elem;
-				return mem2->numeroMemoria == mem->id;
-			}
 			for(int i = 0; i < memorias->elements_count;i++){
 				/*if(list_filter(memoriasCaidas,compararNumeroMem)->elements_count == 0){
 					list_add(memoriasCaidas,list_find(memorias,compararNumeroMem));
@@ -435,41 +431,45 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				log_debug(logger,"uso esta memoria: %d",socket_memoria->id);
 				if(socket_memoria->id != -1){
 					consultaOk = enviarPaquete(socket_memoria->socket, serializado, paqueteSelect->length);
-					recv(socket_memoria->socket, &error, sizeof(error), 0);
 					if(consultaOk > 0){
-						if (error == -1) {
-							log_error(loggerError, "Memoria llena, hago JOURNAL");
-							cargarPaqueteJournal(paqueteJournal, "JOURNAL");
-							serializado = serializarJournal(paqueteJournal);
-							enviarPaquete(socket_memoria->socket, serializado,
-									paqueteJournal->length);
-							serializado = serializarSelect(paqueteSelect);
-							enviarPaquete(socket_memoria->socket, serializado,
-									paqueteSelect->length);
-							recv(socket_memoria->socket, &error, sizeof(error), 0);
+						consultaOk = recv(socket_memoria->socket, &error, sizeof(error), 0);
+						if(consultaOk > 0){
+							if (error == -1) {
+								log_error(loggerError, "Memoria llena, hago JOURNAL");
+								cargarPaqueteJournal(paqueteJournal, "JOURNAL");
+								serializado = serializarJournal(paqueteJournal);
+								enviarPaquete(socket_memoria->socket, serializado,
+										paqueteJournal->length);
+								serializado = serializarSelect(paqueteSelect);
+								enviarPaquete(socket_memoria->socket, serializado,
+										paqueteSelect->length);
+								recv(socket_memoria->socket, &error, sizeof(error), 0);
+								consultaOk = 1;
+							}
+							type header = leerHeader(socket_memoria->socket);
+							tRegistroRespuesta* reg = malloc(sizeof(tRegistroRespuesta));
+							desSerializarRegistro(reg, socket_memoria->socket);
+							if (reg->timestamp > 0) {
+								log_debug(logger, "Value: %s", reg->value);
+							}else{
+								log_error(loggerError,"No existe la tabla o registro");
+							}
+							free(reg->value);
+							free(reg);
 							consultaOk = 1;
-						}
-						type header = leerHeader(socket_memoria->socket);
-						tRegistroRespuesta* reg = malloc(sizeof(tRegistroRespuesta));
-						desSerializarRegistro(reg, socket_memoria->socket);
-						if (reg->timestamp > 0) {
-							log_debug(logger, "Value: %s", reg->value);
+							bool sonIguales(void* recibo){
+								tMemLoad* unLoad = (tMemLoad*) recibo;
+								return unLoad->mem->numeroMemoria == socket_memoria->id;
+							}
+							sem_wait(&mutexMetrics);
+							metricsSelect(cons,
+									(obtenerTimestamp() - comienzo));
+							tMemLoad* mem = list_find(memLoads,sonIguales);
+							mem->cont++;
+							sem_post(&mutexMetrics);
 						}else{
-							log_error(loggerError,"No existe la tabla o registro");
+							consultaOk = socket_memoria->id * -1;
 						}
-						free(reg->value);
-						free(reg);
-						consultaOk = 1;
-						bool sonIguales(void* recibo){
-							tMemLoad* unLoad = (tMemLoad*) recibo;
-							return unLoad->mem->numeroMemoria == socket_memoria->id;
-						}
-						sem_wait(&mutexMetrics);
-						metricsSelect(cons,
-								(obtenerTimestamp() - comienzo));
-						tMemLoad* mem = list_find(memLoads,sonIguales);
-						mem->cont++;
-						sem_post(&mutexMetrics);
 					}else{
 						consultaOk = socket_memoria->id * -1;
 					}
@@ -505,37 +505,41 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				if(socket_memoria->id != -1){
 					log_debug(logger,"uso esta memoria: %d", socket_memoria->id);
 					consultaOk = enviarPaquete(socket_memoria->socket, serializado, paqueteInsert->length);
-					recv(socket_memoria->socket, &error, sizeof(int), 0);
 					if(consultaOk > 0){
-						if(error == 1){
-							consultaOk = 1;
-							log_debug(logger, "Se inserto el valor: %s", paqueteInsert->value);
-						} else if(error == -1){
-							log_error(logger, "Memoria llena, hago JOURNAL");
-							cargarPaqueteJournal(paqueteJournal, "JOURNAL");
-							serializado = serializarJournal(paqueteJournal);
-							enviarPaquete(socket_memoria->socket, serializado,
-									paqueteJournal->length);
-							serializado = serializarInsert(paqueteInsert);
-							enviarPaquete(socket_memoria->socket, serializado, paqueteInsert->length);
-							recv(socket_memoria->socket, &error, sizeof(error), 0);
-							consultaOk = 1;
-						}else{
-							if(error == -2){
-								log_debug(logger,"Tamanio de value demasiado grande");
-								consultaOk = 0;
+						consultaOk = recv(socket_memoria->socket, &error, sizeof(int), 0);
+						if(consultaOk > 0){
+							if(error == 1){
+								consultaOk = 1;
+								log_debug(logger, "Se inserto el valor: %s", paqueteInsert->value);
+							} else if(error == -1){
+								log_error(logger, "Memoria llena, hago JOURNAL");
+								cargarPaqueteJournal(paqueteJournal, "JOURNAL");
+								serializado = serializarJournal(paqueteJournal);
+								enviarPaquete(socket_memoria->socket, serializado,
+										paqueteJournal->length);
+								serializado = serializarInsert(paqueteInsert);
+								enviarPaquete(socket_memoria->socket, serializado, paqueteInsert->length);
+								recv(socket_memoria->socket, &error, sizeof(error), 0);
+								consultaOk = 1;
+							}else{
+								if(error == -2){
+									log_debug(logger,"Tamanio de value demasiado grande");
+									consultaOk = 0;
+								}
 							}
+							bool sonIguales(void* recibo){
+								tMemLoad* unLoad = (tMemLoad*) recibo;
+								return unLoad->mem->numeroMemoria == socket_memoria->id;
+							}
+							sem_wait(&mutexMetrics);
+							metricsInsert(cons,
+									(obtenerTimestamp() - comienzo));
+							tMemLoad* mem = list_find(memLoads,sonIguales);
+							mem->cont++;
+							sem_post(&mutexMetrics);
+						}else{
+							consultaOk = socket_memoria->id * -1;
 						}
-						bool sonIguales(void* recibo){
-							tMemLoad* unLoad = (tMemLoad*) recibo;
-							return unLoad->mem->numeroMemoria == socket_memoria->id;
-						}
-						sem_wait(&mutexMetrics);
-						metricsInsert(cons,
-								(obtenerTimestamp() - comienzo));
-						tMemLoad* mem = list_find(memLoads,sonIguales);
-						mem->cont++;
-						sem_post(&mutexMetrics);
 					}else{
 						consultaOk = socket_memoria->id * -1;
 					}
@@ -644,7 +648,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 						consultaOk = 1;
 					}else{
 						log_error(loggerError,"Se callo la memoria");
-						consultaOk = -1;
+						consultaOk = socket_memoria->id * -1;
 					}
 				}else{
 					consultaOk = socket_memoria->id * -1;

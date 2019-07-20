@@ -148,7 +148,7 @@ void receptorDeSockets(int* socket) {
 					errorHandler = errorDeMalloc;
 				else {
 					//TODO: handlear error de Y hacer failfast
-					errorHandler = Select(&reg, packSelect->nombre_tabla, packSelect->key);
+					errorHandler = Select(reg, packSelect->nombre_tabla, packSelect->key);
 					tRegistroRespuesta* registro = malloc(sizeof(tRegistroRespuesta));
 					if (!errorHandler) {
 						if (!registro)
@@ -158,14 +158,14 @@ void receptorDeSockets(int* socket) {
 							registro->tipo = REGISTRO;
 							log_debug(logger, "Tipo: %d", registro->tipo);
 							registro->timestamp = reg->timestamp;
-//							log_debug(logger, "Tipo: %llu", registro->timestamp);
+							log_debug(logger, "Timestamp: %llu", registro->timestamp);
 							registro->value = malloc(strlen(reg->value)+1);
 							strcpy(registro->value, reg->value);
-							log_debug(logger, "Tipo: %s", registro->value);
+							log_debug(logger, "Value: %s", registro->value);
 							registro->key = reg->key;
-							log_debug(logger, "Tipo: %d", registro->key);
+							log_debug(logger, "Key: %d", registro->key);
 							registro->value_long = strlen(reg->value) + 1;
-							log_debug(logger, "Tipo: %d", registro->value_long);
+							log_debug(logger, "Value_long: %d", registro->value_long);
 							char* registroSerializado = serializarRegistro(registro);
 							//TODO: handlear error de serializarRegistro
 							enviarPaquete(*socket, registroSerializado, registro->length);
@@ -751,7 +751,7 @@ int Drop(char* NOMBRE_TABLA) {
 	return todoJoya;
 }
 
-int Select(registro** reg, char* NOMBRE_TABLA, uint16_t KEY) {
+int Select(registro* reg, char* NOMBRE_TABLA, uint16_t KEY) {
 
 	bool es_mayor(registro* unReg, registro* otroReg) {
 		if (unReg->timestamp >= otroReg->timestamp)
@@ -805,8 +805,8 @@ int Select(registro** reg, char* NOMBRE_TABLA, uint16_t KEY) {
 	free(ruta);
 	if (registros->elements_count > 0) {
 		list_sort(registros, (void*) &es_mayor);
-		*reg = (registro*) list_get(registros, 0);
-//		log_debug(logger, "El value encontrado es: %s", (*reg)->value);
+		*reg = *(registro*) list_get(registros, 0);
+		log_debug(logger, "El registro encontrado es: %llu;%d;%s", reg->timestamp, reg->key, reg->value);
 		errorHandler = todoJoya;
 	} else
 		errorHandler = noExisteKey;
@@ -934,6 +934,7 @@ int SelectFS(char* ruta, uint16_t KEY, registro** reg) {
 
 //wait
 	t_config* particion = config_create(rutaFS);
+	log_debug(logger, "la ruta del config es: %s", rutaFS);
 	int size = config_get_int_value(particion, "SIZE");
 	if (size > 0) {
 		char** bloquesABuscar = config_get_array_value(particion, "BLOCKS");
