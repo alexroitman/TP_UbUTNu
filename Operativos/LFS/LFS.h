@@ -98,18 +98,19 @@ int existe_tabla_en_memtable(char* posible_tabla);
 
 // APIs
 int Create(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME);
-int Insert (char* NOMBRE_TABLA, int KEY, char* VALUE, int Timestamp);
+int Insert (char* NOMBRE_TABLA, uint16_t KEY, char* VALUE, int Timestamp);
 int Drop(char* NOMBRE_TABLA);
-int Select(registro** reg, char* NOMBRE_TABLA, int KEY);
+int Select(registro** reg, char* NOMBRE_TABLA, uint16_t KEY);
 t_list* Describe();
 t_list* DESCRIBEespecifico(char* NOMBRE_TABLA) ;
 
 int consistency_to_int(char* cons);
 Metadata* obtener_metadata(char* ruta);
 // AUXILIARES DE SELECT
-int SelectFS(char* NOMBRE_TABLA, int KEY, registro** registro);
+int SelectFS(char* NOMBRE_TABLA, uint16_t KEY, registro** registro);
 t_list* selectEnMemtable( uint16_t key, char* tabla);
-t_list* SelectTemp(char* ruta, int KEY,char* nombre_tabla);
+t_list* SelectTemp(char* ruta, uint16_t KEY,char* nombre_tabla);
+t_list* SelectTempc(char* ruta, uint16_t KEY,char* nombre_tabla);
 
 // TABLAS
 int crearMetadata(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME);
@@ -131,7 +132,7 @@ int compactacion(char* nombre_tabla);
 void guardar_en_disco(t_list* binarios, int cantParticiones,char* nombre_tabla);
 void crearListaRegistros(char** string, t_list* lista);
 int levantarbinarios(char* nombre_tabla, char** bloquesUnificados);
-int obtener_temporales(char* nombre_tabla, char** bloquesUnificados,int dumpeosCompactacion) ;
+int obtener_temporales(char* nombre_tabla, char** bloquesUnificados) ;
 void liberar_bloques(char* nombre_tabla, int cantParticiones,int dumpeosCompactacion);
 // OTROS
 char* direccionarTabla(char* tabla);
