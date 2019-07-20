@@ -49,6 +49,8 @@ int desSerializarGossip(tGossip* packGossip, int socket){
 	if(!status){
 		return 0;
 	}
+	if(status == -1)
+		return -1;
 	packGossip->memorias = malloc(packGossip->cant_memorias * sizeof(tMemoria));
 	for(int x = 0; x< packGossip->cant_memorias; x++){
 		status = recv(socket,&(packGossip->memorias[x]),sizeof(tMemoria),0);
@@ -518,7 +520,8 @@ int desserializarDescribe_Response(t_describe* package, int socket) {
 	int status = recv(socket, &(package->cant_tablas), sizeof(package->cant_tablas), MSG_WAITALL); //recibo el nombre de la key
 	if (!status)
 		return 0;
-
+	if(status == -1)
+		return -1;
 	package->tablas = malloc(package->cant_tablas * sizeof(t_metadata));
 	if (package->cant_tablas > 0) {
 		for (int x = 0; x < package->cant_tablas; x++) {

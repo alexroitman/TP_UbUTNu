@@ -631,16 +631,21 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				consultaOk = enviarPaquete(socket_memoria->socket,serializado,paqueteDescribe->length);
 				if(consultaOk > 0){
 					t_describe* response = malloc(sizeof(t_describe));
-					desserializarDescribe_Response(response,socket_memoria->socket);
-					if(response->cant_tablas != 0){
-						log_debug(logger,"Cant tablas: %d", response->cant_tablas);
-						ejecutarDescribe(response);
+					int flag = desserializarDescribe_Response(response,socket_memoria->socket);
+					if(flag > 0){
+						if(response->cant_tablas != 0){
+							log_debug(logger,"Cant tablas: %d", response->cant_tablas);
+							ejecutarDescribe(response);
+						}else{
+							log_warning(loggerWarning, "No se recibio ninguna tabla");
+						}
+						free(response->tablas);
+						free(response);
+						consultaOk = 1;
 					}else{
-						log_warning(loggerWarning, "No se recibio ninguna tabla");
+						log_error(loggerError,"Se callo la memoria");
+						consultaOk = -1;
 					}
-					free(response->tablas);
-					free(response);
-					consultaOk = 1;
 				}else{
 					consultaOk = socket_memoria->id * -1;
 				}
@@ -918,10 +923,16 @@ void gossip(){
 		if(bytes > 0){
 			gossip = leerHeader(socket_gossip);
 			tGossip *packGossip = malloc(sizeof(tGossip));
-			desSerializarGossip(packGossip,socket_gossip);
-			actualizarTablaGossip(packGossip);
-			log_debug(logger,"cantidad memorias: %d",memorias->elements_count);
-			free(packGossip);
+			int flag = desSerializarGossip(packGossip,socket_gossip);
+			if(flag > 0){
+				actualizarTablaGossip(packGossip);
+				log_debug(logger,"cantidad memorias: %d",memorias->elements_count);
+				free(packGossip);
+			}else{
+				log_warning(loggerWarning,"Memoria seed caida, volviendo a conectar");
+				socket_gossip = levantarCliente(miConfig->puerto_mem,miConfig->ip_mem);
+				log_warning(loggerWarning, "Se reestablecio la conexion con la memoria seed");
+			}
 		}else{
 			log_warning(loggerWarning,"Memoria seed caida, volviendo a conectar");
 			socket_gossip = levantarCliente(miConfig->puerto_mem,miConfig->ip_mem);
