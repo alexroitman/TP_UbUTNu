@@ -49,8 +49,8 @@ typedef struct{
 typedef struct{
 	int contInsert;
 	int contSelect;
-	int acumtInsert;
-	int acumtSelect;
+	unsigned long long acumtInsert;
+	unsigned long long acumtSelect;
 }t_contMetrics;
 typedef struct{
 	int id;
@@ -71,6 +71,7 @@ typedef struct{
 	tMemoria* mem;
 	int cont;
 }tMemLoad;
+void ejecutarMetrics();
 void describe ();
 type leerConsola(); //Lee la consulta y devuelve el string
 type validarSegunHeader(char* header);
