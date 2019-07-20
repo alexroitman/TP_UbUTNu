@@ -1242,7 +1242,7 @@ int EC(int time){
 	int tamanio = memsDisp->elements_count;
 	sem_post(&mutexEC);
 	if(tamanio != 0){
-		tMemoria* mem= (tMemoria*)list_get(memsDisp,(time % tamanio));
+		tMemoria* mem= (tMemoria*)list_get(memsDisp,(rand() % tamanio));
 		return mem->numeroMemoria;
 	}else{
 		return -1;
