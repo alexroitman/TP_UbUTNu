@@ -297,35 +297,45 @@ type validarSegunHeader(char* header) {
 	return NIL;
 }
 
-void metricsInsert(consistencias cons,int time){
+void metricsInsert(consistencias cons,unsigned long long time){
+	log_warning(loggerWarning,"metric insert para cons: %d", cons);
 	switch(cons){
 	case sc:
 		metricsSC.acumtInsert += time;
 		metricsSC.contInsert++;
+		log_warning(loggerWarning,"t insert: %llu y cont insert: %d",metricsSC.acumtInsert,metricsSC.contInsert);
 		break;
 	case ec:
-			metricsEC.acumtInsert += time;
-			metricsEC.contInsert++;
-			break;
+		metricsEC.acumtInsert += time;
+		metricsEC.contInsert++;
+		log_warning(loggerWarning,"t insert: %llu y cont insert: %d",metricsEC.acumtInsert,metricsEC.contInsert);
+
+		break;
 	case shc:
-			metricsSHC.acumtInsert += time;
-			metricsSHC.contInsert++;
-			break;
+		metricsSHC.acumtInsert += time;
+		metricsSHC.contInsert++;
+		log_warning(loggerWarning,"t insert: %llu y cont insert: %d",metricsSHC.acumtInsert,metricsSHC.contInsert);
+
+		break;
 	}
 }
-void metricsSelect(consistencias cons,int time){
+void metricsSelect(consistencias cons,unsigned long long time){
+	log_warning(loggerWarning,"metric insert para cons: %d", cons);
 	switch(cons){
 	case sc:
 		metricsSC.acumtSelect += time;
 		metricsSC.contSelect++;
+		log_warning(loggerWarning,"t select: %llu y cont select: %d",metricsSC.acumtSelect,metricsSC.contSelect);
 		break;
 	case ec:
 		metricsEC.acumtSelect += time;
 		metricsEC.contSelect++;
+		log_warning(loggerWarning,"t select: %llu y cont select: %d",metricsEC.acumtSelect,metricsEC.contSelect);
 		break;
 	case shc:
 		metricsSHC.acumtSelect += time;
 		metricsSHC.contSelect++;
+		log_warning(loggerWarning,"t select: %llu y cont select: %d",metricsSHC.acumtSelect,metricsSHC.contSelect);
 		break;
 	}
 }
@@ -352,10 +362,49 @@ void metrics(){
 		}
 		sem_post(&mutexMetrics);
 		sleep(30);
+		sem_wait(&mutexMetrics);
+		ejecutarMetrics();
+		sem_post(&mutexMetrics);
 	}
 
 }
-
+void ejecutarMetrics(){
+	log_warning(loggerWarning,"CRITERIO SC: ");
+	unsigned long long latencyRead = 0;
+	unsigned long long latencyWrite = 0;
+	if(metricsSC.contSelect != 0)
+		latencyRead = metricsSC.acumtSelect / metricsSC.contSelect;
+	if(metricsSC.contInsert != 0)
+		latencyWrite = metricsSC.acumtInsert / metricsSC.contInsert;
+	log_debug(logger, "READ LATENCY: %llu ms, WRITE LATENCY: %llu ms, READS: %d, WRITES: %d",
+			latencyRead,latencyWrite,metricsSC.contSelect,metricsSC.contInsert);
+	log_warning(loggerWarning,"CRITERIO EC: ");
+	if(metricsEC.contSelect != 0)
+		latencyRead = metricsEC.acumtSelect / metricsEC.contSelect;
+	else{ latencyRead = 0;}
+	if(metricsEC.contInsert != 0)
+		latencyWrite = metricsEC.acumtInsert / metricsEC.contInsert;
+	else{latencyWrite = 0;}
+	log_debug(logger, "READ LATENCY: %llu ms, WRITE LATENCY: %llu ms, READS: %d, WRITES: %d",
+			latencyRead,latencyWrite,metricsEC.contSelect,metricsEC.contInsert);
+	log_warning(loggerWarning,"CRITERIO SHC: ");
+	if(metricsSHC.contSelect != 0)
+		latencyRead = metricsSHC.acumtSelect / metricsSHC.contSelect;
+	else{latencyRead = 0;}
+	if(metricsSHC.contInsert != 0)
+		latencyWrite = metricsSHC.acumtInsert / metricsSHC.contInsert;
+	else{latencyWrite = 0;}
+	log_debug(logger, "READ LATENCY: %llu ms, WRITE LATENCY: %llu ms, READS: %d, WRITES: %d",
+			latencyRead,latencyWrite,metricsSHC.contSelect,metricsSHC.contInsert);
+	int total = metricsEC.contInsert + metricsEC.contSelect
+			+ metricsSC.contInsert + metricsSC.contSelect+
+			metricsSHC.contInsert + metricsSHC.contSelect;
+	for(int i = 0; i<memLoads->elements_count;i++){
+		tMemLoad* unLoad = (tMemLoad*)list_get(memLoads,i);
+		log_warning(loggerWarning,"Memory load de la mem: %d",unLoad->mem->numeroMemoria);
+		log_debug(logger,"%d de un total de: %d",unLoad->cont,total);
+	}
+}
 
 
 bool existe(char* nombre){
@@ -387,13 +436,13 @@ int despacharQuery(char* consulta, t_list* sockets) {
 		case SELECT:
 			if(validarSelect(consulta)){
 				int error;
-				int comienzo = (int) time(NULL);
+				unsigned long long comienzo = obtenerTimestamp();
 				log_debug(logger,"Se recibio un SELECT");
 				cargarPaqueteSelect(paqueteSelect, consulta);
 				serializado = serializarSelect(paqueteSelect);
 				consistencias cons = consTabla(paqueteSelect->nombre_tabla);
 				socket_memoria = devolverSocket(cons,sockets,paqueteSelect->key);
-				log_debug(logger,"uso este socket: %d",socket_memoria->id);
+				log_debug(logger,"uso esta memoria: %d",socket_memoria->id);
 				if(socket_memoria->id != -1){
 					consultaOk = enviarPaquete(socket_memoria->socket, serializado, paqueteSelect->length);
 					recv(socket_memoria->socket, &error, sizeof(error), 0);
@@ -420,9 +469,17 @@ int despacharQuery(char* consulta, t_list* sockets) {
 						}
 						free(reg->value);
 						free(reg);
-						metricsSelect(cons,
-								((int) time(NULL) - comienzo));
 						consultaOk = 1;
+						bool sonIguales(void* recibo){
+							tMemLoad* unLoad = (tMemLoad*) recibo;
+							return unLoad->mem->numeroMemoria == socket_memoria->id;
+						}
+						sem_wait(&mutexMetrics);
+						metricsSelect(cons,
+								(obtenerTimestamp() - comienzo));
+						tMemLoad* mem = list_find(memLoads,sonIguales);
+						mem->cont++;
+						sem_post(&mutexMetrics);
 					}else{
 						consultaOk = socket_memoria->id * -1;
 					}
@@ -445,7 +502,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 		case INSERT:
 			if(validarInsert(consulta)){
 				int error = 0;
-				int comienzo = (int) time(NULL);
+				unsigned long long comienzo = obtenerTimestamp();
 				log_debug(logger,"Se recibio un INSERT");
 				char* sinFin = string_new();
 				string_append(&sinFin, string_substring_until(consulta,strlen(consulta)-1 ));
@@ -456,10 +513,9 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				consistencias cons = consTabla(paqueteInsert->nombre_tabla);
 				socket_memoria = devolverSocket(cons,sockets,paqueteInsert->key);
 				if(socket_memoria->id != -1){
-
+					log_debug(logger,"uso esta memoria: %d", socket_memoria->id);
 					consultaOk = enviarPaquete(socket_memoria->socket, serializado, paqueteInsert->length);
 					recv(socket_memoria->socket, &error, sizeof(int), 0);
-					log_warning(loggerWarning, "este es el error: %d",error);
 					if(consultaOk > 0){
 						if(error == 1){
 							consultaOk = 1;
@@ -474,13 +530,22 @@ int despacharQuery(char* consulta, t_list* sockets) {
 							enviarPaquete(socket_memoria->socket, serializado, paqueteInsert->length);
 							recv(socket_memoria->socket, &error, sizeof(error), 0);
 							consultaOk = 1;
-							metricsInsert(cons,((int) time(NULL)-comienzo));
 						}else{
 							if(error == -2){
 								log_debug(logger,"Tamanio de value demasiado grande");
 								consultaOk = 0;
 							}
 						}
+						bool sonIguales(void* recibo){
+							tMemLoad* unLoad = (tMemLoad*) recibo;
+							return unLoad->mem->numeroMemoria == socket_memoria->id;
+						}
+						sem_wait(&mutexMetrics);
+						metricsInsert(cons,
+								(obtenerTimestamp() - comienzo));
+						tMemLoad* mem = list_find(memLoads,sonIguales);
+						mem->cont++;
+						sem_post(&mutexMetrics);
 					}else{
 						consultaOk = socket_memoria->id * -1;
 					}
@@ -510,7 +575,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				if(!existe(paqueteCreate->nombre_tabla)){
 					socket_memoria = devolverSocket(obtCons(paqueteCreate->consistencia)
 							,sockets,1);
-					log_debug(logger,"voy a usar este socket: %d",socket_memoria->id);
+					log_debug(logger,"voy a usar esta memoria: %d",socket_memoria->id);
 					if(socket_memoria->id != -1){
 						consultaOk = enviarPaquete(socket_memoria->socket, serializado, paqueteCreate->length);
 						if(consultaOk <= 0){
@@ -581,7 +646,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 						log_debug(logger,"Cant tablas: %d", response->cant_tablas);
 						ejecutarDescribe(response);
 					}else{
-						log_error(loggerWarning, "No se recibio ninguna tabla");
+						log_warning(loggerWarning, "No se recibio ninguna tabla");
 					}
 					free(response->tablas);
 					free(response);
@@ -632,31 +697,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 			break;
 		case METRICS:
 			sem_wait(&mutexMetrics);
-			log_warning(loggerWarning,"CRITERIO SC: ");
-			int latencyRead = metricsSC.acumtSelect / 30;
-			int latencyWrite = metricsSC.acumtInsert / 30;
-			log_debug(logger, "READ LATENCY: %d, WRITE LATENCY: %d, READS: %d, WRITES: %d",
-					latencyRead,latencyWrite,metricsSC.contSelect,metricsSC.contInsert);
-			log_warning(loggerWarning,"CRITERIO EC: ");
-			latencyRead = metricsEC.acumtSelect / 30;
-			latencyWrite = metricsEC.acumtInsert / 30;
-			log_debug(logger, "READ LATENCY: %d, WRITE LATENCY: %d, READS: %d, WRITES: %d",
-					latencyRead,latencyWrite,metricsEC.contSelect,metricsEC.contInsert);
-			log_warning(loggerWarning,"CRITERIO SHC: ");
-			latencyRead = metricsSHC.acumtSelect / 30;
-			latencyWrite = metricsSHC.acumtInsert / 30;
-			log_debug(logger, "READ LATENCY: %d, WRITE LATENCY: %d, READS: %d, WRITES: %d",
-					latencyRead,latencyWrite,metricsSHC.contSelect,metricsSHC.contInsert);
-			int total = metricsEC.contInsert + metricsEC.contSelect
-					+ metricsSC.contInsert + metricsSC.contSelect+
-					metricsSHC.contInsert + metricsSHC.contSelect;
-			for(int i = 0; i<memLoads->elements_count;i++){
-				tMemLoad* unLoad = (tMemLoad*)list_get(memLoads,i);
-				tMemoria* mem = unLoad->mem;
-				log_warning(loggerWarning,"Memory load de la mem: %d",mem->numeroMemoria);
-				log_debug(logger,"%d% de un total de: %d",((unLoad->cont*100)/total),total);
-			}
-
+			ejecutarMetrics();
 			sem_post(&mutexMetrics);
 			consultaOk = 1;
 			break;
@@ -755,6 +796,7 @@ void CPU(){
 		log_debug(logger,"Se esta corriendo el script: %d", unScript->id);
 		for(int i = 0 ; i < miConfig->quantum; i++){
 			info = leerLinea(unScript->path,unScript->pos,consulta);
+			unScript->pos++;
 			switch(info){
 			case 0:
 				i = miConfig->quantum;
@@ -813,7 +855,6 @@ void CPU(){
 				free(unScript);
 				break;
 			}
-			unScript->pos++;
 		}
 		if(info == 1){
 			sem_wait(&mutexReady);
@@ -845,7 +886,8 @@ void planificador(){
 }
 void actualizarTablaGossip(tGossip* packGossip){
 	void actualizarTabla(void* elemento){
-		tMemoria* mem = (tMemoria*) elemento;
+		tMemoria* mem = malloc(sizeof(tMemoria));
+		memcpy(mem,(tMemoria*) elemento,sizeof(tMemoria));
 		bool compararNumeroMem(void* elem){
 			tMemoria* mem2 = (tMemoria*) elem;
 			return mem2->numeroMemoria == mem->numeroMemoria;
@@ -1004,14 +1046,12 @@ int validarAdd(char* consulta){
 void ejecutarAdd(char* consulta){
 
 	char** split = string_split(consulta," ");
-
 	tMemoria* memAdd;
 	memAdd = (tMemoria*)generarMem(consulta);
 	bool mismoId(void* elemento) {
 			tMemoria* mem = malloc(sizeof(tMemoria));
 			mem = (tMemoria*) elemento;
 			int id = mem->numeroMemoria;
-			log_debug(logger,"%d",id);
 			return (atoi(split[2]) == id);
 		}
 	if(memAdd->numeroMemoria != -1){
@@ -1030,6 +1070,7 @@ void ejecutarAdd(char* consulta){
 				log_debug(logger,"La memoria %d se asoció al criterio %s",memAdd->numeroMemoria,split[4]);
 			}else{
 				log_error(loggerError,"Ya se encuentra asociada la memoria %d al criterio",memAdd->numeroMemoria);
+				free(memAdd);
 			}
 			sem_post(&mutexSHC);
 			despacharQuery("journal\n",(t_list*)list_get(listaDeLSockets,0));
@@ -1041,13 +1082,14 @@ void ejecutarAdd(char* consulta){
 				log_debug(logger,"La memoria %d se asoció al criterio %s",memAdd->numeroMemoria,split[4]);
 			}else{
 				log_error(loggerError,"Ya se encuentra asociada la memoria %d al criterio",memAdd->numeroMemoria);
+				free(memAdd);
 			}
 			sem_post(&mutexEC);
 			break;
 		}
 	}else{
-		free(memAdd);
 		log_error(loggerError,"La memoria elegida no se encuentra en el pool");
+		free(memAdd);
 	}
 	string_iterate_lines(split,free);
 	free(split);
@@ -1057,7 +1099,6 @@ tMemoria* generarMem(char* consulta){
 	char** split = string_split(consulta," ");
 	tMemoria* mem = malloc(sizeof(tMemoria));
 	mem->numeroMemoria = atoi(split[2]);
-	log_debug(logger,"generar mem: %d",mem->numeroMemoria);
 	bool compararNumeroMem(void* elem){
 		tMemoria* mem2 = (tMemoria*) elem;
 		return mem2->numeroMemoria == mem->numeroMemoria;
@@ -1069,6 +1110,8 @@ tMemoria* generarMem(char* consulta){
 		mem->numeroMemoria = -1;
 	}
 	sem_post(&mutexMems);
+	string_iterate_lines(split,free);
+	free(split);
 	return mem;
 }
 
@@ -1111,6 +1154,8 @@ void ejecutarDescribe(t_describe *response){
 		if(list_is_empty(list_filter(listaTablas,mismoNombre))){
 			list_add(listaTablas,metadata);
 			log_debug(logger, "Se agrego la tabla %s a la lista", nombre);
+		}else{
+			free(metadata);
 		}
 	}
 }
@@ -1141,11 +1186,14 @@ t_infoMem* devolverSocket(consistencias cons, t_list* sockets, int key){
 	}
 	switch(cons){
 	case sc:
-		mem = SC;
+		*mem = *SC;
 		if(mem->numeroMemoria != -1){
-		return (t_infoMem*)list_find(sockets,compararNumeroMem);
+		ret = (t_infoMem*)list_find(sockets,compararNumeroMem);
+		free(mem);
+		return ret;
 		}else{
 			ret->id = -1;
+			free(mem);
 			return ret;
 		}
 		break;
@@ -1154,9 +1202,11 @@ t_infoMem* devolverSocket(consistencias cons, t_list* sockets, int key){
 		mem->numeroMemoria = pos;
 		if(pos !=-1){
 			ret = (t_infoMem*)list_find(sockets,compararNumeroMem);
+			free(mem);
 			return ret;
 		}else{
 			ret->id = -1;
+			free(mem);
 			return ret;
 		}
 		break;
@@ -1166,14 +1216,17 @@ t_infoMem* devolverSocket(consistencias cons, t_list* sockets, int key){
 			mem->numeroMemoria = pos;
 
 			ret = (t_infoMem*)list_find(sockets,compararNumeroMem);
+			free(mem);
 			return ret;
 		}else{
 			ret->id = -1;
+			free(mem);
 			return ret;
 		}
 		break;
 	default:
 		ret->id = -1;
+		free(mem);
 		return ret;
 		break;
 	}
@@ -1187,7 +1240,6 @@ int SHC(int key){
 	sem_post(&mutexSHC);
 	if(tamanio != 0){
 		tMemoria* mem= (tMemoria*)list_get(memsDisp,(key % tamanio));
-		log_debug(logger,"lo mando a esta memoria: %d", mem->numeroMemoria);
 		return mem->numeroMemoria;
 	}else{
 		return -1;
@@ -1200,7 +1252,6 @@ int EC(int time){
 	int tamanio = memsDisp->elements_count;
 	sem_post(&mutexEC);
 	if(tamanio != 0){
-
 		tMemoria* mem= (tMemoria*)list_get(memsDisp,(time % tamanio));
 		return mem->numeroMemoria;
 	}else{
@@ -1247,6 +1298,18 @@ void inicializarTodo(){
 	sem_init(&mutexCaido,0,1);
 	log_debug(logger,"Semaforos incializados con exito");
 	log_debug(logger,"Inicializando sockets");
+	metricsEC.acumtInsert = 0;
+	metricsEC.acumtSelect = 0;
+	metricsEC.contInsert = 0;
+	metricsEC.contSelect = 0;
+	metricsSC.acumtInsert = 0;
+	metricsSC.acumtSelect = 0;
+	metricsSC.contInsert = 0;
+	metricsSC.contSelect = 0;
+	metricsSHC.acumtInsert = 0;
+	metricsSHC.acumtSelect = 0;
+	metricsSHC.contInsert = 0;
+	metricsSHC.contSelect = 0;
 	listaMemsEC = list_create();
 	listaMemsSHC = list_create();
 	listaTablas = list_create();
@@ -1325,7 +1388,6 @@ void finalizarEjecucion() {
 		lista = (t_list*) list_get(listaDeLSockets,i);
 		for(int j = 0; j < list_size(lista);j++){
 			int* sock = list_get(lista,j);
-			log_warning(loggerWarning,"sandanga");
 			close(sock[0]);
 		}
 	}
