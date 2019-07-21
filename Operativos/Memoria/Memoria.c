@@ -287,7 +287,8 @@ void devolverTablaGossip(tGossip* packGossip, int socket) {
 int actualizarPaginaEnMemoria(tSegmento* segmento, int index, char* newValue) {
 
 	if (verificarTamanioValue(newValue)) {
-		elem_tabla_pag* elemTablaPag = malloc(sizeof(elem_tabla_pag));
+		log_debug(logger,"Voy a actualizar la pagina");
+		elem_tabla_pag* elemTablaPag;
 		elemTablaPag = (elem_tabla_pag*) list_get(segmento->tablaPaginas,
 				index);
 		int offsetMemoria = elemTablaPag->offsetMemoria;
@@ -314,7 +315,7 @@ tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg) {
 }
 
 bool verificarTamanioValue(char* value){
-	return strlen(value) < tamanioMaxValue;
+	return (strlen(value) < tamanioMaxValue);
 }
 
 int agregarPaginaAMemoria(tSegmento* seg, tPagina* pagina, bool modificado) {
@@ -340,13 +341,14 @@ int agregarPaginaAMemoria(tSegmento* seg, tPagina* pagina, bool modificado) {
 		memcpy((memoria + offset + 2), &(pagina->timestamp), sizeof(unsigned long long));
 
 		memcpy((memoria + offset + 10), pagina->value, tamanioMaxValue);
-
 		elem_tabla_pag* pagTabla = malloc(sizeof(elem_tabla_pag));
 		pagTabla->modificado = modificado;
 		pagTabla->offsetMemoria = offset;
 		pagTabla->index = list_size(seg->tablaPaginas);
+		log_debug(logger,"La pagina insertada tiene index %d",pagTabla->index);
 		pagTabla->ultimoTime = obtenerTimestamp();
 		list_add(seg->tablaPaginas, (elem_tabla_pag*) pagTabla);
+		//actualizarIndexLista(seg->tablaPaginas);
 		log_debug(logger, "Pagina cargada en memoria.");
 		log_warning(logger,"Flag modificado de la key %d es %d",pagina->key,pagTabla->modificado);
 		return 1;
@@ -478,39 +480,50 @@ int ejecutarLRU(){
 	bool pagLRU(void* pag1,void* pag2){
 		elem_tabla_pag* pagina1 = (elem_tabla_pag*) pag1;
 		elem_tabla_pag* pagina2 = (elem_tabla_pag*) pag2;
-		log_debug(logger,"Comparo %d con %d",pagina1->offsetMemoria,pagina2->offsetMemoria);
+		//log_debug(logger,"Comparo %d con %d",pagina1->offsetMemoria,pagina2->offsetMemoria);
 		return pagina1->ultimoTime < pagina2->ultimoTime;
 	}
-
+	void logearIndex(void* elem){
+		elem_tabla_pag* pag = (elem_tabla_pag*) elem;
+		log_debug(logger,"index: %d",pag->index);
+	}
 
 
 	void paginaMenorTimePorSeg(void* seg){
 		tSegmento* miSeg = (tSegmento*) seg;
 		log_debug(logger,"el segmento %s tiene %d paginas",miSeg->path,miSeg->tablaPaginas->elements_count);
 		t_list* tablaPagsOrdenada = list_sorted(miSeg->tablaPaginas,pagLRU);
+		list_iterate(miSeg->tablaPaginas,logearIndex);
 		tablaPagsOrdenada = list_filter(tablaPagsOrdenada,filtrarFlagModificado);
 		//log_debug(logger,"size de %s: %d",miSeg->path,list_size(tablaPagsOrdenada));
 		if(!list_is_empty(tablaPagsOrdenada)){
 			elem_tabla_pag* pag = list_get(tablaPagsOrdenada,0);
 			list_add(LRUPaginaPorSegmento,pag);
+		}else{
+			elem_tabla_pag* pagNull = malloc(sizeof(elem_tabla_pag));
+			pagNull->index = -1;
+			list_add(LRUPaginaPorSegmento,pagNull);
 		}
 
 	}
 
 	log_debug(logger,"cantidad de segmentos: %d",tablaSegmentos->elements_count);
 	list_iterate(tablaSegmentos,paginaMenorTimePorSeg);
-	if(list_is_empty(LRUPaginaPorSegmento)){
+	elem_tabla_pag* pagBorrar = malloc(sizeof(elem_tabla_pag));
+	pagBorrar->index = -1;
+	int indexMin = listMinTimestamp(LRUPaginaPorSegmento, pagBorrar);
+	if(indexMin == -1){
 		return -1;
 	}
-
-	elem_tabla_pag* pagBorrar = malloc(sizeof(elem_tabla_pag));
-	int indexMin = listMinTimestamp(LRUPaginaPorSegmento, pagBorrar);
+	log_debug(logger,"size de lista LRU: %d",LRUPaginaPorSegmento->elements_count);
 	//int key = *((int*) memoria + pagBorrar->offsetMemoria);
 	//log_debug(logger,"Se eliminara la pagina: %d",pagBorrar->index);
 	uint16_t key;
 	memcpy(&key,memoria + pagBorrar->offsetMemoria,2);
-	tSegmento* segmento = obtenerSegmentoDeTabla(tablaSegmentos,indexMin);
-	log_warning(logger,"Voy a reemplazar la key %d de la tabla %s",key,segmento->path);
+	tSegmento* segmento = list_get(tablaSegmentos,indexMin);
+	//actualizarIndexLista(segmento->tablaPaginas);
+	log_warning(logger,"Voy a borrar la key %d de la tabla %s",key,segmento->path);
+	log_debug(logger,"Voy a borrar el elemento %d de la tabla de paginas de %s",pagBorrar->index,segmento->path);
 	list_remove(segmento->tablaPaginas,pagBorrar->index);
 	actualizarIndexLista(segmento->tablaPaginas);
 	eliminarDeMemoria(pagBorrar);
@@ -522,21 +535,35 @@ int listMinTimestamp(t_list* listaPaginas,elem_tabla_pag* pagina){
 	int size = listaPaginas->elements_count;
 	//elem_tabla_pag* pagAux = list_get(listaPaginas, 0);
 	elem_tabla_pag* pagAux = malloc(sizeof(elem_tabla_pag));
+
 	*pagAux = *(elem_tabla_pag*) list_get(listaPaginas,0);
-	*pagina = *pagAux;
+	if(pagAux->modificado == false){
+		*pagina = *pagAux;
+	}
+
 	unsigned long long min = pagAux->ultimoTime;
 	int i;
-	int indexMin=0;
+	int indexMin;
+
+
+	indexMin=0;
 	for (i = 1; i < size; i++) {
 		*pagAux = *(elem_tabla_pag*)list_get(listaPaginas,i);
-		if(pagAux->ultimoTime < min){
+		if(pagAux->ultimoTime < min && pagAux->index != -1){
 			min = pagAux->ultimoTime;
 			*pagina = *pagAux;
 			indexMin = i;
 		}
+
 	}
+
 	free(pagAux);
-	return indexMin;
+	if(pagina->index != -1){
+		return indexMin;
+	}else{
+		return -1;
+	}
+
 }
 
 
