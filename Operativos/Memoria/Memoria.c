@@ -366,7 +366,7 @@ void cargarSegmentoEnTabla(char* path, t_list* listaSeg) {
 }
 
 tSegmento* obtenerSegmentoDeTabla(t_list* tablaSeg, int index) {
-	tSegmento* seg = malloc(sizeof(tSegmento*));
+	tSegmento* seg = malloc(sizeof(tSegmento));
 	*seg = *(tSegmento*) list_get(tablaSeg, index);
 	return seg;
 }
@@ -429,7 +429,7 @@ int buscarPaginaEnMemoria(int key, tSegmento* miseg,elem_tabla_pag* pagTabla,tPa
 		elem_tabla_pag* elemPagAux;
 		elemPagAux = (elem_tabla_pag*)elemento;
 		//return (*(uint16_t*)(memoria + elemPagAux->offsetMemoria)) == key;
-		int miKey;
+		uint16_t miKey;
 		memcpy(&miKey,memoria + elemPagAux->offsetMemoria,2);
 		return miKey == key;
 	}
