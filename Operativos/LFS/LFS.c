@@ -510,6 +510,7 @@ void hiloCompactar(void* nombre_tabla) {
 		int dumps = contadorDeArchivos(nombre_tabla, "tmp");
 		if (dumps > 0) {
 			compactacion((char*) nombre_tabla);
+			log_debug(logger,"termine");
 		}
 	}
 }
@@ -1277,6 +1278,8 @@ int dumpeoMemoria() {
 
 	list_iterate(dumpMem, (void*) &paraDumpearTabla);
 	list_clean_and_destroy_elements(dumpMem, (void*) destruidor);
+	log_debug(logger,"termine");
+
 	//pthread_mutex_lock(&cantidadDeDumpeos_mutex);
 	//cantidadDeDumpeos++;
 	//pthread_mutex_unlock(&cantidadDeDumpeos_mutex);
@@ -1406,8 +1409,10 @@ int compactacion(char* nombre_tabla) {
 	t_list* listaCompactada = list_create();
 
 	int error = obtener_temporales(nombre_tabla, &temporales);
-	int errorbinario = levantarbinarios(nombre_tabla, &binarios);
 
+	pthread_mutex_lock(mutex);
+	int errorbinario = levantarbinarios(nombre_tabla, &binarios);
+	pthread_mutex_unlock(mutex);
 	if (!string_is_empty(temporales))
 		crearListaRegistros(&temporales, lista_Temp);
 	if (!string_is_empty(binarios))
@@ -1464,7 +1469,7 @@ int compactacion(char* nombre_tabla) {
 	string_append_with_format(&tabla, "%sTablas/%s/metadata", configLFS->dirMontaje, nombre_tabla);
 	t_config* t = config_create(tabla);
 	int part = config_get_int_value(t, "PARTITIONS");
-
+config_destroy(t);
 	pthread_mutex_lock(mutex);
 	liberar_bloques(nombre_tabla, part, dumpeosCompactacion);
 	guardar_en_disco(listaCompactada, part, nombre_tabla);
@@ -1561,6 +1566,7 @@ void guardar_en_disco(t_list* binarios, int cantParticiones, char* nombre_tabla)
 		string_append_with_format(&bloque, "%sBloques/%d.bin", configLFS->dirMontaje, bit);
 		int fd2 = open(bloque, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);
 		bajarAMemoria(&fd2, registroParaEscribir, tmp);
+		config_destroy(tmp);
 		close(fd2);
 		free(bloque);
 		free(nuevoBloque);
@@ -1603,6 +1609,7 @@ int levantarbinarios(char* nombre_tabla, char** bloquesUnificados) {
 	t_config* metadataTabla = config_create(rutametadata);
 	int cantParticiones =
 			(config_get_int_value(metadataTabla, "PARTITIONS") - 1);
+	config_destroy(metadataTabla);
 	for (int aux = 0; aux <= cantParticiones; aux++) {
 
 		char* rutaBinario = string_new();
