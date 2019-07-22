@@ -485,19 +485,23 @@ int ejecutarLRU(){
 	}
 	void logearIndex(void* elem){
 		elem_tabla_pag* pag = (elem_tabla_pag*) elem;
-		log_debug(logger,"index: %d",pag->index);
+		log_debug(logger,"index: %d tiene time %llu y flag %d",pag->index,pag->ultimoTime,pag->modificado);
 	}
 
 
 	void paginaMenorTimePorSeg(void* seg){
 		tSegmento* miSeg = (tSegmento*) seg;
 		log_debug(logger,"el segmento %s tiene %d paginas",miSeg->path,miSeg->tablaPaginas->elements_count);
+		//log_debug(logger, "LOGEO TODAS LAS PAGINAS: ");
+		//list_iterate(miSeg->tablaPaginas,logearIndex);
 		t_list* tablaPagsOrdenada = list_sorted(miSeg->tablaPaginas,pagLRU);
-		list_iterate(miSeg->tablaPaginas,logearIndex);
 		tablaPagsOrdenada = list_filter(tablaPagsOrdenada,filtrarFlagModificado);
 		//log_debug(logger,"size de %s: %d",miSeg->path,list_size(tablaPagsOrdenada));
 		if(!list_is_empty(tablaPagsOrdenada)){
-			elem_tabla_pag* pag = list_get(tablaPagsOrdenada,0);
+			//log_debug(logger, "LOGEO LAS FILTRADAS Y ORDENADAS: ");
+			//list_iterate(tablaPagsOrdenada,logearIndex);
+			elem_tabla_pag* pag = malloc(sizeof(elem_tabla_pag));
+			*pag =*(elem_tabla_pag*)list_get(tablaPagsOrdenada,0);
 			list_add(LRUPaginaPorSegmento,pag);
 		}else{
 			elem_tabla_pag* pagNull = malloc(sizeof(elem_tabla_pag));
@@ -509,13 +513,14 @@ int ejecutarLRU(){
 
 	log_debug(logger,"cantidad de segmentos: %d",tablaSegmentos->elements_count);
 	list_iterate(tablaSegmentos,paginaMenorTimePorSeg);
+	//log_debug(logger,"Logeo LRUPagPorSegm");
+	list_iterate(LRUPaginaPorSegmento,logearIndex);
 	elem_tabla_pag* pagBorrar = malloc(sizeof(elem_tabla_pag));
-	pagBorrar->index = -1;
 	int indexMin = listMinTimestamp(LRUPaginaPorSegmento, pagBorrar);
 	if(indexMin == -1){
 		return -1;
 	}
-	log_debug(logger,"size de lista LRU: %d",LRUPaginaPorSegmento->elements_count);
+	//log_debug(logger,"size de lista LRU: %d",LRUPaginaPorSegmento->elements_count);
 	//int key = *((int*) memoria + pagBorrar->offsetMemoria);
 	//log_debug(logger,"Se eliminara la pagina: %d",pagBorrar->index);
 	uint16_t key;
@@ -527,6 +532,7 @@ int ejecutarLRU(){
 	list_remove(segmento->tablaPaginas,pagBorrar->index);
 	actualizarIndexLista(segmento->tablaPaginas);
 	eliminarDeMemoria(pagBorrar);
+	list_iterate(LRUPaginaPorSegmento,free);
 	return 1;
 }
 
@@ -535,34 +541,35 @@ int listMinTimestamp(t_list* listaPaginas,elem_tabla_pag* pagina){
 	int size = listaPaginas->elements_count;
 	//elem_tabla_pag* pagAux = list_get(listaPaginas, 0);
 	elem_tabla_pag* pagAux = malloc(sizeof(elem_tabla_pag));
-
-	*pagAux = *(elem_tabla_pag*) list_get(listaPaginas,0);
-	if(pagAux->modificado == false){
+	int indexMin;
+	//*pagAux = *(elem_tabla_pag*) list_get(listaPaginas,0);
+	bool filtrarModificados(void* elem){
+		elem_tabla_pag* pag = (elem_tabla_pag*) elem;
+		return pag->index != -1;
+	}
+	unsigned long long min;
+	if(!list_any_satisfy(listaPaginas,filtrarModificados)){
+		return -1;
+	}else{
+		*pagAux = *((elem_tabla_pag*)list_find(listaPaginas,filtrarModificados));
 		*pagina = *pagAux;
+		min = pagAux->ultimoTime;
 	}
 
-	unsigned long long min = pagAux->ultimoTime;
+
 	int i;
-	int indexMin;
 
-
-	indexMin=0;
-	for (i = 1; i < size; i++) {
+	for (i = 0; i < size; i++) {
 		*pagAux = *(elem_tabla_pag*)list_get(listaPaginas,i);
-		if(pagAux->ultimoTime < min && pagAux->index != -1){
+		if((pagAux->ultimoTime <= min) && filtrarModificados(pagAux)){
 			min = pagAux->ultimoTime;
 			*pagina = *pagAux;
 			indexMin = i;
 		}
 
 	}
-
 	free(pagAux);
-	if(pagina->index != -1){
-		return indexMin;
-	}else{
-		return -1;
-	}
+	return indexMin;
 
 }
 
