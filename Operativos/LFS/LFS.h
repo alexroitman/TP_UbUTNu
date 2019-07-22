@@ -107,7 +107,7 @@ t_list* DESCRIBEespecifico(char* NOMBRE_TABLA) ;
 int consistency_to_int(char* cons);
 Metadata* obtener_metadata(char* ruta);
 // AUXILIARES DE SELECT
-int SelectFS(char* NOMBRE_TABLA, uint16_t KEY, registro** registro);
+int SelectFS(char* NOMBRE_TABLA, uint16_t KEY, registro* registro);
 t_list* selectEnMemtable( uint16_t key, char* tabla);
 t_list* SelectTemp(char* ruta, uint16_t KEY,char* nombre_tabla);
 t_list* SelectTempc(char* ruta, uint16_t KEY,char* nombre_tabla);

@@ -768,11 +768,14 @@ int Select(registro* reg, char* NOMBRE_TABLA, uint16_t KEY) {
 	t_list* registros = list_create();
 
 //	VOY A MEMTABLE
+	log_debug(logger, "VOY A MEMTABLE");
 	t_list* memtable = selectEnMemtable(KEY, NOMBRE_TABLA);
 
 	pthread_mutex_lock(&mem_table_mutex);
-	if (memtable->elements_count > 0)
+	if (memtable->elements_count > 0){
 		list_add_all(registros, memtable);
+		log_debug(logger, "Encontre elementos en memtable. elemnts_counts ahora es: %d", registros->elements_count);
+	}
 	pthread_mutex_unlock(&mem_table_mutex);
 
 	registro* registry = malloc(sizeof(registro));
@@ -784,33 +787,57 @@ int Select(registro* reg, char* NOMBRE_TABLA, uint16_t KEY) {
 	if(mutex!=NULL)
 		pthread_mutex_lock(mutex);
 	//	VOY A FS
-	errorHandler = SelectFS(ruta, KEY, &registry);
-	if (errorHandler)
-		return errorHandler;
-	if (registry != NULL)
+	log_debug(logger, "VOY A FS");
+	errorHandler = SelectFS(ruta, KEY, registry);
+	if (!errorHandler){
 		list_add(registros, registry);
+		log_debug(logger, "Encontre elementos en FS. elemnts_counts ahora es: %d", registros->elements_count);
+	}
 
 	//	VOY A TEMP
+	log_debug(logger, "VOY A TEMP");
 	t_list* temporales = SelectTemp(ruta, KEY,NOMBRE_TABLA);
 
 	//	VOY A TEMPC
+	log_debug(logger, "VOY A TEMPC");
 	t_list* temporalesC = SelectTempc(ruta, KEY,NOMBRE_TABLA);
 	if(mutex!=NULL)
 	pthread_mutex_unlock(mutex);
 
 	//signal
-	if (temporales->elements_count > 0)
+	if (temporales->elements_count > 0){
 		list_add_all(registros, temporales);
-	if (temporalesC->elements_count > 0)
+		log_debug(logger, "Encontre elementos en temporales. elemnts_counts ahora es: %d", registros->elements_count);
+	}
+	if (temporalesC->elements_count > 0){
 		list_add_all(registros, temporalesC);
+		log_debug(logger, "Encontre elementos en temporalesC. elemnts_counts ahora es: %d", registros->elements_count);
+	}
 	free(ruta);
+	log_debug(logger, "Termine de buscar el SELECT, tomo decision");
 	if (registros->elements_count > 0) {
+
+//		VOY A CONTROLAR LOS ELEMENTOS - BORRAR
+		log_debug(logger, "Encontre %d elementos posibles", registros->elements_count);
+		if(registros->elements_count > 1){
+			log_debug(logger, "Ejecuto control");
+			log_debug(logger, "Imprimo primer elemento", registros->elements_count);
+			registro* registro1 = list_get(registros, 0);
+			log_debug(logger, "El primer elemento es: %llu;%d;%s", registro1->timestamp, registro1->key, registro1->value);
+			log_debug(logger, "Imprimo segundo elemento", registros->elements_count);
+			registro* registro2 = list_get(registros, 1);
+			log_debug(logger, "El segundo elemento es: %llu;%d;%s", registro2->timestamp, registro2->key, registro2->value);
+			log_debug(logger, "Fin de control");
+		}
+		//		FIN CONTROL
 		list_sort(registros, (void*) &es_mayor);
+		log_debug(logger, "Hice el sort");
 		*reg = *(registro*) list_get(registros, 0);
 		log_debug(logger, "El registro encontrado es: %llu;%d;%s", reg->timestamp, reg->key, reg->value);
 		errorHandler = todoJoya;
 	} else
 		errorHandler = noExisteKey;
+	log_debug(logger, "Termine con el Select completo");
 	return errorHandler;
 }
 
@@ -921,7 +948,8 @@ t_list* selectEnMemtable(uint16_t key, char* tabla) {
 	return list_reg; //devuelvo valor del select
 }
 
-int SelectFS(char* ruta, uint16_t KEY, registro** reg) {
+int SelectFS(char* ruta, uint16_t KEY, registro* reg) {
+	int errorHandler = 1;
 	int particiones = buscarEnMetadata(ruta, "PARTITIONS");
 	if (particiones < 0)
 		return particionesInvalidas;
@@ -932,16 +960,18 @@ int SelectFS(char* ruta, uint16_t KEY, registro** reg) {
 	string_append(&rutaFS, ("/"));
 	string_append(&rutaFS, string_itoa(particiones));
 	string_append(&rutaFS, ".bin");
-
 //wait
 	t_config* particion = config_create(rutaFS);
 	log_debug(logger, "la ruta del config es: %s", rutaFS);
 	int size = config_get_int_value(particion, "SIZE");
+	log_debug(logger, "Consegui el valor size: %d", size);
 	if (size > 0) {
+		log_debug(logger, "Size es mayor a 0, entre al if");
 		char** bloquesABuscar = config_get_array_value(particion, "BLOCKS");
 		int i = 0;
 		char* bloquesUnificados = string_new();
 		while (bloquesABuscar[i] != NULL) {
+			log_debug(logger, "Entre al while 1 con el valor de bloque %s", bloquesABuscar[i]);
 			char* bloque = string_new();
 			string_append(&bloque, configLFS->dirMontaje);
 			string_append(&bloque, "Bloques/");
@@ -959,18 +989,24 @@ int SelectFS(char* ruta, uint16_t KEY, registro** reg) {
 			i++;
 		}
 //signal
-
 		int j = 0;
+		log_debug(logger, "Sali del while 1");
 		char** registros = string_split(bloquesUnificados, "\n");
 		while (registros[j] != NULL) {
+			log_debug(logger, "Entre al while 2");
 			char** datos_registro = string_split(registros[j], ";");
 			if (atoi(datos_registro[1]) == KEY) {
-				(*reg)->timestamp = strtoull(datos_registro[0],NULL,10);
-				(*reg)->key = atoi(datos_registro[1]);
-				(*reg)->value = malloc(strlen(datos_registro[2]) + 1);
-				if ((*reg)->value == NULL)
+				log_debug(logger, "Entre al if del while 2");
+				reg->timestamp = strtoull(datos_registro[0],NULL,10);
+				log_debug(logger, "El timestamp encontrado fue: %llu", reg->timestamp);
+				reg->key = atoi(datos_registro[1]);
+				log_debug(logger, "La key encontrada fue: %d", reg->key);
+				reg->value = malloc(strlen(datos_registro[2]) + 1);
+				log_debug(logger, "El value encontrado fue: %s", reg->value);
+				if (!reg->value)
 					return errorDeMalloc;
-				strcpy((*reg)->value, datos_registro[2]);
+				strcpy(reg->value, datos_registro[2]);
+				errorHandler = 0;
 			}
 			string_iterate_lines(datos_registro, (void*) free);
 			free(datos_registro);
@@ -983,10 +1019,12 @@ int SelectFS(char* ruta, uint16_t KEY, registro** reg) {
 		free(bloquesABuscar);
 
 	} else
-		*reg = NULL;
+		log_debug(logger, "Entre al else para setear NULL");
+	log_debug(logger, "llegue al final de SelectFS, voy a ejecutar free");
 	free(rutaFS);
 	config_destroy(particion);
-	return todoJoya;
+	log_debug(logger, "Termine SelectFS");
+	return errorHandler;
 }
 
 t_list* SelectTemp(char* ruta, uint16_t KEY,char* nombre_tabla) {
@@ -1222,7 +1260,7 @@ t_bitarray* levantarBitmap() {
 		log_debug(logger, "Error al levantar bitmap");
 	char* bitarray = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 	t_bitarray* structBitarray = bitarray_create_with_mode(bitarray, size, MSB_FIRST);
-
+	close(fd);
 	free(ruta);
 	return structBitarray;
 }
@@ -1346,14 +1384,15 @@ void bajarAMemoria(int* fd2, char* registroParaEscribir, t_config* tmp) {
 			string_append(&bloqueDumpeoNuevo, "Bloques/");
 			string_append_with_format(&bloqueDumpeoNuevo, "%d", bit_index);
 			string_append(&bloqueDumpeoNuevo, ".bin");
+			log_debug(logger, "Creo bloque: %s", bloqueDumpeoNuevo);
 			//wait
-			*fd2 = open(bloqueDumpeoNuevo, O_RDWR | O_CREAT | O_TRUNC,
-					(mode_t) 0600);
+			*fd2 = open(bloqueDumpeoNuevo, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);
 			//signal
 //			Hasta aca
 			map = mapearBloque(*fd2, textsize - i);
 			posmap = 0;
 			map[posmap] = registroParaEscribir[i];
+			close(*fd2);
 		}
 		i++;
 		posmap++;
@@ -1496,6 +1535,7 @@ void liberar_bloques(char* nombre_tabla, int cantParticiones, int dumpeosCompact
 			bitarray_clean_bit(bitmap, atoi(bloquesABuscar[r]));
 			char* bloque_a_limpiar = string_new();
 			string_append_with_format(&bloque_a_limpiar, "rm %sBloques/%s.bin", configLFS->dirMontaje, bloquesABuscar[r]);
+			log_debug(logger, "voy a ejecutar rm %sBloques/%s.bin", configLFS->dirMontaje, bloquesABuscar[r]);
 			system(bloque_a_limpiar);
 			free(bloque_a_limpiar);
 			r++;
@@ -1517,12 +1557,12 @@ void liberar_bloques(char* nombre_tabla, int cantParticiones, int dumpeosCompact
 		t_config* tmp = config_create(tablaParaDumpeo);
 		free(tablaParaDumpeo);
 		char** bloques = config_get_array_value(tmp, "BLOCKS");
-		config_destroy(tmp);
 		int s = 0;
 		while (bloques[s] != NULL) {
 			bitarray_clean_bit(bitmap, atoi(bloques[s]));
 			char* bloque_a_limpiar = string_new();
 			string_append_with_format(&bloque_a_limpiar, "rm %sBloques/%s.bin", configLFS->dirMontaje, bloques[s]);
+			log_debug(logger, "PARTE 2 voy a ejecutar rm %sBloques/%s.bin", configLFS->dirMontaje, bloques[s]);
 			system(bloque_a_limpiar);
 			free(bloque_a_limpiar);
 			s++;
@@ -1543,21 +1583,16 @@ void guardar_en_disco(t_list* binarios, int cantParticiones, char* nombre_tabla)
 			list_clean(duplicada);
 
 		list_add_all(duplicada, binarios);
-		t_list* listaParticionada = list_filter(duplicada,
-				(void*) &filtrarPorParticion);
+		t_list* listaParticionada = list_filter(duplicada, (void*) &filtrarPorParticion);
 		char* tablaParaDumpeo = string_new();
-		string_append_with_format(&tablaParaDumpeo, "%sTablas/%s/%d.bin",
-				configLFS->dirMontaje, nombre_tabla, i);
-
+		string_append_with_format(&tablaParaDumpeo, "%sTablas/%s/%d.bin", configLFS->dirMontaje, nombre_tabla, i);
 		char* registroParaEscribir = string_new();
 		void dumpearRegistros(registro* UnRegistro) {
-			string_append_with_format(&registroParaEscribir, "%llu;%d;%s\n",
-					UnRegistro->timestamp, UnRegistro->key, UnRegistro->value);
+			string_append_with_format(&registroParaEscribir, "%llu;%d;%s\n", UnRegistro->timestamp, UnRegistro->key, UnRegistro->value);
 		}
 
 		list_iterate(listaParticionada, (void*) &dumpearRegistros);
 		t_config* tmp = config_create(tablaParaDumpeo);
-
 		char* bloque = string_new();
 		off_t bit = obtener_bit_libre();
 		char* nuevoBloque = string_new();
@@ -1566,6 +1601,7 @@ void guardar_en_disco(t_list* binarios, int cantParticiones, char* nombre_tabla)
 		string_append_with_format(&bloque, "%sBloques/%d.bin", configLFS->dirMontaje, bit);
 		int fd2 = open(bloque, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);
 		bajarAMemoria(&fd2, registroParaEscribir, tmp);
+		config_save(tmp);
 		config_destroy(tmp);
 		close(fd2);
 		free(bloque);
@@ -1587,8 +1623,8 @@ void crearListaRegistros(char** string, t_list* lista) {
 			registro* reg = malloc(sizeof(registro));
 			datos_registro = string_split(registros[j], ";");
 			reg->timestamp = strtoull(datos_registro[0],NULL,10);
-			log_debug(logger, "En ListaDeRegistros %s", datos_registro[0]);
-			log_debug(logger, "En ListaDeRegistros el timestamp es: %llu", reg->timestamp);
+//			log_debug(logger, "En ListaDeRegistros %s", datos_registro[0]);
+//			log_debug(logger, "En ListaDeRegistros el timestamp es: %llu", reg->timestamp);
 			reg->key = atoi(datos_registro[1]);
 			reg->value = malloc(strlen(datos_registro[2]) + 1);
 			strcpy(reg->value, datos_registro[2]);
