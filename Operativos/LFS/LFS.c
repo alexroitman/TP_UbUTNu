@@ -17,6 +17,8 @@ t_list* memtable;
 config_FS* configLFS;
 metadataFS* configMetadata;
 pthread_mutex_t mem_table_mutex;
+pthread_mutex_t bitmapMutex;
+
 pthread_t hiloSocket;
 pthread_t hiloCompactacion;
 pthread_t hiloConsola;
@@ -37,7 +39,9 @@ int main(void) {
 	levantarMetadataFS();
 	levantarConfigLFS();
 	pthread_mutex_init(&mem_table_mutex, NULL);
-	//pthread_mutex_init(&cantidadDeDumpeos_mutex, NULL);
+
+	pthread_mutex_init(&bitmapMutex, NULL);
+//pthread_mutex_init(&cantidadDeDumpeos_mutex, NULL);
 	bloqueoTablas = dictionary_create();
 	// ---------------Pruebas con bitmap propio-----------------
 	crearBitmapNuestro();
@@ -692,7 +696,10 @@ int Drop(char* NOMBRE_TABLA) {
 			(config_get_int_value(metadataTabla, "PARTITIONS") - 1);
 	config_destroy(metadataTabla);
 	free(rutametadata);
+
 	t_bitarray* bitmap = levantarBitmap();
+
+
 	for (int i = 0; i <= cantParticiones; i++) {
 		char* binario_a_limpiar = string_new();
 		string_append_with_format(&binario_a_limpiar, "%s/%d.bin", ruta, i);
@@ -767,7 +774,7 @@ int Select(registro* reg, char* NOMBRE_TABLA, uint16_t KEY) {
 		return noExisteTabla;
 	t_list* registros = list_create();
 
-//	VOY A MEMTABLE
+//	 A MEMTABLE
 	log_debug(logger, "VOY A MEMTABLE");
 	t_list* memtable = selectEnMemtable(KEY, NOMBRE_TABLA);
 
@@ -802,7 +809,7 @@ int Select(registro* reg, char* NOMBRE_TABLA, uint16_t KEY) {
 	log_debug(logger, "VOY A TEMPC");
 	t_list* temporalesC = SelectTempc(ruta, KEY,NOMBRE_TABLA);
 	if(mutex!=NULL)
-	pthread_mutex_unlock(mutex);
+		pthread_mutex_unlock(mutex);
 
 	//signal
 	if (temporales->elements_count > 0){
@@ -971,7 +978,7 @@ int SelectFS(char* ruta, uint16_t KEY, registro* reg) {
 		int i = 0;
 		char* bloquesUnificados = string_new();
 		while (bloquesABuscar[i] != NULL) {
-			log_debug(logger, "Entre al while 1 con el valor de bloque %s", bloquesABuscar[i]);
+			log_debug(logger, "bloque %s", bloquesABuscar[i]);
 			char* bloque = string_new();
 			string_append(&bloque, configLFS->dirMontaje);
 			string_append(&bloque, "Bloques/");
@@ -981,11 +988,19 @@ int SelectFS(char* ruta, uint16_t KEY, registro* reg) {
 			struct stat s;
 			fstat(fd, &s);
 			size = s.st_size;
-			char* f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+			log_debug(logger, "mapeo %d", size);
+			char* f = mmap(NULL,size, PROT_READ, MAP_PRIVATE, fd, 0);
+			log_debug(logger, "appendeo");
 			string_append(&bloquesUnificados, f);
+			log_debug(logger, "cierro");
+
 			close(fd);
-			munmap(f, size);
+			log_debug(logger, "free");
+
+			//munmap(f, size);
 			free(bloque);
+			log_debug(logger, "++");
+
 			i++;
 		}
 //signal
@@ -993,7 +1008,6 @@ int SelectFS(char* ruta, uint16_t KEY, registro* reg) {
 		log_debug(logger, "Sali del while 1");
 		char** registros = string_split(bloquesUnificados, "\n");
 		while (registros[j] != NULL) {
-			log_debug(logger, "Entre al while 2");
 			char** datos_registro = string_split(registros[j], ";");
 			if (atoi(datos_registro[1]) == KEY) {
 				log_debug(logger, "Entre al if del while 2");
@@ -1186,7 +1200,7 @@ void crearBinarios(char* NOMBRE_TABLA, int NUMERO_PARTICIONES) {
 		string_append(&nuevaParticion, "/");
 		string_append_with_format(&nuevaParticion, "%d", NUMERO_PARTICIONES);
 		string_append(&nuevaParticion, ".bin");
-		int fd = creat(nuevaParticion, (mode_t) 0600);
+		int fd = open(nuevaParticion, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);
 		close(fd);
 		t_config* particion = config_create(nuevaParticion);
 		char* bloques = string_new();
@@ -1199,7 +1213,7 @@ void crearBinarios(char* NOMBRE_TABLA, int NUMERO_PARTICIONES) {
 		char* nuevoBloque = string_new();
 		string_append_with_format(&nuevoBloque, "%sBloques/%d.bin",
 				configLFS->dirMontaje, bitLibre);
-		int fd2 = creat(nuevoBloque, (mode_t) 0600);
+		int fd2 = open(nuevoBloque, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);;
 		close(fd2);
 		free(bloques);
 		NUMERO_PARTICIONES--;
@@ -1248,6 +1262,8 @@ int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo) {
 }
 
 t_bitarray* levantarBitmap() {
+	pthread_mutex_lock(&bitmapMutex);
+
 	char* ruta = string_new();
 	string_append(&ruta, configLFS->dirMontaje);
 	string_append(&ruta, "Metadata/Bitmap.bin");
@@ -1262,6 +1278,8 @@ t_bitarray* levantarBitmap() {
 	t_bitarray* structBitarray = bitarray_create_with_mode(bitarray, size, MSB_FIRST);
 	close(fd);
 	free(ruta);
+	pthread_mutex_unlock(&bitmapMutex);
+
 	return structBitarray;
 }
 
@@ -1272,7 +1290,10 @@ off_t obtener_bit_libre() {
 	while (bitarray_test_bit(bitmap, bit_index))
 		bit_index++;
 	bitarray_set_bit(bitmap, bit_index);
+	bitarray_destroy(bitmap);
+
 	return bit_index;
+
 }
 
 // ---------------DUMPEO-----------------
@@ -1287,7 +1308,7 @@ int dumpeoMemoria() {
 		pthread_mutex_t* mutex = dictionary_get(bloqueoTablas,tabla->nombreTabla);
 		if(mutex!=NULL)
 		pthread_mutex_lock(mutex);
-		int fd = creat(tablaParaDumpeo, (mode_t) 0600);
+		int fd = open(tablaParaDumpeo, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);;
 		close(fd);
 		if(!list_is_empty(tabla->registros))
 			dumpearTabla(tabla->registros, tablaParaDumpeo);
@@ -1325,6 +1346,17 @@ int dumpeoMemoria() {
 }
 
 void dumpearTabla(t_list* registros, char* ruta) {
+	char* registroParaEscribir = string_new();
+	void dumpearRegistros(registro* UnRegistro) {
+		log_debug(logger, "Entre a dumpearRegistros");
+//		log_debug(logger, "voy a dumpear unRegistro con: %llu;%d;%s\n",
+//				UnRegistro->timestamp, UnRegistro->key, UnRegistro->value);
+		string_append_with_format(&registroParaEscribir, "%llu;%d;%s\n",
+				UnRegistro->timestamp, UnRegistro->key, UnRegistro->value);
+//		log_debug(logger, "voy a escribir esto: %s", registroParaEscribir);
+	}
+	list_iterate(registros, (void*) &dumpearRegistros);
+
 	off_t bit_index = obtener_bit_libre();
 	t_config* tmp = config_create(ruta);
 	log_debug(logger, "Entre a dumpearTabla");
@@ -1341,16 +1373,6 @@ void dumpearTabla(t_list* registros, char* ruta) {
 	//wait
 	int fd2 = open(bloqueDumpeo, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);
 	//signal
-	char* registroParaEscribir = string_new();
-	void dumpearRegistros(registro* UnRegistro) {
-		log_debug(logger, "Entre a dumpearRegistros");
-//		log_debug(logger, "voy a dumpear unRegistro con: %llu;%d;%s\n",
-//				UnRegistro->timestamp, UnRegistro->key, UnRegistro->value);
-		string_append_with_format(&registroParaEscribir, "%llu;%d;%s\n",
-				UnRegistro->timestamp, UnRegistro->key, UnRegistro->value);
-//		log_debug(logger, "voy a escribir esto: %s", registroParaEscribir);
-	}
-	list_iterate(registros, (void*) &dumpearRegistros);
 	bajarAMemoria(&fd2, registroParaEscribir, tmp);
 	close(fd2);
 	config_destroy(tmp);
@@ -1384,9 +1406,12 @@ void bajarAMemoria(int* fd2, char* registroParaEscribir, t_config* tmp) {
 			string_append(&bloqueDumpeoNuevo, "Bloques/");
 			string_append_with_format(&bloqueDumpeoNuevo, "%d", bit_index);
 			string_append(&bloqueDumpeoNuevo, ".bin");
-			log_debug(logger, "Creo bloque: %s", bloqueDumpeoNuevo);
+			//log_debug(logger, "Creo bloque: %s", bloqueDumpeoNuevo);
 			//wait
+			//close(*fd2);
 			*fd2 = open(bloqueDumpeoNuevo, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);
+			if(*fd2<0)
+				log_warning(logger,"ROMPI EN EL BLOQUE %d",bit_index);
 			//signal
 //			Hasta aca
 			map = mapearBloque(*fd2, textsize - i);
@@ -1529,20 +1554,23 @@ void liberar_bloques(char* nombre_tabla, int cantParticiones, int dumpeosCompact
 		t_config* particion = config_create(rutaTemporal);
 		int size = config_get_int_value(particion, "SIZE");
 		char** bloquesABuscar = config_get_array_value(particion, "BLOCKS");
+		config_set_value(particion, "BLOCKS","[]");
+		config_save(particion);
+		config_destroy(particion);
 		int r = 0;
 		//		Unifico la informacion de todos los bloques en los que esta dividido el archivo .tmp
 		while (bloquesABuscar[r]) {
-			bitarray_clean_bit(bitmap, atoi(bloquesABuscar[r]));
 			char* bloque_a_limpiar = string_new();
 			string_append_with_format(&bloque_a_limpiar, "rm %sBloques/%s.bin", configLFS->dirMontaje, bloquesABuscar[r]);
-			log_debug(logger, "voy a ejecutar rm %sBloques/%s.bin", configLFS->dirMontaje, bloquesABuscar[r]);
+			//log_warning(logger, "voy a ejecutar rm %sBloques/%s.bin", configLFS->dirMontaje, bloquesABuscar[r]);
 			system(bloque_a_limpiar);
+			bitarray_clean_bit(bitmap, atoi(bloquesABuscar[r]));
 			free(bloque_a_limpiar);
 			r++;
 		}
 		free(bloquesABuscar);
 		free(rutaTemporal);
-		config_destroy(particion);
+
 		char* rutaARenombrar = string_new();
 		string_append_with_format(&rutaARenombrar, "rm %sTablas/%s/%d.tmpc", configLFS->dirMontaje, nombre_tabla, aux - 1);
 		system(rutaARenombrar);
@@ -1550,25 +1578,31 @@ void liberar_bloques(char* nombre_tabla, int cantParticiones, int dumpeosCompact
 	}
 
 	/////////////////////liberoBIN
-	for (int i = 0; i <= cantParticiones - 1; i++) {
+	for (int p = 0; p <= cantParticiones - 1; p++) {
 
 		char* tablaParaDumpeo = string_new();
-		string_append_with_format(&tablaParaDumpeo, "%sTablas/%s/%d.bin", configLFS->dirMontaje, nombre_tabla, i);
+		string_append_with_format(&tablaParaDumpeo, "%sTablas/%s/%d.bin", configLFS->dirMontaje, nombre_tabla, p);
 		t_config* tmp = config_create(tablaParaDumpeo);
 		free(tablaParaDumpeo);
 		char** bloques = config_get_array_value(tmp, "BLOCKS");
+		config_set_value(tmp, "BLOCKS","[]");
+		config_save(tmp);
+		config_destroy(tmp);
 		int s = 0;
 		while (bloques[s] != NULL) {
-			bitarray_clean_bit(bitmap, atoi(bloques[s]));
 			char* bloque_a_limpiar = string_new();
 			string_append_with_format(&bloque_a_limpiar, "rm %sBloques/%s.bin", configLFS->dirMontaje, bloques[s]);
-			log_debug(logger, "PARTE 2 voy a ejecutar rm %sBloques/%s.bin", configLFS->dirMontaje, bloques[s]);
+			//log_debug(logger, "PARTE 2 voy a ejecutar rm %sBloques/%s.bin", configLFS->dirMontaje, bloques[s]);
 			system(bloque_a_limpiar);
 			free(bloque_a_limpiar);
+			bitarray_clean_bit(bitmap, atoi(bloques[s]));
+
 			s++;
 		}
 
 	}
+	bitarray_destroy(bitmap);
+
 
 }
 void guardar_en_disco(t_list* binarios, int cantParticiones, char* nombre_tabla) {
@@ -1598,6 +1632,7 @@ void guardar_en_disco(t_list* binarios, int cantParticiones, char* nombre_tabla)
 		char* nuevoBloque = string_new();
 		string_append_with_format(&nuevoBloque, "[%d]", bit);
 		config_set_value(tmp, "BLOCKS", nuevoBloque);
+		config_save(tmp);
 		string_append_with_format(&bloque, "%sBloques/%d.bin", configLFS->dirMontaje, bit);
 		int fd2 = open(bloque, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);
 		bajarAMemoria(&fd2, registroParaEscribir, tmp);
