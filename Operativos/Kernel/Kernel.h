@@ -71,6 +71,7 @@ typedef struct{
 	tMemoria* mem;
 	int cont;
 }tMemLoad;
+void liberar(void* dato);
 void ejecutarMetrics();
 void describe ();
 type leerConsola(); //Lee la consulta y devuelve el string

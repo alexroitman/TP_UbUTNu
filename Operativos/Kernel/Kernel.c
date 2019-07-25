@@ -427,7 +427,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				cargarPaqueteSelect(paqueteSelect, consulta);
 				serializado = serializarSelect(paqueteSelect);
 				consistencias cons = consTabla(paqueteSelect->nombre_tabla);
-				socket_memoria = devolverSocket(cons,sockets,paqueteSelect->key);
+				*socket_memoria = *devolverSocket(cons,sockets,paqueteSelect->key);
 				log_debug(logger,"uso esta memoria: %d",socket_memoria->id);
 				if(socket_memoria->id != -1){
 					consultaOk = enviarPaquete(socket_memoria->socket, serializado, paqueteSelect->length);
@@ -488,6 +488,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				log_error(loggerError,"Se ingreso una consulta no valida");
 				consultaOk = 2;
 			}
+			free(socket_memoria);
 			break;
 		case INSERT:
 			if(validarInsert(consulta)){
@@ -501,7 +502,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				serializado = serializarInsert(paqueteInsert);
 
 				consistencias cons = consTabla(paqueteInsert->nombre_tabla);
-				socket_memoria = devolverSocket(cons,sockets,paqueteInsert->key);
+				*socket_memoria = *devolverSocket(cons,sockets,paqueteInsert->key);
 				if(socket_memoria->id != -1){
 					log_debug(logger,"uso esta memoria: %d", socket_memoria->id);
 					consultaOk = enviarPaquete(socket_memoria->socket, serializado, paqueteInsert->length);
@@ -558,6 +559,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				log_error(loggerError,"Se ingreso una consulta no valida");
 				consultaOk = 2;
 			}
+			free(socket_memoria);
 			break;
 		case CREATE:
 			if(validarCreate(consulta)){
@@ -567,7 +569,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				cargarPaqueteCreate(paqueteCreate,sinFin);
 				serializado = serializarCreate(paqueteCreate);
 				if(!existe(paqueteCreate->nombre_tabla)){
-					socket_memoria = devolverSocket(obtCons(paqueteCreate->consistencia)
+					*socket_memoria = *devolverSocket(obtCons(paqueteCreate->consistencia)
 							,sockets,1);
 					log_debug(logger,"voy a usar esta memoria: %d",socket_memoria->id);
 					if(socket_memoria->id != -1){
@@ -587,6 +589,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 					}else{
 						log_error(loggerError,"No existen memorias disponibles para el criterio de la tabla");
 					}
+					free(socket_memoria);
 				}else{
 					log_error(loggerError,"Se quiso hacer un create de una tabla ya existente");
 				}
@@ -631,7 +634,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 			serializado = serializarDescribe(paqueteDescribe);
 			if(list_filter(sockets,hayCaidoSock)->elements_count != 0){
 				t_list* memsDisp = list_filter(sockets,hayCaidoSock);
-				socket_memoria = list_get(memsDisp,0);
+				*socket_memoria = *(t_infoMem *)list_get(memsDisp,0);
 				consultaOk = enviarPaquete(socket_memoria->socket,serializado,paqueteDescribe->length);
 				if(consultaOk > 0){
 					t_describe* response = malloc(sizeof(t_describe));
@@ -653,6 +656,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 				}else{
 					consultaOk = socket_memoria->id * -1;
 				}
+				free(socket_memoria);
 			}else{
 				consultaOk = -1;
 			}
@@ -665,8 +669,9 @@ int despacharQuery(char* consulta, t_list* sockets) {
 					string_substring_until(consulta,string_length(consulta)-1  ) );
 			serializado = serializarJournal(paqueteJournal);
 			for(int i = 0; i<sockets->elements_count;i++){
-				socket_memoria = list_get(sockets,i);
+				*socket_memoria = *(t_infoMem*)list_get(sockets,i);
 				enviarPaquete(socket_memoria->socket, serializado, paqueteJournal->length);
+				free(socket_memoria);
 			}
 			consultaOk = 1;
 			free(serializado);
@@ -676,7 +681,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 			cargarPaqueteDrop(paqueteDrop,consulta);
 			serializado = serializarDrop(paqueteDrop);
 			consistencias consis = consTabla(paqueteDrop->nombre_tabla);
-			socket_memoria = devolverSocket(consis,sockets,1);
+			*socket_memoria = *devolverSocket(consis,sockets,1);
 			if(socket_memoria->id != -1){
 				consultaOk = enviarPaquete(socket_memoria->socket, serializado, paqueteDrop->length);
 				if(consultaOk == -1){
@@ -691,6 +696,7 @@ int despacharQuery(char* consulta, t_list* sockets) {
 					log_error(loggerError,"No existe informacion de la tabla, por favor realice un describe");
 				}
 			}
+			free(socket_memoria);
 			free(serializado);
 			free(paqueteDrop->nombre_tabla);
 			break;
@@ -729,7 +735,6 @@ void CPU(){
 	sem_post(&mutexContMult);
 	while(continuar){
 		script *unScript;
-		char* consulta = malloc(256);
 		sem_wait(&semReady);
 		sem_wait(&mutexReady);
 		unScript = ( script *) queue_pop(colaReady);
@@ -766,6 +771,7 @@ void CPU(){
 				sem_post(&mutexMems);
 				sem_wait(&mutexCaido);
 				if(memoriasCaidas->elements_count != 0){
+					log_warning(loggerWarning,"Hay memorias caidas");
 					int size_to_send = sizeof(type);
 					char* serializedPackage = malloc(size_to_send);
 					type gossip = SIGNAL;
@@ -780,6 +786,8 @@ void CPU(){
 							t_infoMem* memoria = (t_infoMem*)list_find(sockets,compararNumeroMem);
 							int info = enviarPaquete(memoria->socket,serializedPackage,size_to_send);
 							if(info == -1){
+								t_infoMem* sk = (t_infoMem*)list_find(sockets,compararNumeroMem);
+								close(sk->socket);
 								list_remove_by_condition(sockets,compararNumeroMem);
 							}else{
 								list_remove(memoriasCaidas,i);
@@ -794,6 +802,7 @@ void CPU(){
 		int info;
 		log_debug(logger,"Se esta corriendo el script: %d", unScript->id);
 		for(int i = 0 ; i < miConfig->quantum; i++){
+			char* consulta = malloc(256);
 			info = leerLinea(unScript->path,unScript->pos,consulta);
 			unScript->pos++;
 			switch(info){
@@ -818,18 +827,27 @@ void CPU(){
 							tMemoria* mem2 = (tMemoria*) elem;
 							return mem2->numeroMemoria == mem->id;
 						}
-						sem_wait(&mutexCaido);
-						if(list_filter(memoriasCaidas,compararNumeroMem)->elements_count == 0){
-							list_add(memoriasCaidas,list_find(memorias,compararNumeroMem));
-							log_warning(loggerWarning,"Realizando Jounal general para mantener consistencias");
-							despacharQuery("journal\n",sockets);
-						}
-						sem_post(&mutexCaido);
 						bool compararNumeroSocket(void* elem){
 							t_infoMem* mem2 = (t_infoMem*) elem;
 							return mem2->id == mem->id;
 						}
-						list_remove_by_condition(sockets,compararNumeroSocket);
+						sem_wait(&mutexCaido);
+						if(list_filter(memoriasCaidas,compararNumeroMem)->elements_count == 0){
+							tMemoria* memoriaCaida = malloc(sizeof(tMemoria));
+							*memoriaCaida = *(tMemoria*) list_find(memorias,compararNumeroMem);
+							list_add(memoriasCaidas,memoriaCaida);
+							log_warning(loggerWarning,"Realizando Jounal general para mantener consistencias");
+							t_infoMem* sk = (t_infoMem*)list_find(sockets,compararNumeroSocket);
+							close(sk->socket);
+							list_remove_by_condition(sockets,compararNumeroSocket);
+							despacharQuery("journal\n",sockets);
+						}else{
+							t_infoMem* sk = (t_infoMem*)list_find(sockets,compararNumeroSocket);
+							close(sk->socket);
+							list_remove_by_condition(sockets,compararNumeroSocket);
+						}
+						sem_post(&mutexCaido);
+
 						i--;
 						log_warning(loggerWarning,"Se volvera a ejecutar la consulta: %d",unScript->pos);
 						unScript->pos--;
@@ -854,6 +872,7 @@ void CPU(){
 				free(unScript);
 				break;
 			}
+			free(consulta);
 		}
 		if(info == 1){
 			sem_wait(&mutexReady);
@@ -863,7 +882,6 @@ void CPU(){
 			sem_post(&semReady);
 			sem_post(&mutexReady);
 		}
-		free(consulta);
 	}
 }
 
@@ -910,12 +928,13 @@ void actualizarTablaGossip(tGossip* packGossip){
 		list_add(listaRecv,mem);
 	}
 	list_iterate(listaRecv,actualizarTabla);
-    list_destroy(listaRecv);
+	list_destroy(listaRecv);
 }
 
 
 
 void gossip(){
+	tMemoria* unaMem = malloc(sizeof(tMemoria));
 	int socket_gossip = levantarCliente(miConfig->puerto_mem,miConfig->ip_mem);
 	int size_to_send = sizeof(type);
 	char* serializedPackage = malloc(size_to_send);
@@ -934,13 +953,29 @@ void gossip(){
 				free(packGossip);
 			}else{
 				log_warning(loggerWarning,"Memoria seed caida, volviendo a conectar");
-				socket_gossip = levantarCliente(miConfig->puerto_mem,miConfig->ip_mem);
-				log_warning(loggerWarning, "Se reestablecio la conexion con la memoria seed");
+				for(int i = 0; i < memorias->elements_count;i++){
+					unaMem = (tMemoria*) list_get(memorias,i);
+					socket_gossip = levantarClienteNoBloqueante(unaMem->puerto,unaMem->ip);
+					if(socket_gossip != -1){
+						i = memorias->elements_count;
+					}
+				}
+				if(socket_gossip == -1){
+					log_warning(loggerWarning,"No pude volver a conectarme para hacer gossip, volviendo a intentar...");
+				}
 			}
 		}else{
 			log_warning(loggerWarning,"Memoria seed caida, volviendo a conectar");
-			socket_gossip = levantarCliente(miConfig->puerto_mem,miConfig->ip_mem);
-			log_warning(loggerWarning, "Se reestablecio la conexion con la memoria seed");
+			for(int i = 0; i < memorias->elements_count;i++){
+				unaMem = (tMemoria*) list_get(memorias,i);
+				socket_gossip = levantarClienteNoBloqueante(unaMem->puerto,unaMem->ip);
+				if(socket_gossip != -1){
+					i = memorias->elements_count;
+				}
+			}
+			if(socket_gossip == -1){
+				log_warning(loggerWarning,"No pude volver a conectarme para hacer gossip, volviendo a intentar...");
+			}
 		}
 	}
 	log_error(loggerError,"No ha sido posible establecer la conexion con la memoria");
@@ -1183,7 +1218,6 @@ t_infoMem* devolverSocket(consistencias cons, t_list* sockets, int key){
 		pos = EC((int) time(NULL));
 		if(pos!=-1){
 			mem->numeroMemoria = pos;
-
 			ret = (t_infoMem*)list_find(sockets,compararNumeroMem);
 			free(mem);
 			return ret;
@@ -1217,12 +1251,17 @@ int SHC(int key){
 
 int EC(int time){
 	sem_wait(&mutexEC);
-	t_list* memsDisp = list_filter(listaMemsEC,hayCaida);
+	t_list* memsDisp = list_duplicate(list_filter(listaMemsEC,hayCaida));
 	int tamanio = memsDisp->elements_count;
+	int devolver = -1;
 	sem_post(&mutexEC);
 	if(tamanio != 0){
-		tMemoria* mem= (tMemoria*)list_get(memsDisp,(rand() % tamanio));
-		return mem->numeroMemoria;
+		tMemoria* mem = malloc(sizeof(tMemoria));
+		*mem = *(tMemoria*)list_get(memsDisp,(rand() % tamanio));
+		devolver = mem->numeroMemoria;
+		list_destroy(memsDisp);
+		free(mem);
+		return devolver;
 	}else{
 		return -1;
 	}
