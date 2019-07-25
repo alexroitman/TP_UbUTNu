@@ -63,14 +63,16 @@ int main() {
 }
 
 void* recibirHeader(void* arg) {
-	while (1) {
-		int listener = socket_sv;
-		FD_ZERO(&active_fd_set);
-		FD_SET(socket_sv, &active_fd_set);
-		FD_SET(socket_gossip, &active_fd_set);
-		int flagError = 0;
+	int listener = socket_sv;
+	FD_ZERO(&active_fd_set);
+	FD_SET(socket_sv, &active_fd_set);
+	FD_SET(socket_gossip, &active_fd_set);
 
-		while (flagError != 1) {
+	while (1) {
+
+		//int flagError = 0;
+
+	//	while (flagError != 1) {
 			read_fd_set = active_fd_set;
 			recibioSocket = false;
 			if (select(FD_SETSIZE, &read_fd_set, NULL, NULL, NULL) < 0) {
@@ -103,7 +105,8 @@ void* recibirHeader(void* arg) {
 								ejecutarConsulta(i,head);
 								sem_post(&mutexJournal);
 							} else {
-								flagError = 1;
+								FD_CLR(i,&active_fd_set);
+								log_debug(logger, "Se ha cortado la conexion con el cliente %d",i);
 							}
 
 							//Si no es el listener, es un cliente, por lo que acá tenemso que hacer un recv(i) para ver que es lo que quiere el cliente
@@ -111,8 +114,8 @@ void* recibirHeader(void* arg) {
 					}
 				}
 			}
-		}
-		log_debug(logger, "Se ha cortado la conexion con un cliente");
+	//	}
+		//log_debug(logger, "Se ha cortado la conexion con un cliente");
 	}
 
 }
@@ -128,7 +131,6 @@ void inicializarTablaGossip() {
 }
 
 void realizarGossiping() {
-	/*
 	int cant = 0;
 	while (miConfig->puerto_seeds[cant] != NULL) {
 		cant++;
@@ -183,8 +185,8 @@ void realizarGossiping() {
 
 	}else{
 		log_debug(logger,"No tengo seeds");
-	}*/
-
+	}
+/*
 	if ((miConfig->puerto_seeds)[0] != NULL && (miConfig->ip_seeds)[0] != NULL) {
 
 		while (1) {
@@ -229,7 +231,7 @@ void realizarGossiping() {
 				free(serializado);
 			}
 		}
-	}
+	}*/
 
 }
 
