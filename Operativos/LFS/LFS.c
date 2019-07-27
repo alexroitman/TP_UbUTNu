@@ -1034,7 +1034,7 @@ t_list* SelectTemp(char* ruta, uint16_t KEY,char* nombre_tabla) {
 				log_debug(logger, "mapeo %d", size);
 				char* f = malloc(configMetadata->blockSize + 1);
 				f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
-				log_debug(logger, "acabo de mapear: %s", f);
+//				log_debug(logger, "acabo de mapear: %s", f);
 				strcat(bloquesUnificados, f);
 				log_debug(logger, "cierro");
 				munmap(f, size);
@@ -1686,7 +1686,7 @@ void guardar_en_disco(t_list* binarios, int cantParticiones, char* nombre_tabla)
 			char* auxstr = malloc(14);
 			sprintf(auxstr, "%llu", (UnRegistro->timestamp));
 			registroParaEscribir = realloc(registroParaEscribir, (strlen(registroParaEscribir)+ 13 + strlen(";") + strlen(string_itoa(UnRegistro->key)) + strlen(";") + strlen(UnRegistro->value) + strlen("\n")+1));
-			strcat(registroParaEscribir, string_itoa(UnRegistro->timestamp));
+			strcat(registroParaEscribir, auxstr);
 			strcat(registroParaEscribir, ";");
 			strcat(registroParaEscribir, string_itoa(UnRegistro->key));
 			strcat(registroParaEscribir, ";");
@@ -1782,7 +1782,7 @@ char* levantarbinarios(char* nombre_tabla, char* bloquesUnificados) {
 				size = s.st_size - 2;
 				char* f = malloc(configMetadata->blockSize + 1);
 				f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
-				bloquesUnificados = realloc(bloquesUnificados, (strlen(bloquesUnificados) + strlen(f) + 1));
+				bloquesUnificados = realloc(bloquesUnificados, (strlen(bloquesUnificados) + string_length(f) + 1));
 				strcat(bloquesUnificados, f);
 				munmap(f, size);
 				close(fd);
