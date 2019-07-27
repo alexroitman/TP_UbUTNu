@@ -953,7 +953,8 @@ int SelectFS(char* ruta, uint16_t KEY, registro* reg) {
 			fstat(fd, &s);
 			size = s.st_size;
 			log_debug(logger, "mapeo %d", size);
-			char* f = mmap(NULL,size, PROT_READ, MAP_PRIVATE, fd, 0);
+			char* f = malloc(configMetadata->blockSize + 1);
+			f = mmap(NULL,size, PROT_READ, MAP_PRIVATE, fd, 0);
 			log_debug(logger, "acabo de mapear: %s", f);
 			strcat(bloquesUnificados, f);
 			log_debug(logger, "cierro");
@@ -1031,10 +1032,12 @@ t_list* SelectTemp(char* ruta, uint16_t KEY,char* nombre_tabla) {
 				fstat(fd, &s);
 				size = s.st_size;
 				log_debug(logger, "mapeo %d", size);
-				char* f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+				char* f = malloc(configMetadata->blockSize + 1);
+				f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
 				log_debug(logger, "acabo de mapear: %s", f);
 				strcat(bloquesUnificados, f);
 				log_debug(logger, "cierro");
+				munmap(f, size);
 				close(fd);
 				free(bloque);
 				i++;
@@ -1101,8 +1104,10 @@ t_list* SelectTempc(char* ruta, uint16_t KEY,char* nombre_tabla) {
 					struct stat s;
 					fstat(fd, &s);
 					size = s.st_size;
-					char* f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+					char* f = malloc(configMetadata->blockSize + 1);
+					f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
 					strcat(bloquesUnificados, f);
+					munmap(f, size);
 					close(fd);
 					free(bloque);
 					i++;
@@ -1260,7 +1265,8 @@ t_bitarray* levantarBitmap() {
 	int errorHandler = ftruncate(fd, size);
 	if ((errorHandler < 0) || (fd < 0))
 		log_debug(logger, "Error al levantar bitmap");
-	char* bitarray = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	char* bitarray = malloc(size + 1);
+	bitarray = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 	t_bitarray* structBitarray = bitarray_create_with_mode(bitarray, size, MSB_FIRST);
 	close(fd);
 	free(ruta);
@@ -1381,10 +1387,11 @@ void dumpearTabla(t_list* registros, char* ruta) {
 }
 
 void bajarAMemoria(int* fd2, char* registroParaEscribir, t_config* tmp) {
+	log_debug(logger, "Entre a bajar a memoria");
 	size_t textsize = strlen(registroParaEscribir) + 1; // + \0 null character
-//	int size = config_get_int_value(tmp, "SIZE");
-	char* strsize = malloc(strlen(string_itoa((textsize - 1)))+1);
+	char* strsize = malloc(strlen(string_itoa(textsize))+1);
 	strcpy(strsize, string_itoa(textsize - 1));
+	log_debug(logger, "el tamaño del registro a escribir es: %d", textsize);
 	config_set_value(tmp, "SIZE", strsize);
 	//wait
 	config_save(tmp);
@@ -1405,8 +1412,6 @@ void bajarAMemoria(int* fd2, char* registroParaEscribir, t_config* tmp) {
 			char* bloqueDumpeoNuevo = malloc(strlen(configLFS->dirMontaje)+strlen("Bloques/")+strlen(string_itoa(bit_index))+strlen(".bin")+1);
 			strcpy(bloqueDumpeoNuevo, configLFS->dirMontaje);
 			strcat(bloqueDumpeoNuevo, "Bloques/");
-			strcpy(bloqueDumpeoNuevo, configLFS->dirMontaje);
-			strcat(bloqueDumpeoNuevo, "Bloques/");
 			strcat(bloqueDumpeoNuevo, string_itoa(bit_index));
 			strcat(bloqueDumpeoNuevo, ".bin");
 			//log_debug(logger, "Creo bloque: %s", bloqueDumpeoNuevo);
@@ -1420,7 +1425,6 @@ void bajarAMemoria(int* fd2, char* registroParaEscribir, t_config* tmp) {
 			map = mapearBloque(*fd2, textsize - i);
 			posmap = 0;
 			map[posmap] = registroParaEscribir[i];
-			close(*fd2);
 		}
 		i++;
 		posmap++;
@@ -1437,18 +1441,23 @@ char* mapearBloque(int fd2, size_t textsize) {
 	if (errorHandler < 0)
 		log_debug(logger, "error al mapear el bloque");
 	//wait
-	char *map = mmap(0, textsize, PROT_READ | PROT_WRITE, MAP_SHARED, fd2, 0);
+	char* map = malloc(textsize + 1);
+	map = mmap(0, textsize, PROT_READ | PROT_WRITE, MAP_SHARED, fd2, 0);
 	//signal
 	return map;
 }
 
 void actualizarBloquesEnTemporal(t_config* tmp, off_t bloque) {
-	char* bloques = malloc(strlen(config_get_string_value(tmp, "BLOCKS"))+strlen(",")+strlen(string_itoa(bloque))+strlen("]")+1);
-	bloques = config_get_string_value(tmp, "BLOCKS");
-	bloques = string_substring_until(bloques, string_length(bloques) - 1);
+	char* aux = malloc(strlen(config_get_string_value(tmp, "BLOCKS")+1));
+	aux = config_get_string_value(tmp, "BLOCKS");
+	aux = string_substring_until(aux, (strlen(aux) - 2));
+	log_debug(logger, "A actualizar en temporal: %s", aux);
+	char* bloques = malloc(strlen(aux)+strlen(",")+strlen(string_itoa(bloque))+strlen("]")+1);
+	strcpy(bloques, aux);
 	strcat(bloques, ",");
 	strcat(bloques, string_itoa(bloque));
 	strcat(bloques, "]");
+	log_debug(logger, "Actualizado queda temporal: %s", aux);
 	config_set_value(tmp, "BLOCKS", bloques);
 	//wait
 	config_save(tmp);
@@ -1763,9 +1772,11 @@ int levantarbinarios(char* nombre_tabla, char* bloquesUnificados) {
 				struct stat s;
 				fstat(fd, &s);
 				size = s.st_size;
-				char* f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+				char* f = malloc(configMetadata->blockSize + 1);
+				f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
 				bloquesUnificados = realloc(bloquesUnificados, (strlen(bloquesUnificados) + strlen(f) + 1));
 				strcat(bloquesUnificados, f);
+				munmap(f, size);
 				close(fd);
 				free(bloque);
 				i++;
@@ -1804,12 +1815,14 @@ int obtener_temporales(char* nombre_tabla, char* bloquesUnificados) {
 				struct stat s;
 				fstat(fd, &s);
 				size = s.st_size;
-				char* f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+				char* f = malloc(configMetadata->blockSize + 1);
+				f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
 				log_debug(logger, "el tamaño de bloquesUnificados antes es: %d", strlen(bloquesUnificados));
 				log_debug(logger, "el tamaño de f antes es: %d", strlen(f));
 				bloquesUnificados = realloc(bloquesUnificados, (strlen(bloquesUnificados) + strlen(f) + 1));
 				log_debug(logger, "el tamaño de bloquesUnificados despues es: %d", strlen(bloquesUnificados));
 				strcat(bloquesUnificados, f);
+				munmap(f, size);
 				close(fd);
 				free(bloque);
 				i++;
