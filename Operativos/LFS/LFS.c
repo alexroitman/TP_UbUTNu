@@ -66,9 +66,12 @@ int main(void) {
 	pthread_create(&hiloInnotify, NULL, (void*) innotificar, NULL);
 	//todo: Abrir hilo dumpeo
 	signal(SIGINT, finalizarEjecutcion); //Comando de cierre al cortar con Ctrl+C
-	while (1) {
-	}
-//Rutina de cierre
+	pthread_join(hiloConsola, NULL);
+	pthread_join(hiloDumpeo, NULL);
+	pthread_join(hiloCompactacion, NULL);
+	pthread_join(hiloSocket, NULL);
+	pthread_join(hiloInnotify, NULL);
+	//Rutina de cierre
 	log_destroy(logger);
 	close(socket_cli);
 	close(socket_sv);
