@@ -124,7 +124,7 @@ off_t obtener_bit_libre();
 // DUMPEO Y COMPACTACION
 int contadorDeArchivos(char* tabla, char* ext);
 void hiloDump();
-void bajarAMemoria(int* fd2, char* registroParaEscribir, t_config* tmp);
+void bajarAMemoria(int fd2, char* registroParaEscribir, t_config* tmp);
 void dumpearTabla(t_list* registros, char* ruta);
 int dumpeoMemoria();
 char* mapearBloque(int fd2, size_t textsize);
@@ -132,8 +132,8 @@ void actualizarBloquesEnTemporal(t_config* tmp, off_t bloque);
 int compactacion(char* nombre_tabla);
 void guardar_en_disco(t_list* binarios, int cantParticiones,char* nombre_tabla);
 void crearListaRegistros(char* string, t_list* lista);
-int levantarbinarios(char* nombre_tabla, char* bloquesUnificados);
-int obtener_temporales(char* nombre_tabla, char* bloquesUnificados) ;
+char* levantarbinarios(char* nombre_tabla, char* bloquesUnificados);
+char* obtener_temporales(char* nombre_tabla, char* bloquesUnificados) ;
 void liberar_bloques(char* nombre_tabla, int cantParticiones,int dumpeosCompactacion);
 // OTROS
 char* direccionarTabla(char* tabla);
