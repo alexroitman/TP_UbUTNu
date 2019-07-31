@@ -1942,4 +1942,3 @@ void innotificar() {
 		close(file_descriptor);
 	}
 }
-
