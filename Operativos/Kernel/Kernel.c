@@ -671,8 +671,9 @@ int despacharQuery(char* consulta, t_list* sockets) {
 			for(int i = 0; i<sockets->elements_count;i++){
 				*socket_memoria = *(t_infoMem*)list_get(sockets,i);
 				enviarPaquete(socket_memoria->socket, serializado, paqueteJournal->length);
-				free(socket_memoria);
+				
 			}
+			free(socket_memoria);
 			consultaOk = 1;
 			free(serializado);
 			break;
