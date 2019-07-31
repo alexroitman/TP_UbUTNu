@@ -951,7 +951,7 @@ int SelectFS(char* ruta, uint16_t KEY, registro* reg) {
 			int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
 			struct stat s;
 			fstat(fd, &s);
-			size = s.st_size-2;
+			size = s.st_size;
 			log_debug(logger, "mapeo %d", size);
 			char* f = malloc(configMetadata->blockSize + 1);
 			f = mmap(NULL,size, PROT_READ, MAP_PRIVATE, fd, 0);
@@ -1018,7 +1018,7 @@ t_list* SelectTemp(char* ruta, uint16_t KEY,char* nombre_tabla) {
 		if (size > 0) {
 			int i = 0;
 //		Unifico la informacion de todos los bloques en los que esta dividido el archivo .tmp
-			char* bloquesUnificados = malloc(size);
+			char* bloquesUnificados = malloc(size+1);
 			bloquesUnificados[0] = '\0';
 			while (bloquesABuscar[i] != NULL) {
 				log_debug(logger, "entre al while 1 con bloque: %s", bloquesABuscar[i]);
@@ -1030,7 +1030,7 @@ t_list* SelectTemp(char* ruta, uint16_t KEY,char* nombre_tabla) {
 				int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
 				struct stat s;
 				fstat(fd, &s);
-				size = s.st_size-2;
+				size = s.st_size;
 				log_debug(logger, "mapeo %d", size);
 				char* f = malloc(configMetadata->blockSize + 1);
 				f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
@@ -1097,7 +1097,7 @@ t_list* SelectTempc(char* ruta, uint16_t KEY,char* nombre_tabla) {
 			if (size > 0) {
 				int i = 0;
 	//		Unifico la informacion de todos los bloques en los que esta dividido el archivo .tmpc
-				char* bloquesUnificados = malloc(size);
+				char* bloquesUnificados = malloc(size+1);
 				bloquesUnificados[0] = '\0';
 				while (bloquesABuscar[i] != NULL) {
 					char* bloque = malloc(strlen(configLFS->dirMontaje)+strlen("Bloques/")+strlen(bloquesABuscar[i])+strlen(".bin")+1);
@@ -1108,7 +1108,7 @@ t_list* SelectTempc(char* ruta, uint16_t KEY,char* nombre_tabla) {
 					int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
 					struct stat s;
 					fstat(fd, &s);
-					size = s.st_size-2;
+					size = s.st_size;
 					char* f = malloc(configMetadata->blockSize + 1);
 					f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
 					strcat(bloquesUnificados, f);
@@ -1392,7 +1392,7 @@ void bajarAMemoria(int fd2, char* registroParaEscribir, t_config* tmp) {
 	config_save(tmp);
 	//signal
 	free(strsize);
-	char* map = mapearBloque(fd2, textsize);
+	char* map = mapearBloque(fd2, configMetadata->blockSize);
 	int i = 0;
 	int posmap = 0;
 	while (i < textsize) {
@@ -1400,8 +1400,8 @@ void bajarAMemoria(int fd2, char* registroParaEscribir, t_config* tmp) {
 			map[posmap] = registroParaEscribir[i];
 		else {
 //			TODO: armar lo que sigue como subfuncion, esta en dumpeo memoria repetido
-			msync(map, posmap, MS_SYNC);
-			munmap(map, posmap);
+			msync(map, posmap-1, MS_SYNC);
+			munmap(map, posmap-1);
 			off_t bit_index = obtener_bit_libre();
 			actualizarBloquesEnTemporal(tmp, bit_index);
 			char* bloqueDumpeoNuevo = malloc(strlen(configLFS->dirMontaje)+strlen("Bloques/")+strlen(string_itoa(bit_index))+strlen(".bin")+1);
@@ -1417,7 +1417,10 @@ void bajarAMemoria(int fd2, char* registroParaEscribir, t_config* tmp) {
 				log_warning(logger,"ROMPI EN EL BLOQUE %d",bit_index);
 			//signal
 //			Hasta aca
-			map = mapearBloque(fd2, textsize - i);
+			if ((textsize - i) > (configMetadata->blockSize - 1))
+				map = mapearBloque(fd2, posmap-1);
+			else
+				map = mapearBloque(fd2, textsize-i);
 			posmap = 0;
 			map[posmap] = registroParaEscribir[i];
 		}
@@ -1425,9 +1428,9 @@ void bajarAMemoria(int fd2, char* registroParaEscribir, t_config* tmp) {
 		posmap++;
 	}
 	//wait
-	msync(map, textsize-i, MS_SYNC);
+	msync(map, posmap-1, MS_SYNC);
 	//signal
-	munmap(map, textsize-i);
+	munmap(map, posmap-1);
 }
 
 
@@ -1779,7 +1782,7 @@ char* levantarbinarios(char* nombre_tabla, char* bloquesUnificados) {
 				int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
 				struct stat s;
 				fstat(fd, &s);
-				size = s.st_size - 2;
+				size = s.st_size;
 				char* f = malloc(configMetadata->blockSize + 1);
 				f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
 				bloquesUnificados = realloc(bloquesUnificados, (strlen(bloquesUnificados) + string_length(f) + 1));
@@ -1821,7 +1824,7 @@ char* obtener_temporales(char* nombre_tabla, char* bloquesUnificados) {
 				int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
 				struct stat s;
 				fstat(fd, &s);
-				size = s.st_size-2;
+				size = s.st_size;
 				char* f = malloc(configMetadata->blockSize + 1);
 				f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
 //				log_debug(logger, "el tamaño de bloquesUnificados antes es: %d", strlen(bloquesUnificados));
