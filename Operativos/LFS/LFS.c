@@ -877,17 +877,20 @@ t_list* Describe() {
 }
 
 Metadata* obtener_metadata(char* ruta) {
+	Metadata* metadata = NULL;
 	char* mi_ruta = malloc(strlen(ruta)+strlen("/metadata")+1);
 	strcpy(mi_ruta, ruta);
 	strcat(mi_ruta, "/metadata");
-	t_config* config_metadata = malloc(sizeof(t_config));
-	config_metadata = config_create(mi_ruta);
-	Metadata* metadata = malloc(sizeof(Metadata));
-	long tiempoDeCompactacion = config_get_long_value(config_metadata, "COMPACTION_TIME");
-	metadata->tiempo_compactacion = tiempoDeCompactacion;
-	char* consistencia = config_get_string_value(config_metadata, "CONSISTENCY");
-	metadata->consistency = consistency_to_int(consistencia);
-	config_destroy(config_metadata);
+	if(verificadorDeArchivo(mi_ruta)){
+		t_config* config_metadata = malloc(sizeof(t_config));
+		config_metadata = config_create(mi_ruta);
+		metadata = malloc(sizeof(Metadata));
+		long tiempoDeCompactacion = config_get_long_value(config_metadata, "COMPACTION_TIME");
+		metadata->tiempo_compactacion = tiempoDeCompactacion;
+		char* consistencia = config_get_string_value(config_metadata, "CONSISTENCY");
+		metadata->consistency = consistency_to_int(consistencia);
+		config_destroy(config_metadata);
+	}
 	free(mi_ruta);
 	return metadata;
 }
@@ -944,9 +947,6 @@ int SelectFS(char* ruta, uint16_t KEY, registro* reg) {
 	if (verificadorDeArchivo(rutaFS)){
 		t_config* particion = malloc(sizeof(t_config));
 		particion = config_create(rutaFS);
-		char* stringSize = malloc(10);
-		strcpy(stringSize, config_get_string_value(particion, "SIZE"));
-		log_debug(logger, "el SIZE es: %s", stringSize);
 		size = config_get_int_value(particion, "SIZE");
 		char** bloquesABuscar = config_get_array_value(particion, "BLOCKS");
 		config_destroy(particion);
@@ -964,10 +964,10 @@ int SelectFS(char* ruta, uint16_t KEY, registro* reg) {
 				strcat(bloque, bloquesABuscar[i]);
 				strcat(bloque, ".bin");
 				int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
-				if (fd != -1){
-					struct stat s;
-					fstat(fd, &s);
-					size = s.st_size;
+				struct stat s;
+				fstat(fd, &s);
+				size = s.st_size;
+				if ((fd != -1) && (size > 0)){
 //					log_debug(logger, "mapeo %d", size);
 					char* f = malloc(configMetadata->blockSize + 1);
 					f = mmap(NULL,size, PROT_READ, MAP_PRIVATE, fd, 0);
@@ -1045,10 +1045,10 @@ t_list* SelectTemp(char* ruta, uint16_t KEY,char* nombre_tabla) {
 				strcat(bloque, bloquesABuscar[i]);
 				strcat(bloque, ".bin");
 				int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
-				if (fd != -1){
-					struct stat s;
-					fstat(fd, &s);
-					size = s.st_size;
+				struct stat s;
+				fstat(fd, &s);
+				size = s.st_size;
+				if ((fd != -1) && (size > 0)){
 	//				log_debug(logger, "mapeo %d", size);
 					char* f = malloc(configMetadata->blockSize + 1);
 					f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
@@ -1126,10 +1126,10 @@ t_list* SelectTempc(char* ruta, uint16_t KEY,char* nombre_tabla) {
 					strcat(bloque, bloquesABuscar[i]);
 					strcat(bloque, ".bin");
 					int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
-					if (fd != -1){
-						struct stat s;
-						fstat(fd, &s);
-						size = s.st_size;
+					struct stat s;
+					fstat(fd, &s);
+					size = s.st_size;
+					if ((fd != -1) && (size > 0)){
 						char* f = malloc(configMetadata->blockSize + 1);
 						f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
 						strcat(bloquesUnificados, f);
@@ -1240,6 +1240,12 @@ int verificadorDeArchivo(char* ruta) {
 	file = open(ruta, O_RDONLY, S_IRUSR | S_IWUSR);
 	if (file == -1)
 		status = 0;
+	else {
+		struct stat s;
+		fstat(file, &s);
+		if (s.st_size < 1)
+			status = 0;
+	}
 	close(file);
 	return status;
 }
@@ -1815,10 +1821,10 @@ char* levantarbinarios(char* nombre_tabla, char* bloquesUnificados) {
 				strcat(bloque, bloquesABuscar[i]);
 				strcat(bloque, ".bin");
 				int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
-				if (fd != -1){
-					struct stat s;
-					fstat(fd, &s);
-					size = s.st_size;
+				struct stat s;
+				fstat(fd, &s);
+				size = s.st_size;
+				if ((fd != -1) && (size > 0)){
 					char* f = malloc(configMetadata->blockSize + 1);
 					f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
 					bloquesUnificados = realloc(bloquesUnificados, (strlen(bloquesUnificados) + string_length(f) + 1));
@@ -1860,10 +1866,10 @@ char* obtener_temporales(char* nombre_tabla, char* bloquesUnificados) {
 				strcat(bloque, bloquesABuscar[i]);
 				strcat(bloque, ".bin");
 				int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
-				if (fd != -1){
-					struct stat s;
-					fstat(fd, &s);
-					size = s.st_size;
+				struct stat s;
+				fstat(fd, &s);
+				size = s.st_size;
+				if ((fd != -1) && (size > 0)){
 					char* f = malloc(configMetadata->blockSize + 1);
 					f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
 	//				log_debug(logger, "el tamaño de bloquesUnificados antes es: %d", strlen(bloquesUnificados));
