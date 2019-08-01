@@ -24,6 +24,7 @@ sem_t mutexEC;
 sem_t mutexContMult;
 sem_t mutexMems;
 sem_t mutexCaido;
+sem_t mutexQuantum;
 t_contMetrics metricsSC;
 t_contMetrics metricsSHC;
 t_contMetrics metricsEC;
@@ -802,13 +803,17 @@ void CPU(){
 		unScript->estado = exec;
 		int info;
 		log_debug(logger,"Se esta corriendo el script: %d", unScript->id);
-		for(int i = 0 ; i < miConfig->quantum; i++){
+		sem_wait(&mutexQuantum);
+		int q = miConfig->quantum;
+//		log_debug("este es el quantum: %d",q);
+		sem_post(&mutexQuantum);
+		for(int i = 0 ; i < q; i++){
 			char* consulta = malloc(256);
 			info = leerLinea(unScript->path,unScript->pos,consulta);
 			unScript->pos++;
 			switch(info){
 			case 0:
-				i = miConfig->quantum;
+				i = q;
 				unScript->estado = exit_;
 				log_error(loggerError,"El script rompio en la linea: %d",
 						unScript->pos);
@@ -853,7 +858,7 @@ void CPU(){
 						log_warning(loggerWarning,"Se volvera a ejecutar la consulta: %d",unScript->pos);
 						unScript->pos--;
 					}else{
-						i = miConfig->quantum;
+						i = q;
 						unScript->estado = exit_;
 						log_error(loggerError,"El script rompio en la linea: %d",
 								unScript->pos);
@@ -868,7 +873,7 @@ void CPU(){
 						"El script id: %d finalizo con exito en la linea: %d",
 						unScript->id,
 						unScript->pos);
-				i = miConfig->quantum;
+				i = q;
 				free(unScript->path);
 				free(unScript);
 				break;
@@ -1051,8 +1056,8 @@ int validarAdd(char* consulta){
 void ejecutarAdd(char* consulta){
 
 	char** split = string_split(consulta," ");
-	tMemoria* memAdd;
-	memAdd = (tMemoria*)generarMem(consulta);
+	tMemoria* memAdd = malloc(sizeof(tMemoria));
+	*memAdd = *(tMemoria*)generarMem(consulta);
 	bool mismoId(void* elemento) {
 			tMemoria* mem = malloc(sizeof(tMemoria));
 			mem = (tMemoria*) elemento;
@@ -1277,7 +1282,9 @@ void cargarConfig(t_config* config){
 	miConfig->puerto_mem = malloc(strlen(config_get_string_value(config,"PUERTO_MEMORIA"))+1);
 	strcpy(miConfig->puerto_mem,config_get_string_value(config,"PUERTO_MEMORIA"));
 	miConfig->sleep = config_get_int_value(config,"SLEEP_EJECUCION");
+	sem_wait(&mutexQuantum);
 	miConfig->quantum = config_get_int_value(config,"QUANTUM");
+	sem_post(&mutexQuantum);
 	miConfig->t_gossip = config_get_int_value(config,"TIEMPO_GOSSIP");
 	log_debug(logger,"este es mi quantum: %d", miConfig->quantum);
 	log_debug(logger,"Se tendra un nivel de multiprocesamiento de: %d cpus", miConfig->MULT_PROC);
@@ -1289,6 +1296,7 @@ void inicializarTodo(){
 	logger = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_DEBUG);
 	loggerError = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_ERROR);
 	loggerWarning = log_create("Kernel.log","Kernel.c",true,LOG_LEVEL_WARNING);
+	sem_init(&mutexQuantum,0,1);
 	log_debug(logger,"Cargando configuracion");
 	t_config* config;
 	cargarConfig(config);
