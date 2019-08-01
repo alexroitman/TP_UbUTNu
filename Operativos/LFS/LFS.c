@@ -81,7 +81,8 @@ int main(void) {
 }
 
 void levantarMetadataFS() {
-	t_config* aux = config_create("../../FS_LISSANDRA/Metadata/Metadata.bin");
+	t_config* aux = malloc(sizeof(t_config));
+	aux = config_create("../../FS_LISSANDRA/Metadata/Metadata.bin");
 	configMetadata->blockSize = config_get_int_value(aux, "BLOCK_SIZE");
 	configMetadata->blocks = config_get_int_value(aux, "BLOCKS");
 	configMetadata->magicNumber = malloc(strlen(config_get_string_value(aux, "MAGIC_NUMBER"))+1);
@@ -173,8 +174,7 @@ void receptorDeSockets(int* socket) {
 							free(registroSerializado);
 						}
 						free(registro);
-					} else if (errorHandler == noExisteKey
-							|| errorHandler == noExisteTabla) {
+					} else if (errorHandler == noExisteKey || errorHandler == noExisteTabla) {
 						registro->tipo = REGISTRO;
 						registro->timestamp = 0;
 						registro->value = "";
@@ -487,7 +487,8 @@ void hiloCompactar(void* nombre_tabla) {
 		strcat(tablas_path, "Tablas/");
 		strcat(tablas_path, (char*) nombre_tabla);
 		strcat(tablas_path, "/metadata");
-		t_config* configComp = config_create(tablas_path);
+		t_config* configComp = malloc(sizeof(t_config));
+		configComp = config_create(tablas_path);
 		free(tablas_path);
 		int retardoCompac = config_get_int_value(configComp, "COMPACTION_TIME");
 		config_destroy(configComp);
@@ -676,7 +677,8 @@ int Drop(char* NOMBRE_TABLA) {
 	char* rutametadata = malloc(strlen(ruta)+strlen("/metadata")+1);
 	strcpy(rutametadata, ruta);
 	strcat(rutametadata, "/metadata");
-	t_config* metadataTabla = config_create(rutametadata);
+	t_config* metadataTabla = malloc(sizeof(t_config));
+	metadataTabla = config_create(rutametadata);
 	int cantParticiones = (config_get_int_value(metadataTabla, "PARTITIONS") - 1);
 	config_destroy(metadataTabla);
 	free(rutametadata);
@@ -687,7 +689,8 @@ int Drop(char* NOMBRE_TABLA) {
 		strcat(binario_a_limpiar, "/");
 		strcat(binario_a_limpiar, string_itoa(i));
 		strcat(binario_a_limpiar, ".bin");
-		t_config* binario = config_create(binario_a_limpiar);
+		t_config* binario = malloc(sizeof(t_config));
+		binario = config_create(binario_a_limpiar);
 		char** bloques_a_limpiar = config_get_array_value(binario, "BLOCKS");
 		int i = 0;
 		while (bloques_a_limpiar[i] != NULL) {
@@ -717,7 +720,8 @@ int Drop(char* NOMBRE_TABLA) {
 			strcat(temporal_a_limpiar, "/");
 			strcat(temporal_a_limpiar, string_itoa(j - 1));
 			strcat(temporal_a_limpiar, ".tmp");
-			t_config* temporal = config_create(temporal_a_limpiar);
+			t_config* temporal = malloc(sizeof(t_config));
+			temporal = config_create(temporal_a_limpiar);
 			char** bloques_a_limpiar = config_get_array_value(temporal,
 					"BLOCKS");
 			int i = 0;
@@ -757,8 +761,7 @@ int Select(registro* reg, char* NOMBRE_TABLA, uint16_t KEY) {
 	}
 	char* ruta = direccionarTabla(NOMBRE_TABLA);
 	int errorHandler = verificadorDeTabla(ruta);
-	log_debug(logger, "Se ha solicitado la key %d de la tabla %s.", KEY,
-			NOMBRE_TABLA);
+	log_debug(logger, "Se ha solicitado la key %d de la tabla %s.", KEY, NOMBRE_TABLA);
 	if (!errorHandler)
 		return noExisteTabla;
 	t_list* registros = list_create();
@@ -779,8 +782,7 @@ int Select(registro* reg, char* NOMBRE_TABLA, uint16_t KEY) {
 		return errorDeMalloc;
 
 	pthread_mutex_t* mutex = dictionary_get(bloqueoTablas,NOMBRE_TABLA);
-
-	if(mutex!=NULL)
+	if (mutex != NULL)
 		pthread_mutex_lock(mutex);
 	//	VOY A FS
 //	log_debug(logger, "VOY A FS");
@@ -878,7 +880,8 @@ Metadata* obtener_metadata(char* ruta) {
 	char* mi_ruta = malloc(strlen(ruta)+strlen("/metadata")+1);
 	strcpy(mi_ruta, ruta);
 	strcat(mi_ruta, "/metadata");
-	t_config* config_metadata = config_create(mi_ruta);
+	t_config* config_metadata = malloc(sizeof(t_config));
+	config_metadata = config_create(mi_ruta);
 	Metadata* metadata = malloc(sizeof(Metadata));
 	long tiempoDeCompactacion = config_get_long_value(config_metadata, "COMPACTION_TIME");
 	metadata->tiempo_compactacion = tiempoDeCompactacion;
@@ -923,8 +926,11 @@ t_list* selectEnMemtable(uint16_t key, char* tabla) {
 
 int SelectFS(char* ruta, uint16_t KEY, registro* reg) {
 	int errorHandler = 1;
+	int size = 0;
+	log_debug(logger, "Voy a buscar las particiones en: %s", ruta);
 	int particiones = buscarEnMetadata(ruta, "PARTITIONS");
-	if (particiones < 0)
+	log_debug(logger, "las particiones de la tabla son: %d", particiones);
+	if (particiones <= 0)
 		return particionesInvalidas;
 // ---- Calculo particion del KEY ----
 	particiones = (KEY % particiones);
@@ -935,68 +941,75 @@ int SelectFS(char* ruta, uint16_t KEY, registro* reg) {
 	strcat(rutaFS, ".bin");
 //wait
 	log_debug(logger, "la ruta del config es: %s", rutaFS);
-	t_config* particion = config_create(rutaFS);
-	int size = config_get_int_value(particion, "SIZE");
-	char** bloquesABuscar = config_get_array_value(particion, "BLOCKS");
-	config_destroy(particion);
-//	log_debug(logger, "Consegui el valor size: %d", size);
-	if (size > 0) {
-//		log_debug(logger, "Size es mayor a 0, entre al if");
-		int i = 0;
-		char* bloquesUnificados = malloc(size);
-		bloquesUnificados[0] = '\0';
-		while (bloquesABuscar[i] != NULL) {
-			log_debug(logger, "bloque %s", bloquesABuscar[i]);
-			char* bloque = malloc(strlen("Bloques/")+strlen(bloquesABuscar[i])+strlen(".bin")+1);
-			strcpy(bloque, "Bloques/");
-			strcat(bloque, bloquesABuscar[i]);
-			strcat(bloque, ".bin");
-			int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
-			struct stat s;
-			fstat(fd, &s);
-			size = s.st_size;
-			log_debug(logger, "mapeo %d", size);
-			char* f = malloc(configMetadata->blockSize + 1);
-			f = mmap(NULL,size, PROT_READ, MAP_PRIVATE, fd, 0);
-			log_debug(logger, "acabo de mapear: %s", f);
-			strcat(bloquesUnificados, f);
-			log_debug(logger, "cierro");
-			close(fd);
-			munmap(f, size);
-			free(bloque);
-			i++;
-		}
-//signal
-		int j = 0;
-		log_debug(logger, "Sali del while 1");
-		char** registros = string_split(bloquesUnificados, "\n");
-		while (registros[j] != NULL) {
-			char** datos_registro = string_split(registros[j], ";");
-			if (atoi(datos_registro[1]) == KEY) {
-//				log_debug(logger, "Entre al if del while 2");
-				reg->timestamp = strtoull(datos_registro[0],NULL,10);
-//				log_debug(logger, "El timestamp encontrado fue: %llu", reg->timestamp);
-				reg->key = atoi(datos_registro[1]);
-//				log_debug(logger, "La key encontrada fue: %d", reg->key);
-				reg->value = malloc(strlen(datos_registro[2]) + 1);
-//				log_debug(logger, "El value encontrado fue: %s", reg->value);
-				if (!reg->value)
-					return errorDeMalloc;
-				strcpy(reg->value, datos_registro[2]);
-				errorHandler = 0;
+	if (verificadorDeArchivo(rutaFS)){
+		t_config* particion = malloc(sizeof(t_config));
+		particion = config_create(rutaFS);
+		char* stringSize = malloc(10);
+		strcpy(stringSize, config_get_string_value(particion, "SIZE"));
+		log_debug(logger, "el SIZE es: %s", stringSize);
+		size = config_get_int_value(particion, "SIZE");
+		char** bloquesABuscar = config_get_array_value(particion, "BLOCKS");
+		config_destroy(particion);
+		log_debug(logger, "Consegui el valor size: %d", size);
+		if (size > 0) {
+	//		log_debug(logger, "Size es mayor a 0, entre al if");
+			int i = 0;
+			char* bloquesUnificados = malloc(size+1);
+			bloquesUnificados[0] = '\0';
+			while (bloquesABuscar[i] != NULL) {
+				log_debug(logger, "bloque %s", bloquesABuscar[i]);
+				char* bloque = malloc(strlen(configLFS->dirMontaje)+strlen("Bloques/")+strlen(bloquesABuscar[i])+strlen(".bin")+1);
+				strcpy(bloque, configLFS->dirMontaje);
+				strcat(bloque, "Bloques/");
+				strcat(bloque, bloquesABuscar[i]);
+				strcat(bloque, ".bin");
+				int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
+				if (fd != -1){
+					struct stat s;
+					fstat(fd, &s);
+					size = s.st_size;
+//					log_debug(logger, "mapeo %d", size);
+					char* f = malloc(configMetadata->blockSize + 1);
+					f = mmap(NULL,size, PROT_READ, MAP_PRIVATE, fd, 0);
+//					log_debug(logger, "acabo de mapear: %s", f);
+					strcat(bloquesUnificados, f);
+//					log_debug(logger, "cierro");
+					munmap(f, size);
+				}
+				close(fd);
+				free(bloque);
+				i++;
 			}
-			string_iterate_lines(datos_registro, (void*) free);
-			free(datos_registro);
-			j++;
+	//signal
+			int j = 0;
+//			log_debug(logger, "Sali del while 1 y encontre esto: %s", bloquesUnificados);
+			char** registros = string_split(bloquesUnificados, "\n");
+			while (registros[j] != NULL) {
+//				log_debug(logger, "Entre con este valor: %s", registros[j]);
+				char** datos_registro = string_split(registros[j], ";");
+				if (atoi(datos_registro[1]) == KEY) {
+//					log_debug(logger, "Entre al if del while 2");
+					reg->timestamp = strtoull(datos_registro[0],NULL,10);
+//					log_debug(logger, "El timestamp encontrado fue: %llu", reg->timestamp);
+					reg->key = atoi(datos_registro[1]);
+//					log_debug(logger, "La key encontrada fue: %d", reg->key);
+					reg->value = malloc(strlen(datos_registro[2]) + 1);
+//					log_debug(logger, "El value encontrado fue: %s", reg->value);
+					if (!reg->value)
+						return errorDeMalloc;
+					strcpy(reg->value, datos_registro[2]);
+					errorHandler = 0;
+				}
+				string_iterate_lines(datos_registro, (void*) free);
+				free(datos_registro);
+				j++;
+			}
+			string_iterate_lines(registros, (void*) free);
+			free(registros);
+			free(bloquesUnificados);
 		}
-		string_iterate_lines(registros, (void*) free);
-		free(registros);
-		i++;
-		free(bloquesUnificados);
-
-	} else
-		log_debug(logger, "Entre al else para setear NULL");
-	free(bloquesABuscar);
+		free(bloquesABuscar);
+	}
 	free(rutaFS);
 	return errorHandler;
 }
@@ -1013,7 +1026,8 @@ t_list* SelectTemp(char* ruta, uint16_t KEY,char* nombre_tabla) {
 		strcat(rutaTemporal, "/");
 		strcat(rutaTemporal, string_itoa(aux - 1));
 		strcat(rutaTemporal, ".tmp");
-		t_config* particion = config_create(rutaTemporal);
+		t_config* particion = malloc(sizeof(t_config));
+		particion = config_create(rutaTemporal);
 		char** bloquesABuscar = config_get_array_value(particion, "BLOCKS");
 		int size = config_get_int_value(particion, "SIZE");
 		config_destroy(particion);
@@ -1024,35 +1038,37 @@ t_list* SelectTemp(char* ruta, uint16_t KEY,char* nombre_tabla) {
 			char* bloquesUnificados = malloc(size+1);
 			bloquesUnificados[0] = '\0';
 			while (bloquesABuscar[i] != NULL) {
-				log_debug(logger, "entre al while 1 con bloque: %s", bloquesABuscar[i]);
+//				log_debug(logger, "entre al while 1 con bloque: %s", bloquesABuscar[i]);
 				char* bloque = malloc(strlen(configLFS->dirMontaje)+strlen("Bloques/")+strlen(bloquesABuscar[i])+strlen(".bin")+1);
 				strcpy(bloque, configLFS->dirMontaje);
 				strcat(bloque, "Bloques/");
 				strcat(bloque, bloquesABuscar[i]);
 				strcat(bloque, ".bin");
 				int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
-				struct stat s;
-				fstat(fd, &s);
-				size = s.st_size;
-				log_debug(logger, "mapeo %d", size);
-				char* f = malloc(configMetadata->blockSize + 1);
-				f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
-//				log_debug(logger, "acabo de mapear: %s", f);
-				strcat(bloquesUnificados, f);
-				log_debug(logger, "cierro");
-				munmap(f, size);
+				if (fd != -1){
+					struct stat s;
+					fstat(fd, &s);
+					size = s.st_size;
+	//				log_debug(logger, "mapeo %d", size);
+					char* f = malloc(configMetadata->blockSize + 1);
+					f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+	//				log_debug(logger, "acabo de mapear: %s", f);
+					strcat(bloquesUnificados, f);
+	//				log_debug(logger, "cierro");
+					munmap(f, size);
+				}
 				close(fd);
 				free(bloque);
 				i++;
 			}
 //signal
-			log_debug(logger, "sali del while 1 con bloquesUnificados de tamaño: %d", strlen(bloquesUnificados));
+//			log_debug(logger, "sali del while 1 con bloquesUnificados de tamaño: %d", strlen(bloquesUnificados));
 			int j = 0;
 			char** registros = string_split(bloquesUnificados, "\n");
 //		Recorro y divido los datos unificado del archivos temporal, almacenando solo las keys que coincidan con la solicitada
 			while (registros[j] != NULL) {
-				log_debug(logger, "entre al while con: %s", registros[j]);
-				log_debug(logger, "entre al while 2");
+//				log_debug(logger, "entre al while con: %s", registros[j]);
+//				log_debug(logger, "entre al while 2");
 				if(string_length(registros[j]) > 5){
 					char** datos_registro = string_split(registros[j], ";");
 					if (atoi(datos_registro[1]) == KEY) {
@@ -1093,7 +1109,8 @@ t_list* SelectTempc(char* ruta, uint16_t KEY,char* nombre_tabla) {
 			strcat(rutaTemporal, "/");
 			strcat(rutaTemporal, string_itoa(aux - 1));
 			strcat(rutaTemporal, ".tmpc");
-			t_config* particion = config_create(rutaTemporal);
+			t_config* particion = malloc(sizeof(t_config));
+			particion = config_create(rutaTemporal);
 			int size = config_get_int_value(particion, "SIZE");
 			char** bloquesABuscar = config_get_array_value(particion, "BLOCKS");
 			config_destroy(particion);
@@ -1109,13 +1126,15 @@ t_list* SelectTempc(char* ruta, uint16_t KEY,char* nombre_tabla) {
 					strcat(bloque, bloquesABuscar[i]);
 					strcat(bloque, ".bin");
 					int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
-					struct stat s;
-					fstat(fd, &s);
-					size = s.st_size;
-					char* f = malloc(configMetadata->blockSize + 1);
-					f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
-					strcat(bloquesUnificados, f);
-					munmap(f, size);
+					if (fd != -1){
+						struct stat s;
+						fstat(fd, &s);
+						size = s.st_size;
+						char* f = malloc(configMetadata->blockSize + 1);
+						f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+						strcat(bloquesUnificados, f);
+						munmap(f, size);
+					}
 					close(fd);
 					free(bloque);
 					i++;
@@ -1179,7 +1198,8 @@ void crearBinarios(char* NOMBRE_TABLA, int NUMERO_PARTICIONES) {
 		strcat(nuevaParticion, ".bin");
 		int fd = open(nuevaParticion, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);
 		close(fd);
-		t_config* particion = config_create(nuevaParticion);
+		t_config* particion = malloc(sizeof(t_config));
+		particion = config_create(nuevaParticion);
 		off_t bitLibre = obtener_bit_libre();
 		char* bloques = malloc(strlen("[")+strlen(string_itoa(bitLibre))+strlen("]")+1);
 		strcpy(bloques, "[");
@@ -1208,19 +1228,19 @@ int verificadorDeTabla(char* tabla) {
 	int status = 1;
 	DIR *dirp;
 	dirp = opendir(ruta);
-	if (dirp == NULL) {
+	if (dirp == NULL)
 		status = 0;
-	}
 	closedir(dirp);
-	free(ruta);
 	return status;
 }
 
-int verificadorDeMetadata(char* tabla){
-	char* metadata = malloc(strlen(tabla)+strlen("/metadata")+1);
-	strcpy(metadata, tabla);
-	strcat(metadata, "/metadata");
-	int status = verificadorDeTabla(metadata);
+int verificadorDeArchivo(char* ruta) {
+	int status = 1;
+	int file;
+	file = open(ruta, O_RDONLY, S_IRUSR | S_IWUSR);
+	if (file == -1)
+		status = 0;
+	close(file);
 	return status;
 }
 
@@ -1247,13 +1267,15 @@ int contadorDeArchivos(char* tabla, char* ext) {
 }
 
 int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo) {
-	int particiones = -1;
+	int particiones = 0;
 	char* ruta = malloc(strlen(NOMBRE_TABLA)+strlen("/metadata")+1);
 	strcpy(ruta, NOMBRE_TABLA);
-	if(verificadorDeTabla(NOMBRE_TABLA)){
-		strcat(ruta, "/metadata");
-		t_config* metadata = config_create(ruta);
-		int particiones = config_get_int_value(metadata, objetivo);
+	strcat(ruta, "/metadata");
+	log_debug(logger, "la ruta para buscar metadata es: %s", ruta);
+	if(verificadorDeArchivo(ruta)){
+		t_config* metadata = malloc(sizeof(t_config));
+		metadata = config_create(ruta);
+		particiones = config_get_int_value(metadata, objetivo);
 		config_destroy(metadata);
 	}
 	free(ruta);
@@ -1272,7 +1294,7 @@ t_bitarray* levantarBitmap() {
 	int errorHandler = ftruncate(fd, size);
 	if ((errorHandler < 0) || (fd < 0))
 		log_debug(logger, "Error al levantar bitmap");
-	char* bitarray = malloc(size + 1);
+	char* bitarray = malloc(size);
 	bitarray = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 	t_bitarray* structBitarray = bitarray_create_with_mode(bitarray, size, MSB_FIRST);
 	close(fd);
@@ -1285,8 +1307,9 @@ off_t obtener_bit_libre() {
 	t_bitarray* bitmap = levantarBitmap();
 	off_t bit_index = 0;
 //leer el primero libre y ponerle 1
-	while (bitarray_test_bit(bitmap, bit_index))
+	while (bitarray_test_bit(bitmap, bit_index)){
 		bit_index++;
+	}
 	bitarray_set_bit(bitmap, bit_index);
 	bitarray_destroy(bitmap);
 
@@ -1308,13 +1331,13 @@ int dumpeoMemoria() {
 		strcat(tablaParaDumpeo, ".tmp");
 		pthread_mutex_t* mutex = dictionary_get(bloqueoTablas,tabla->nombreTabla);
 		if(mutex!=NULL)
-		pthread_mutex_lock(mutex);
+			pthread_mutex_lock(mutex);
 		int fd = open(tablaParaDumpeo, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);;
 		close(fd);
 		if(!list_is_empty(tabla->registros))
 			dumpearTabla(tabla->registros, tablaParaDumpeo);
 		if(mutex!=NULL)
-		pthread_mutex_unlock(mutex);
+			pthread_mutex_unlock(mutex);
 	}
 
 	if (list_is_empty(memtable)) {
@@ -1327,7 +1350,7 @@ int dumpeoMemoria() {
 	pthread_mutex_unlock(&mem_table_mutex);
 
 	list_iterate(dumpMem, (void*) &paraDumpearTabla);
-	log_debug(logger, "Sali de dumpear todo");
+//	log_debug(logger, "Sali de dumpear todo");
 	list_clean_and_destroy_elements(dumpMem, (void*) free);
 	log_debug(logger,"termine");
 
@@ -1361,7 +1384,8 @@ void dumpearTabla(t_list* registros, char* ruta) {
 	}
 
 	off_t bit_index = obtener_bit_libre();
-	t_config* tmp = config_create(ruta);
+	t_config* tmp = malloc(sizeof(t_config));
+	tmp = config_create(ruta);
 //	log_debug(logger, "Entre a dumpearTabla");
 	char* bloque = malloc(strlen("[")+strlen(string_itoa(bit_index))+strlen("]")+1);
 	strcpy(bloque, "[");
@@ -1470,7 +1494,8 @@ void actualizarBloquesEnTemporal(t_config* tmp, off_t bloque) {
 int compactacion(char* nombre_tabla) {
 	int dumpeosCompactacion = 0;
 	pthread_mutex_t* mutex = dictionary_get(bloqueoTablas, nombre_tabla);
-	pthread_mutex_lock(mutex);
+	if(mutex!=NULL)
+		pthread_mutex_lock(mutex);
 	int dump=contadorDeArchivos(nombre_tabla, "tmp");
 	for (int j = 0; j < dump; j++) {
 		char* rutaARenombrar = malloc(strlen("mv ")+
@@ -1493,7 +1518,8 @@ int compactacion(char* nombre_tabla) {
 		free(rutaARenombrar);
 		dumpeosCompactacion++;
 	}
-	pthread_mutex_unlock(mutex);
+	if(mutex!=NULL)
+		pthread_mutex_unlock(mutex);
 
 	char* temporales = malloc(1);
 	temporales[0] = '\0';
@@ -1506,15 +1532,15 @@ int compactacion(char* nombre_tabla) {
 	pthread_mutex_lock(mutex);
 	binarios = levantarbinarios(nombre_tabla, binarios);
 	pthread_mutex_unlock(mutex);
-	log_debug(logger, "Sali de obtener levantar binarios");
+//	log_debug(logger, "Sali de obtener levantar binarios");
 	if (!string_is_empty(temporales)){
-		log_debug(logger, "La lista de temporales es: %s", temporales);
+//		log_debug(logger, "La lista de temporales es: %s", temporales);
 		crearListaRegistros(temporales, lista_Temp);
 	}
-	log_debug(logger, "Sali de crearListaRegistros1");
+//	log_debug(logger, "Sali de crearListaRegistros1");
 	if (!string_is_empty(binarios))
 		crearListaRegistros(binarios, lista_bin);
-	log_debug(logger, "Sali de crearListaRegistros2");
+//	log_debug(logger, "Sali de crearListaRegistros2");
 	free(temporales);
 	free(binarios);
 
@@ -1570,7 +1596,8 @@ int compactacion(char* nombre_tabla) {
 	strcat(tabla, "Tablas/");
 	strcat(tabla, nombre_tabla);
 	strcat(tabla, "/metadata");
-	t_config* t = config_create(tabla);
+	t_config* t = malloc(sizeof(t_config));
+	t = config_create(tabla);
 	int part = config_get_int_value(t, "PARTITIONS");
 	config_destroy(t);
 	log_debug(logger, "Arranco a liberar bloques");
@@ -1596,7 +1623,8 @@ void liberar_bloques(char* nombre_tabla, int cantParticiones, int dumpeosCompact
 		strcat(rutaTemporal, "/");
 		strcat(rutaTemporal, string_itoa(aux - 1));
 		strcat(rutaTemporal, ".tmpc");
-		t_config* particion = config_create(rutaTemporal);
+		t_config* particion = malloc(sizeof(t_config));
+		particion = config_create(rutaTemporal);
 		char** bloquesABuscar = config_get_array_value(particion, "BLOCKS");
 		config_set_value(particion, "BLOCKS","[]");
 		config_save(particion);
@@ -1640,7 +1668,8 @@ void liberar_bloques(char* nombre_tabla, int cantParticiones, int dumpeosCompact
 		strcat(tablaParaDumpeo, "/");
 		strcat(tablaParaDumpeo, string_itoa(p));
 		strcat(tablaParaDumpeo, ".bin");
-		t_config* tmp = config_create(tablaParaDumpeo);
+		t_config* tmp = malloc(sizeof(t_config));
+		tmp = config_create(tablaParaDumpeo);
 		free(tablaParaDumpeo);
 		char** bloques = config_get_array_value(tmp, "BLOCKS");
 		config_set_value(tmp, "BLOCKS","[]");
@@ -1702,7 +1731,8 @@ void guardar_en_disco(t_list* binarios, int cantParticiones, char* nombre_tabla)
 		}
 
 		list_iterate(listaParticionada, (void*) &dumpearRegistros);
-		t_config* tmp = config_create(tablaParaDumpeo);
+		t_config* tmp = malloc(sizeof(t_config));
+		tmp = config_create(tablaParaDumpeo);
 		off_t bit = obtener_bit_libre();
 		char* nuevoBloque = malloc(strlen("[")+strlen(string_itoa(bit))+strlen("]")+1);
 		strcpy(nuevoBloque, "[");
@@ -1729,7 +1759,7 @@ void guardar_en_disco(t_list* binarios, int cantParticiones, char* nombre_tabla)
 }
 
 void crearListaRegistros(char* string, t_list* lista) {
-	log_debug(logger, "Entre a crearListaRegistros");
+//	log_debug(logger, "Entre a crearListaRegistros");
 	int j = 0;
 	if (!string_is_empty(string)){
 		char** registros = string_split(string, "\n");
@@ -1753,13 +1783,14 @@ void crearListaRegistros(char* string, t_list* lista) {
 }
 
 char* levantarbinarios(char* nombre_tabla, char* bloquesUnificados) {
-	log_debug(logger, "Entre a levantar binarios");
+//	log_debug(logger, "Entre a levantar binarios");
 	char* rutametadata = malloc(strlen(configLFS->dirMontaje)+strlen("Tablas/")+strlen(nombre_tabla)+strlen("/metadata")+1);
 	strcpy(rutametadata, configLFS->dirMontaje);
 	strcat(rutametadata, "Tablas/");
 	strcat(rutametadata, nombre_tabla);
 	strcat(rutametadata, "/metadata");
-	t_config* metadataTabla = config_create(rutametadata);
+	t_config* metadataTabla = malloc(sizeof(t_config));
+	metadataTabla = config_create(rutametadata);
 	int cantParticiones = (config_get_int_value(metadataTabla, "PARTITIONS") - 1);
 	config_destroy(metadataTabla);
 	for (int aux = 0; aux <= cantParticiones; aux++) {
@@ -1770,7 +1801,8 @@ char* levantarbinarios(char* nombre_tabla, char* bloquesUnificados) {
 		strcat(rutaBinario, "/");
 		strcat(rutaBinario, string_itoa(aux));
 		strcat(rutaBinario, ".bin");
-		t_config* particion = config_create(rutaBinario);
+		t_config* particion = malloc(sizeof(t_config));
+		particion = config_create(rutaBinario);
 		int size = config_get_int_value(particion, "SIZE");
 		char** bloquesABuscar = config_get_array_value(particion, "BLOCKS");
 		config_destroy(particion);
@@ -1783,14 +1815,16 @@ char* levantarbinarios(char* nombre_tabla, char* bloquesUnificados) {
 				strcat(bloque, bloquesABuscar[i]);
 				strcat(bloque, ".bin");
 				int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
-				struct stat s;
-				fstat(fd, &s);
-				size = s.st_size;
-				char* f = malloc(configMetadata->blockSize + 1);
-				f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
-				bloquesUnificados = realloc(bloquesUnificados, (strlen(bloquesUnificados) + string_length(f) + 1));
-				strcat(bloquesUnificados, f);
-				munmap(f, size);
+				if (fd != -1){
+					struct stat s;
+					fstat(fd, &s);
+					size = s.st_size;
+					char* f = malloc(configMetadata->blockSize + 1);
+					f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+					bloquesUnificados = realloc(bloquesUnificados, (strlen(bloquesUnificados) + string_length(f) + 1));
+					strcat(bloquesUnificados, f);
+					munmap(f, size);
+				}
 				close(fd);
 				free(bloque);
 				i++;
@@ -1812,7 +1846,8 @@ char* obtener_temporales(char* nombre_tabla, char* bloquesUnificados) {
 		strcat(rutaTemporal, "/");
 		strcat(rutaTemporal, string_itoa(aux - 1));
 		strcat(rutaTemporal, ".tmpc");
-		t_config* particion = config_create(rutaTemporal);
+		t_config* particion = malloc(sizeof(t_config));
+		particion = config_create(rutaTemporal);
 		int size = config_get_int_value(particion, "SIZE");
 		char** bloquesABuscar = config_get_array_value(particion, "BLOCKS");
 		config_destroy(particion);
@@ -1825,17 +1860,19 @@ char* obtener_temporales(char* nombre_tabla, char* bloquesUnificados) {
 				strcat(bloque, bloquesABuscar[i]);
 				strcat(bloque, ".bin");
 				int fd = open(bloque, O_RDONLY, S_IRUSR | S_IWUSR);
-				struct stat s;
-				fstat(fd, &s);
-				size = s.st_size;
-				char* f = malloc(configMetadata->blockSize + 1);
-				f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
-//				log_debug(logger, "el tamaño de bloquesUnificados antes es: %d", strlen(bloquesUnificados));
-//				log_debug(logger, "el tamaño de f antes es: %d", strlen(f));
-				bloquesUnificados = realloc(bloquesUnificados, (strlen(bloquesUnificados) + strlen(f) + 1));
-//				log_debug(logger, "el tamaño de bloquesUnificados despues es: %d", strlen(bloquesUnificados));
-				strcat(bloquesUnificados, f);
-				munmap(f, size);
+				if (fd != -1){
+					struct stat s;
+					fstat(fd, &s);
+					size = s.st_size;
+					char* f = malloc(configMetadata->blockSize + 1);
+					f = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+	//				log_debug(logger, "el tamaño de bloquesUnificados antes es: %d", strlen(bloquesUnificados));
+	//				log_debug(logger, "el tamaño de f antes es: %d", strlen(f));
+					bloquesUnificados = realloc(bloquesUnificados, (strlen(bloquesUnificados) + strlen(f) + 1));
+	//				log_debug(logger, "el tamaño de bloquesUnificados despues es: %d", strlen(bloquesUnificados));
+					strcat(bloquesUnificados, f);
+					munmap(f, size);
+				}
 				close(fd);
 				free(bloque);
 				i++;
@@ -1927,7 +1964,7 @@ void finalizarEjecutcion() {
 }
 
 void innotificar() {
-	log_debug(logger, "entre al hilo");
+//	log_debug(logger, "entre al hilo");
 	while (1) {
 		char buffer[BUF_LEN];
 		int file_descriptor = inotify_init();

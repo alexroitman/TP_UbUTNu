@@ -116,7 +116,7 @@ t_list* SelectTempc(char* ruta, uint16_t KEY,char* nombre_tabla);
 int crearMetadata(char* NOMBRE_TABLA, char* TIPO_CONSISTENCIA, int NUMERO_PARTICIONES, int COMPACTATION_TIME);
 void crearBinarios(char* NOMBRE_TABLA, int NUMERO_PARTICIONES);
 int verificadorDeTabla(char* NOMBRE_TABLA);
-int verificadorDeMetadata(char* NOMBRE_TABLA);
+int verificadorDeArchivo(char* ruta);
 int buscarEnMetadata(char* NOMBRE_TABLA, char* objetivo);
 t_bitarray* levantarBitmap();
 off_t obtener_bit_libre();
