@@ -135,6 +135,7 @@ void crearListaRegistros(char* string, t_list* lista);
 char* levantarbinarios(char* nombre_tabla, char* bloquesUnificados);
 char* obtener_temporales(char* nombre_tabla, char* bloquesUnificados) ;
 void liberar_bloques(char* nombre_tabla, int cantParticiones,int dumpeosCompactacion);
+void liberarRegistro(registro* UnRegistro);
 // OTROS
 char* direccionarTabla(char* tabla);
 void crearBitmapNuestro(); // Solo lo usamos para pruebas
