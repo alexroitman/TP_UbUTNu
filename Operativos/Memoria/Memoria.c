@@ -107,6 +107,7 @@ void* recibirHeader(void* arg) {
 							} else {
 								FD_CLR(i,&active_fd_set);
 								log_debug(logger, "Se ha cortado la conexion con el cliente %d",i);
+								close(i);
 							}
 
 							//Si no es el listener, es un cliente, por lo que acá tenemso que hacer un recv(i) para ver que es lo que quiere el cliente
@@ -756,17 +757,10 @@ void finalizarEjecucion() {
 	printf("------------------------\n");
 	printf("¿chau chau adios?\n");
 	printf("------------------------\n");
-	free(miConfig);
+	//free(miConfig);
 	close(socket_lfs);
 	close(socket_kernel);
 	close(socket_sv);
-	list_iterate(tablaSegmentos, liberarPaginas);
-	list_destroy_and_destroy_elements(tablaGossip, free);
-	free(tablaSegmentos);
-	free(tablaGossip);
-//	free(header);
-	free(memoria);
-	free(paramsConsola);
 	sem_destroy(&mutexJournal);
 	raise(SIGTERM);
 }

@@ -34,20 +34,19 @@ void ejecutarConsulta(int socket, type header) {
 		reg->value = malloc(tamanioMaxValue);
 		if (indexPag >= 0) {
 			log_debug(logger, "Encontre pagina buscada");
-			//*pagina = *(tPagina*) (memoria + pagTabla->offsetMemoria);
 			reg->tipo = REGISTRO;
 			reg->timestamp = pagina->timestamp;
 			strcpy(reg->value,pagina->value);
 			reg->key = pagina->key;
 			reg->value_long = strlen(pagina->value) + 1;
 			error = 1;
-			//enviarRegistroAKernel(reg, socket_kernel, leyoConsola);
 			log_debug(logger, "El value es: %s", pagina->value);
 			log_debug(logger, "El time es es: %llu", pagina->timestamp);
 		} else {
 			error = pedirRegistroALFS(socket_lfs, packSelect, reg);
 			if (reg->timestamp != 0 && strcmp(reg->value, "")) {
 				log_debug(logger, "El value es: %s", reg->value);
+				log_debug(logger, "El time es es: %llu", reg->timestamp);
 				pagina->key = reg->key;
 				pagina->timestamp = reg->timestamp;
 				strcpy(pagina->value, reg->value);
@@ -57,13 +56,10 @@ void ejecutarConsulta(int socket, type header) {
 					miSegmento = obtenerUltimoSegmentoDeTabla(tablaSegmentos);
 				}
 				error = agregarPaginaAMemoria(miSegmento, pagina,false);
-				//send(socket, &error, sizeof(error), 0);
 			}else{
 				error = 1;
 				log_error(logger,"No existe el registro");
 			}
-			//SI NO LO ENCONTRO IGUALMENTE SE LO MANDO A KERNEL PARA QUE TAMBIEN MANEJE EL ERROR
-			//enviarRegistroAKernel(reg, socket_kernel, leyoConsola);
 		}
 		validarAgregadoDePagina(leyoConsola, &error ,socket, miSegmento, pagina, false);
 		if(error == 1){
@@ -96,7 +92,7 @@ void ejecutarConsulta(int socket, type header) {
 
 			} else {
 				log_debug(logger,
-						"Encontro el segmento en tabla pero no tiene la pagina en memoria");
+						"No se encontro la pagina en memoria");
 				pagina->key = packInsert->key;
 				pagina->timestamp = obtenerTimestamp();
 				strcpy(pagina->value,packInsert->value);
@@ -129,7 +125,7 @@ void ejecutarConsulta(int socket, type header) {
 		cargarPackCreate(packCreate, leyoConsola, paramsConsola->consulta, socket);
 		char* createAEnviar = serializarCreate(packCreate);
 		enviarPaquete(socket_lfs, createAEnviar, packCreate->length);
-		log_debug(logger, "Mando la consulta a LFS");
+		log_debug(logger, "Envio la consulta a LFS");
 		free(packCreate->consistencia);
 		free(packCreate->nombre_tabla);
 		free(packCreate);
@@ -140,7 +136,6 @@ void ejecutarConsulta(int socket, type header) {
 		packDrop = malloc(sizeof(tDrop));
 		cargarPackDrop(packDrop, leyoConsola, paramsConsola->consulta, socket);
 		packDrop->type = DROP;
-		log_debug(logger, "LLEGO UN DROP");
 		log_debug(logger, "Drop Tabla: %s", packDrop->nombre_tabla);
 		encontroSeg = buscarSegmentoEnTabla(packDrop->nombre_tabla, miSegmento, tablaSegmentos);
 		if (encontroSeg == 1) {
@@ -170,14 +165,11 @@ void ejecutarConsulta(int socket, type header) {
 		packDescResp = malloc(sizeof(t_describe));
 		desSerializarDescribe(packDescribe, socket);
 		char* serializado = serializarDescribe(packDescribe);
-		log_debug(logger,"Serializo la consulta de Describe");
 		int bytes = enviarPaquete(socket_lfs, serializado,
 				packDescribe->length);
 		if (bytes > 0) {
-			log_debug(logger, "Envio %d bytes de desc req", bytes);
 			desserializarDescribe_Response(packDescResp, socket_lfs);
 			if (packDescResp->cant_tablas == 0) {
-				log_debug(logger, "Recibi metadatas NULL");
 				t_describe* describe = malloc(sizeof(t_describe));
 				describe->cant_tablas = 0;
 				char* serializedPackage;
@@ -186,15 +178,11 @@ void ejecutarConsulta(int socket, type header) {
 						0);
 				dispose_package(&serializedPackage);
 			} else {
-				log_debug(logger, "Recibi %d tablas",
-						packDescResp->cant_tablas);
 				char* respSerializada = serializarDescribe_Response(
 						packDescResp);
 				int length = packDescResp->cant_tablas * sizeof(t_metadata)
 						+ sizeof(uint16_t);
 				enviarPaquete(socket, respSerializada, length);
-				log_debug(logger, "Envio %d tablas a kernel",
-						packDescResp->cant_tablas);
 				//free(respSerializada);
 			}
 		}
@@ -210,7 +198,7 @@ void ejecutarConsulta(int socket, type header) {
 		packGossip = malloc(sizeof(tGossip));
 		desSerializarGossip(packGossip,socket);
 		actualizarTablaGossip(packGossip);
-		log_debug(logger,"cant elementos tabla: %d",tablaGossip->elements_count);
+		log_debug(logger,"Cantidad de memorias que conozco: %d",tablaGossip->elements_count);
 		tGossip* gossipResp = malloc(sizeof(tGossip));
 		gossipResp->memorias = malloc(tablaGossip->elements_count * sizeof(tMemoria));
 		//FD_CLR(socket,&active_fd_set);
@@ -232,7 +220,7 @@ void ejecutarConsulta(int socket, type header) {
 		free(packGossip->memorias);
 		free(packGossip);
 
-		log_debug(logger,"cant elementos tabla: %d",tablaGossip->elements_count);
+		log_debug(logger,"Cantidad de memorias que conozco: %d",tablaGossip->elements_count);
 		/*
 		desSerializarGossiping(RESPGOSS);
 		actualizarTablaGossip(tablaGossip);
@@ -268,9 +256,6 @@ int pedirRegistroALFS(int socket, tSelect* packSelect, tRegistroRespuesta* reg) 
 	log_debug(logger, "Pido registro a LFS");
 	char* selectAEnviar = serializarSelect(packSelect);
 	int bytes = enviarPaquete(socket, selectAEnviar, packSelect->length);
-	log_debug(logger,
-			"mande %d bytes pido la tabla %s con la key %d por el socket %d",
-			bytes, packSelect->nombre_tabla, packSelect->key, socket);
 	free(selectAEnviar);
 	if (bytes > 0) {
 		type header = leerHeader(socket);
