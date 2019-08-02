@@ -486,10 +486,6 @@ int ejecutarLRU(){
 		//log_debug(logger,"Comparo %d con %d",pagina1->offsetMemoria,pagina2->offsetMemoria);
 		return pagina1->ultimoTime < pagina2->ultimoTime;
 	}
-	void logearIndex(void* elem){
-		elem_tabla_pag* pag = (elem_tabla_pag*) elem;
-		log_debug(logger,"index: %d tiene time %llu y flag %d",pag->index,pag->ultimoTime,pag->modificado);
-	}
 
 
 	void paginaMenorTimePorSeg(void* seg){
@@ -516,16 +512,11 @@ int ejecutarLRU(){
 
 	log_debug(logger,"cantidad de segmentos: %d",tablaSegmentos->elements_count);
 	list_iterate(tablaSegmentos,paginaMenorTimePorSeg);
-	//log_debug(logger,"Logeo LRUPagPorSegm");
-	list_iterate(LRUPaginaPorSegmento,logearIndex);
 	elem_tabla_pag* pagBorrar = malloc(sizeof(elem_tabla_pag));
 	int indexMin = listMinTimestamp(LRUPaginaPorSegmento, pagBorrar);
 	if(indexMin == -1){
 		return -1;
 	}
-	//log_debug(logger,"size de lista LRU: %d",LRUPaginaPorSegmento->elements_count);
-	//int key = *((int*) memoria + pagBorrar->offsetMemoria);
-	//log_debug(logger,"Se eliminara la pagina: %d",pagBorrar->index);
 	uint16_t key;
 	memcpy(&key,memoria + pagBorrar->offsetMemoria,2);
 	tSegmento* segmento = list_get(tablaSegmentos,indexMin);

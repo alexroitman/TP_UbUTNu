@@ -289,6 +289,7 @@ void* leerQuery(void* params) {
 		fgets(parametros->consulta, 256, stdin);
 		char** tempSplit;
 		tempSplit = string_n_split(parametros->consulta, 2, " ");
+		string_to_upper(tempSplit[0]);
 		if (!strcmp(tempSplit[0], "SELECT")) {
 			log_debug(logger,"llega SELECT");
 			if (validarSelect(parametros->consulta)) {
