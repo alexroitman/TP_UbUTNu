@@ -38,11 +38,12 @@ int main(void) {
 	logger = iniciar_logger();
 	levantarMetadataFS();
 	levantarConfigLFS();
-	crearBitmapNuestro();
 	pthread_mutex_init(&mem_table_mutex, NULL);
 	pthread_mutex_init(&bitmapMutex, NULL);
 	//pthread_mutex_init(&cantidadDeDumpeos_mutex, NULL);
 	bloqueoTablas = dictionary_create();
+	crearBitmapNuestro();
+
 	// Escribir inicio en consola
 	printf("Bienvenido al LFS (Lissandra File System)\n");
 	printf("En caso de consultas, recurra a cualquier miembro del equipo UbUTNu\n");
@@ -1991,22 +1992,25 @@ char* direccionarTabla(char* tabla) {
 
 void crearBitmapNuestro() {
 	t_list* metadatas = Describe();
-	if (metadatas->elements_count < 1){
-		int size = configMetadata->blocks / 8;
-		if (configMetadata->blocks % 8 != 0)
-			size++;
-		char* bitarray = calloc(configMetadata->blocks / 8, sizeof(char));
-		t_bitarray* structBitarray = bitarray_create_with_mode(bitarray, size, MSB_FIRST);
-		for (int i = 0; i < configMetadata->blocks; i++) {
-				bitarray_clean_bit(structBitarray, i);
+	if (metadatas){
+		if (metadatas->elements_count < 1){
+			log_debug(logger, "Voy a crear el bitmap");
+			int size = configMetadata->blocks / 8;
+			if (configMetadata->blocks % 8 != 0)
+				size++;
+			char* bitarray = calloc(configMetadata->blocks / 8, sizeof(char));
+			t_bitarray* structBitarray = bitarray_create_with_mode(bitarray, size, MSB_FIRST);
+			for (int i = 0; i < configMetadata->blocks; i++) {
+					bitarray_clean_bit(structBitarray, i);
+			}
+			char* path = string_from_format("%s/Metadata/Bitmap.bin", configLFS->dirMontaje);
+			FILE* file = fopen(path, "wb+");
+			fwrite(structBitarray->bitarray, sizeof(char), configMetadata->blocks / 8, file);
+			fclose(file);
+			bitarray_destroy(structBitarray);
+			free(bitarray);
+			free(path);
 		}
-		char* path = string_from_format("%s/Metadata/Bitmap.bin", configLFS->dirMontaje);
-		FILE* file = fopen(path, "wb+");
-		fwrite(structBitarray->bitarray, sizeof(char), configMetadata->blocks / 8, file);
-		fclose(file);
-		bitarray_destroy(structBitarray);
-		free(bitarray);
-		free(path);
 	}
 }
 
