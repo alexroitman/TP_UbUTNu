@@ -107,6 +107,7 @@ void* recibirHeader(void* arg) {
 							} else {
 								FD_CLR(i,&active_fd_set);
 								log_debug(logger, "Se ha cortado la conexion con el cliente %d",i);
+								close(i);
 							}
 
 							//Si no es el listener, es un cliente, por lo que acá tenemso que hacer un recv(i) para ver que es lo que quiere el cliente
@@ -485,10 +486,6 @@ int ejecutarLRU(){
 		//log_debug(logger,"Comparo %d con %d",pagina1->offsetMemoria,pagina2->offsetMemoria);
 		return pagina1->ultimoTime < pagina2->ultimoTime;
 	}
-	void logearIndex(void* elem){
-		elem_tabla_pag* pag = (elem_tabla_pag*) elem;
-		log_debug(logger,"index: %d tiene time %llu y flag %d",pag->index,pag->ultimoTime,pag->modificado);
-	}
 
 
 	void paginaMenorTimePorSeg(void* seg){
@@ -515,16 +512,11 @@ int ejecutarLRU(){
 
 	log_debug(logger,"cantidad de segmentos: %d",tablaSegmentos->elements_count);
 	list_iterate(tablaSegmentos,paginaMenorTimePorSeg);
-	//log_debug(logger,"Logeo LRUPagPorSegm");
-	list_iterate(LRUPaginaPorSegmento,logearIndex);
 	elem_tabla_pag* pagBorrar = malloc(sizeof(elem_tabla_pag));
 	int indexMin = listMinTimestamp(LRUPaginaPorSegmento, pagBorrar);
 	if(indexMin == -1){
 		return -1;
 	}
-	//log_debug(logger,"size de lista LRU: %d",LRUPaginaPorSegmento->elements_count);
-	//int key = *((int*) memoria + pagBorrar->offsetMemoria);
-	//log_debug(logger,"Se eliminara la pagina: %d",pagBorrar->index);
 	uint16_t key;
 	memcpy(&key,memoria + pagBorrar->offsetMemoria,2);
 	tSegmento* segmento = list_get(tablaSegmentos,indexMin);
@@ -756,17 +748,10 @@ void finalizarEjecucion() {
 	printf("------------------------\n");
 	printf("¿chau chau adios?\n");
 	printf("------------------------\n");
-	free(miConfig);
+	//free(miConfig);
 	close(socket_lfs);
 	close(socket_kernel);
 	close(socket_sv);
-	list_iterate(tablaSegmentos, liberarPaginas);
-	list_destroy_and_destroy_elements(tablaGossip, free);
-	free(tablaSegmentos);
-	free(tablaGossip);
-//	free(header);
-	free(memoria);
-	free(paramsConsola);
 	sem_destroy(&mutexJournal);
 	raise(SIGTERM);
 }
