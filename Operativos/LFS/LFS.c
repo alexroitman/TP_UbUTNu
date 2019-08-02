@@ -38,15 +38,14 @@ int main(void) {
 	logger = iniciar_logger();
 	levantarMetadataFS();
 	levantarConfigLFS();
+	crearBitmapNuestro();
 	pthread_mutex_init(&mem_table_mutex, NULL);
 	pthread_mutex_init(&bitmapMutex, NULL);
 	//pthread_mutex_init(&cantidadDeDumpeos_mutex, NULL);
 	bloqueoTablas = dictionary_create();
-	// ---------------Pruebas con bitmap propio-----------------
-	 crearBitmapNuestro();
-
 	// Escribir inicio en consola
-
+	printf("Bienvenido al LFS (Lissandra File System)\n");
+	printf("En caso de consultas, recurra a cualquier miembro del equipo UbUTNu\n");
 	// Abro hilo de consola
 	paramsConsola = malloc(sizeof(tHiloConsola));
 
@@ -323,6 +322,7 @@ void receptorDeSockets(int* socket) {
 void abrirHiloConsola(void* params) {
 	while (1) {
 		tHiloConsola* parametros = (tHiloConsola*) params;
+		printf("Ingrese el comando a ejecutar: ");
 		fgets(parametros->consulta, 256, stdin);
 		char** tempSplit;
 		tempSplit = string_n_split(parametros->consulta, 2, " ");
@@ -443,17 +443,17 @@ void abrirHiloSockets() {
 }
 
 type stringToHeader(char* str) {
-	if (!strcmp(str, "SELECT"))
+	if (!strcmp(str, "SELECT") || !strcmp(str, "select"))
 		return SELECT;
-	if (!strcmp(str, "INSERT"))
+	if (!strcmp(str, "INSERT") || !strcmp(str, "insert"))
 		return INSERT;
-	if (!strcmp(str, "CREATE"))
+	if (!strcmp(str, "CREATE") || !strcmp(str, "create"))
 		return CREATE;
-	if (!strcmp(str, "DROP"))
+	if (!strcmp(str, "DROP") || !strcmp(str, "drop"))
 		return DROP;
-	if (!strcmp(str, "DESCRIBE"))
+	if (!strcmp(str, "DESCRIBE") || !strcmp(str, "describe"))
 		return DESCRIBE;
-	if (!strcmp(str, "DESCRIBE\n"))
+	if (!strcmp(str, "DESCRIBE\n") || !strcmp(str, "describe\n"))
 		return DESCRIBE;
 	return NIL;
 }
@@ -1990,22 +1990,24 @@ char* direccionarTabla(char* tabla) {
 }
 
 void crearBitmapNuestro() {
-
-	int size = configMetadata->blocks / 8;
-	if (configMetadata->blocks % 8 != 0)
-		size++;
-	char* bitarray = calloc(configMetadata->blocks / 8, sizeof(char));
-	t_bitarray* structBitarray = bitarray_create_with_mode(bitarray, size, MSB_FIRST);
-	for (int i = 0; i < configMetadata->blocks; i++) {
-			bitarray_clean_bit(structBitarray, i);
+	t_list* metadatas = Describe();
+	if (metadatas->elements_count < 1){
+		int size = configMetadata->blocks / 8;
+		if (configMetadata->blocks % 8 != 0)
+			size++;
+		char* bitarray = calloc(configMetadata->blocks / 8, sizeof(char));
+		t_bitarray* structBitarray = bitarray_create_with_mode(bitarray, size, MSB_FIRST);
+		for (int i = 0; i < configMetadata->blocks; i++) {
+				bitarray_clean_bit(structBitarray, i);
+		}
+		char* path = string_from_format("%s/Metadata/Bitmap.bin", configLFS->dirMontaje);
+		FILE* file = fopen(path, "wb+");
+		fwrite(structBitarray->bitarray, sizeof(char), configMetadata->blocks / 8, file);
+		fclose(file);
+		bitarray_destroy(structBitarray);
+		free(bitarray);
+		free(path);
 	}
-	char* path = string_from_format("%s/Metadata/Bitmap.bin", configLFS->dirMontaje);
-	FILE* file = fopen(path, "wb+");
-	fwrite(structBitarray->bitarray, sizeof(char), configMetadata->blocks / 8, file);
-	fclose(file);
-	bitarray_destroy(structBitarray);
-	free(bitarray);
-	free(path);
 }
 
 int borrarDirectorio(char *dir) {
