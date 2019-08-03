@@ -36,8 +36,8 @@ int main(void) {
 	// ---------------Inicializacion-----------------
 	memtable = inicializarMemtable();
 	logger = iniciar_logger();
-	levantarMetadataFS();
 	levantarConfigLFS();
+	levantarMetadataFS();
 	pthread_mutex_init(&mem_table_mutex, NULL);
 	pthread_mutex_init(&bitmapMutex, NULL);
 	//pthread_mutex_init(&cantidadDeDumpeos_mutex, NULL);
@@ -87,12 +87,33 @@ int main(void) {
 
 void levantarMetadataFS() {
 	t_config* aux = malloc(sizeof(t_config));
-	aux = config_create("../../FS_LISSANDRA/Metadata/Metadata.bin");
-	configMetadata->blockSize = config_get_int_value(aux, "BLOCK_SIZE");
-	configMetadata->blocks = config_get_int_value(aux, "BLOCKS");
-	configMetadata->magicNumber = malloc(strlen(config_get_string_value(aux, "MAGIC_NUMBER"))+1);
-	strcpy(configMetadata->magicNumber,config_get_string_value(aux, "MAGIC_NUMBER"));
+	char* strAux = malloc(strlen(configLFS->dirMontaje) + strlen("Metadata/Metadata.bin") + 1);
+	strcpy(strAux, configLFS->dirMontaje);
+	strcat(strAux, "Metadata/Metadata.bin");
+	aux = config_create(strAux);
+	int Meta = open(strAux, O_RDONLY, S_IRUSR | S_IWUSR);
+	log_debug(logger, "es: %s", strAux);
+	if(Meta){
+		close(Meta);
+		configMetadata->blockSize = config_get_int_value(aux, "BLOCK_SIZE");
+		configMetadata->blocks = config_get_int_value(aux, "BLOCKS");
+		configMetadata->magicNumber = malloc(strlen(config_get_string_value(aux, "MAGIC_NUMBER"))+1);
+		strcpy(configMetadata->magicNumber,config_get_string_value(aux, "MAGIC_NUMBER"));
+	} else {
+		log_warning(logger, "El archivo Metadata.bin no existe");
+		log_warning(logger, "Copie este archivo correctamente en el directorio Metadata e intente nuevamente");
+		log_warning(logger, "--------------Finzalizando ejecucion--------------");
+		log_destroy(logger);
+		close(socket_cli);
+		close(socket_sv);
+		list_destroy_and_destroy_elements(memtable, (void*)liberarRegistro);
+		free(configLFS->dirMontaje);
+		free(configLFS->puerto);
+		free(configLFS);
+		raise(SIGTERM);
+	}
 	config_destroy(aux);
+	free(strAux);
 //	log_debug(logger, "%d", configMetadata->blockSize);
 //	log_debug(logger, "%d", configMetadata->blocks);
 //	log_debug(logger, "%s", configMetadata->magicNumber);
@@ -108,11 +129,40 @@ void levantarConfigLFS() {
 	configLFS->tamanioValue = config_get_int_value(aux, "TAMANIO_VALUE");
 	configLFS->tiempoDumpeo = config_get_int_value(aux, "TIEMPO_DUMP");
 	config_destroy(aux);
-//	log_debug(logger, "%s", configLFS->puerto);
-//	log_debug(logger, "%s", configLFS->dirMontaje);
-//	log_debug(logger, "%d", configLFS->retardo);
-//	log_debug(logger, "%d", configLFS->tamanioValue);
-//	log_debug(logger, "%d", configLFS->tiempoDumpeo);
+	log_debug(logger, configLFS->dirMontaje);
+	DIR* FS = opendir(configLFS->dirMontaje);
+	if(!FS)
+		mkdir(configLFS->dirMontaje, 0700);
+	else
+		closedir(FS);
+	char* auxTablas = malloc(strlen(configLFS->dirMontaje) + strlen("Tablas") + 1);
+	strcpy(auxTablas, configLFS->dirMontaje);
+	strcat(auxTablas, "Tablas");
+	log_debug(logger, auxTablas);
+	DIR* Tablas = opendir(auxTablas);
+	if(!Tablas)
+		mkdir(auxTablas, 0700);
+	else
+		closedir(Tablas);
+	char* auxBloques = malloc(strlen(configLFS->dirMontaje) + strlen("Bloques") + 1);
+	strcpy(auxBloques, configLFS->dirMontaje);
+	strcat(auxBloques, "Bloques");
+	DIR* Bloques = opendir(auxBloques);
+	if(!Bloques)
+		mkdir(auxBloques, 0700);
+	else
+		closedir(Bloques);
+	char* auxMetadata = malloc(strlen(configLFS->dirMontaje) + strlen("Metadata") + 1);
+	strcpy(auxMetadata, configLFS->dirMontaje);
+	strcat(auxMetadata, "Metadata");
+	DIR* Metadata = opendir(auxMetadata);
+	if(!Metadata)
+		mkdir(auxMetadata, 0700);
+	else
+		closedir(Metadata);
+	free(auxTablas);
+	free(auxBloques);
+	free(auxMetadata);
 }
 
 void hiloDump() {
@@ -2042,11 +2092,8 @@ int borrarDirectorio(char *dir) {
 
 // ---------------CIERRE-----------------
 
-void finalizarEjecutcion() {
-	log_debug(logger, "------------------------");
-	log_debug(logger, "¿chau chau adios?");
-	log_debug(logger, "------------------------");
-
+void finalizarEjecutcion(int cierre) {
+	log_warning(logger, "--------------Finzalizando ejecucion--------------");
 	log_destroy(logger);
 	close(socket_cli);
 	close(socket_sv);
@@ -2057,11 +2104,6 @@ void finalizarEjecutcion() {
 	free(configMetadata->magicNumber);
 	free(configMetadata);
 	dictionary_destroy(bloqueoTablas);
-//	pthread_cancel(hiloConsola);
-//	pthread_cancel(hiloDumpeo);
-//	pthread_cancel(hiloCompactacion);
-//	pthread_cancel(hiloSocket);
-//	pthread_cancel(hiloInnotify);
 	raise(SIGTERM);
 }
 
