@@ -1,7 +1,16 @@
 #include "comunicacion.h"
 
 int enviarPaquete(int clienteSocket, char* payload, uint32_t size) {
-
+	int socket_OK = 1;
+	void sigpipe_handler()
+	{
+	    printf("SIGPIPE caught\n");
+	    socket_OK= -1;
+	}
+    signal(SIGPIPE,sigpipe_handler);
+    if(socket_OK == -1){
+    	return socket_OK;
+    }
 	return send(clienteSocket, payload, size, 0);
 }
 

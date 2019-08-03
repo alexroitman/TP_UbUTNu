@@ -232,10 +232,94 @@ void describe (){
 	mem->socket = levantarClienteNoBloqueante(unaMem->puerto,unaMem->ip);
 	list_add_in_index(sockets,0,mem);
 	while(1){
+
 		usleep(miConfig->metadata_refresh*1000);
+
+		sem_wait(&mutexMems);
+		if(memorias->elements_count > sockets->elements_count){
+			for(int i = 0; i < memorias->elements_count;i++){
+				tMemoria* mem = (tMemoria*) list_get(memorias,i);
+				bool compararNumeroMem(void* elem){
+					t_infoMem* mem2 = (t_infoMem*) elem;
+					return mem2->id == mem->numeroMemoria;
+				}
+				if(list_filter(sockets,compararNumeroMem)->elements_count == 0){
+					t_infoMem *sock = malloc(sizeof(t_infoMem));
+					sock->socket = levantarClienteNoBloqueante(mem->puerto,mem->ip);
+					if(sock->socket != -1){
+						sock->id = mem->numeroMemoria;
+						log_debug(logger,"agrege esta memoria: %d",sock->id);
+						list_add(sockets,sock);
+						bool compararNumeroMem2(void* elem){
+							tMemoria* mem2 = (tMemoria*) elem;
+							return mem2->numeroMemoria == mem->numeroMemoria;
+						}
+						sem_wait(&mutexCaido);
+						if(list_filter(memoriasCaidas,compararNumeroMem2)->elements_count != 0){
+							list_remove_by_condition(memoriasCaidas,compararNumeroMem2);
+						}
+						sem_post(&mutexCaido);
+					}
+				}
+			}
+		}
+		sem_post(&mutexMems);
+
+		sem_wait(&mutexCaido);
+		if(memoriasCaidas->elements_count != 0){
+			int size_to_send = sizeof(type);
+			char* serializedPackage = malloc(size_to_send);
+			type gossip = SIGNAL;
+			memcpy(serializedPackage,&(gossip),size_to_send);
+			for(int i = 0; i < memoriasCaidas->elements_count;i++){
+				tMemoria* mem = (tMemoria*) list_get(memoriasCaidas,i);
+				bool compararNumeroMem(void* elem){
+					t_infoMem* mem2 = (t_infoMem*) elem;
+					return mem2->id == mem->numeroMemoria;
+				}
+				if(list_filter(sockets,compararNumeroMem)->elements_count != 0){
+					t_infoMem* memoria = (t_infoMem*)list_find(sockets,compararNumeroMem);
+					int info = enviarPaquete(memoria->socket,serializedPackage,size_to_send);
+					if(info == -1){
+						list_remove_by_condition(sockets,compararNumeroMem);
+					}else{
+						list_remove(memoriasCaidas,i);
+						recv(memoria->socket,&info,sizeof(int),0);
+					}
+				}
+			}
+			free(serializedPackage);
+		}
+		sem_post(&mutexCaido);
 		int info = despacharQuery("DESCRIBE\n",sockets);
 		if(info<=0){
-			for(int i = 0; i < memorias->elements_count;i++){
+			bool compararNumeroMem(void* elem){
+				tMemoria* mem2 = (tMemoria*) elem;
+				return mem2->numeroMemoria == mem->id;
+			}
+			bool compararNumeroSocket(void* elem){
+				t_infoMem* mem2 = (t_infoMem*) elem;
+				return mem2->id == mem->id;
+			}
+			sem_wait(&mutexCaido);
+			if(list_filter(memoriasCaidas,compararNumeroMem)->elements_count == 0){
+				log_error(loggerError,"Memoria %d caida", mem->id);
+				tMemoria* memoriaCaida = malloc(sizeof(tMemoria));
+				*memoriaCaida = *(tMemoria*) list_find(memorias,compararNumeroMem);
+				list_add(memoriasCaidas,memoriaCaida);
+				log_warning(loggerWarning,"Realizando Jounal general para mantener consistencias");
+				t_infoMem* sk = (t_infoMem*)list_find(sockets,compararNumeroSocket);
+				close(sk->socket);
+				list_remove_by_condition(sockets,compararNumeroSocket);
+				sem_post(&mutexCaido);
+				despacharQuery("journal\n",sockets);
+			}else{
+				t_infoMem* sk = (t_infoMem*)list_find(sockets,compararNumeroSocket);
+				close(sk->socket);
+				list_remove_by_condition(sockets,compararNumeroSocket);
+				sem_post(&mutexCaido);
+			}
+			for(int i = 0; i < sockets->elements_count;i++){
 				/*if(list_filter(memoriasCaidas,compararNumeroMem)->elements_count == 0){
 					list_add(memoriasCaidas,list_find(memorias,compararNumeroMem));
 				}
@@ -243,17 +327,37 @@ void describe (){
 				mem->id = unaMem->numeroMemoria;
 				mem->socket = levantarClienteNoBloqueante(unaMem->puerto,unaMem->ip);
 				list_replace(sockets,0,mem);*/
-				unaMem = (tMemoria*) list_get(memorias,i);
-				mem->id = unaMem->numeroMemoria;
-				mem->socket = levantarClienteNoBloqueante(unaMem->puerto,unaMem->ip);
-				if(mem->socket != -1){
-					i = memorias->elements_count;
-					list_replace(sockets,0,mem);
+				t_infoMem* unSocket = (t_infoMem*) list_get(sockets,i);
+				int size_to_send = sizeof(type);
+				char* serializedPackage = malloc(size_to_send);
+				type gossip = SIGNAL;
+				memcpy(serializedPackage,&(gossip),size_to_send);
+				int info = enviarPaquete(unSocket->socket,serializedPackage,size_to_send);
+				if(info == -1){
+					sem_wait(&mutexCaido);
+					if(list_filter(memoriasCaidas,compararNumeroMem)->elements_count == 0){
+						log_error(loggerError,"Memoria %d caida", mem->id);
+						tMemoria* memoriaCaida = malloc(sizeof(tMemoria));
+						*memoriaCaida = *(tMemoria*) list_find(memorias,compararNumeroMem);
+						list_add(memoriasCaidas,memoriaCaida);
+						log_warning(loggerWarning,"Realizando Jounal general para mantener consistencias");
+						t_infoMem* sk = (t_infoMem*)list_find(sockets,compararNumeroSocket);
+						close(sk->socket);
+						list_remove_by_condition(sockets,compararNumeroSocket);
+						sem_post(&mutexCaido);
+						despacharQuery("journal\n",sockets);
+					}else{
+						t_infoMem* sk = (t_infoMem*)list_find(sockets,compararNumeroSocket);
+						close(sk->socket);
+						list_remove_by_condition(sockets,compararNumeroSocket);
+						sem_post(&mutexCaido);
+					}
+					mem->socket = unSocket->socket;
+					mem->id = unSocket->id;
 				}
+				free(serializedPackage);
 			}
-			if(mem->socket == -1){
-				log_warning(loggerWarning,"No pude volver a conectarme para hacer el describe, volviendo a intentar...");
-			}
+
 		}
 	}
 }
@@ -671,8 +775,37 @@ int despacharQuery(char* consulta, t_list* sockets) {
 			serializado = serializarJournal(paqueteJournal);
 			for(int i = 0; i<sockets->elements_count;i++){
 				*socket_memoria = *(t_infoMem*)list_get(sockets,i);
-				enviarPaquete(socket_memoria->socket, serializado, paqueteJournal->length);
-				
+				log_warning(loggerWarning,"voy a journalear este socket: %d",socket_memoria->id);
+				int flag = enviarPaquete(socket_memoria->socket, serializado, paqueteJournal->length);
+				if(flag <= 0){
+					bool compararNumeroMem(void* elem){
+						tMemoria* mem2 = (tMemoria*) elem;
+						return mem2->numeroMemoria == socket_memoria->id;
+					}
+					bool compararNumeroSocket(void* elem){
+						t_infoMem* mem2 = (t_infoMem*) elem;
+						return mem2->id == socket_memoria->id;
+					}
+					sem_wait(&mutexCaido);
+					if(list_filter(memoriasCaidas,compararNumeroMem)->elements_count == 0){
+						log_error(loggerError,"Memoria %d caida", socket_memoria->id);
+						tMemoria* memoriaCaida = malloc(sizeof(tMemoria));
+						*memoriaCaida = *(tMemoria*) list_find(memorias,compararNumeroMem);
+						list_add(memoriasCaidas,memoriaCaida);
+						log_warning(loggerWarning,"Realizando Jounal general para mantener consistencias");
+						t_infoMem* sk = (t_infoMem*)list_find(sockets,compararNumeroSocket);
+						close(sk->socket);
+						list_remove_by_condition(sockets,compararNumeroSocket);
+						sem_post(&mutexCaido);
+						despacharQuery("journal\n",sockets);
+					}else{
+						t_infoMem* sk = (t_infoMem*)list_find(sockets,compararNumeroSocket);
+						close(sk->socket);
+						list_remove_by_condition(sockets,compararNumeroSocket);
+						sem_post(&mutexCaido);
+					}
+
+				}
 			}
 			free(socket_memoria);
 			consultaOk = 1;
@@ -847,12 +980,13 @@ void CPU(){
 							close(sk->socket);
 							list_remove_by_condition(sockets,compararNumeroSocket);
 							despacharQuery("journal\n",sockets);
+							sem_post(&mutexCaido);
 						}else{
 							t_infoMem* sk = (t_infoMem*)list_find(sockets,compararNumeroSocket);
 							close(sk->socket);
 							list_remove_by_condition(sockets,compararNumeroSocket);
+							sem_post(&mutexCaido);
 						}
-						sem_post(&mutexCaido);
 
 						i--;
 						log_warning(loggerWarning,"Se volvera a ejecutar la consulta: %d",unScript->pos);

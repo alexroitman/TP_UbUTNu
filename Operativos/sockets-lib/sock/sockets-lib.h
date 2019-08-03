@@ -25,6 +25,7 @@ char package[PACKAGESIZE];
 #include <semaphore.h>
 #include <commons/log.h>
 #include <time.h>
+#include <signal.h>
 struct addrinfo hints;
 struct addrinfo *serverInfo;
 
