@@ -165,27 +165,32 @@ void ejecutarConsulta(int socket, type header) {
 		packDescResp = malloc(sizeof(t_describe));
 		desSerializarDescribe(packDescribe, socket);
 		char* serializado = serializarDescribe(packDescribe);
-		int bytes = enviarPaquete(socket_lfs, serializado,
-				packDescribe->length);
-		if (bytes > 0) {
-			desserializarDescribe_Response(packDescResp, socket_lfs);
-			if (packDescResp->cant_tablas == 0) {
-				t_describe* describe = malloc(sizeof(t_describe));
-				describe->cant_tablas = 0;
-				char* serializedPackage;
-				serializedPackage = serializarDescribe_Response(describe);
-				send(socket, serializedPackage, sizeof(describe->cant_tablas),
-						0);
-				dispose_package(&serializedPackage);
-			} else {
-				char* respSerializada = serializarDescribe_Response(
-						packDescResp);
-				int length = packDescResp->cant_tablas * sizeof(t_metadata)
-						+ sizeof(uint16_t);
-				enviarPaquete(socket, respSerializada, length);
-				//free(respSerializada);
-			}
+		int bytes = 0;
+		enviarPaquete(socket_lfs, serializado, packDescribe->length);
+		bytes = desserializarDescribe_Response(packDescResp, socket_lfs);
+		while(bytes <= 0){
+			log_debug(logger,"entre el while");
+			reconectarLFS();
+			enviarPaquete(socket_lfs, serializado, packDescribe->length);
+			bytes = desserializarDescribe_Response(packDescResp, socket_lfs);
 		}
+		if (packDescResp->cant_tablas == 0) {
+			t_describe* describe = malloc(sizeof(t_describe));
+			describe->cant_tablas = 0;
+			char* serializedPackage;
+			serializedPackage = serializarDescribe_Response(describe);
+			send(socket, serializedPackage, sizeof(describe->cant_tablas),
+					0);
+			dispose_package(&serializedPackage);
+		} else {
+			char* respSerializada = serializarDescribe_Response(
+					packDescResp);
+			int length = packDescResp->cant_tablas * sizeof(t_metadata)
+					+ sizeof(uint16_t);
+			enviarPaquete(socket, respSerializada, length);
+			//free(respSerializada);
+		}
+
 
 		free(packDescResp->tablas);
 
@@ -347,6 +352,25 @@ void journalAsincronico(){
 		sem_wait(&mutexJournal);
 		ejecutarJournal();
 		sem_post(&mutexJournal);
+	}
+}
+
+void reconectarLFS(){
+	int conexion = 0;
+	while(!conexion){
+		sleep(2);
+		socket_lfs = levantarClienteNoBloqueante((char*) miConfig->puerto_fs,
+				miConfig->ip_fs);
+		if (socket_lfs <= 0) {
+			log_error(logger, "No se pudo conectar a LFS");
+		} else {
+			tamanioMaxValue = handshakeLFS(socket_lfs);
+			log_debug(logger,
+					"Handshake con LFS realizado. Tamanio max del value: %d",
+					tamanioMaxValue);
+			log_debug(logger, "Levanta conexion con LFS");
+			conexion = 1;
+		}
 	}
 }
 

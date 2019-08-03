@@ -588,7 +588,6 @@ void ejecutarJournal(){
 }
 
 void mandarInsertDePaginasModificadas(t_list* paginasModificadas,char* nombreTabla, int socket_lfs){
-
 	int index = 0;
 	tInsert* miInsert = malloc(sizeof(tInsert));
 	miInsert->type = INSERT;
@@ -702,6 +701,7 @@ void validarAgregadoDePagina(bool leyoConsola, int* error,int socket, tSegmento*
 		tPagina* pagina, bool modificado) {
 
 	int errorLRU;
+	int errorJournal;
 	if (*error == -1) {
 		sem_wait(&mutexLRU);
 		errorLRU = ejecutarLRU();

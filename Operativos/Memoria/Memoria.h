@@ -124,6 +124,7 @@ tSegmento* obtenerUltimoSegmentoDeTabla(t_list* tablaSeg);
 void recibirMensajeDeKernel();
 char* separarNombrePath(char* path);
 void* recibirHeader(void* arg);
+void reconectarLFS();
 int handshakeLFS(int socket_lfs);
 void eliminarDeMemoria(void* elemento);
 void liberarPaginasDelSegmento(tSegmento* miSegmento, t_list* tablaSegmentos);
