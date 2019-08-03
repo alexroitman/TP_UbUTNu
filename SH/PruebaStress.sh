@@ -7,5 +7,13 @@ cp -a 4 ../../Operativos/Memoria/
 cp -a 5 ../../Operativos/Memoria/
 cp -a Kernel.config ../../Operativos/
 cp -a LFS.config ../../Operativos/
-cp -a Metadata.bin ../../FS_LISSANDRA/Metadata
+cd ../../
+mkdir -p lfs-stress
+cd lfs-stress
+mkdir -p Bloques
+mkdir -p Tablas
+mkdir -p Metadata
+cd ..
+cd Pruebas/ConfigPruebaStress/
+cp -a Metadata.bin ../../lfs-stress/Metadata
 exit

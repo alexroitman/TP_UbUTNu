@@ -6,5 +6,13 @@ cp -a 3 ../../Operativos/Memoria/
 cp -a 4 ../../Operativos/Memoria/
 cp -a Kernel.config ../../Operativos/
 cp -a LFS.config ../../Operativos/
-cp -a Metadata.bin ../../FS_LISSANDRA/Metadata
+cd ../../
+mkdir -p lfs-prueba-kernel
+cd lfs-prueba-kernel
+mkdir -p Bloques
+mkdir -p Tablas
+mkdir -p Metadata
+cd ..
+cd Pruebas/ConfigPruebaKernel/
+cp -a Metadata.bin ../../lfs-prueba-kernel/Metadata
 exit

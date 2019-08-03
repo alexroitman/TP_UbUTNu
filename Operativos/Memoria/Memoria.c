@@ -9,7 +9,7 @@ int main() {
 	tamanioMaxValue = 10;
 	pathConfig = malloc(256);
 	signal(SIGINT, finalizarEjecucion);
-	logger = log_create("../Memoria.log", "Memoria.c", 1, LOG_LEVEL_DEBUG);
+	logger = log_create("log/Memoria.log", "Memoria.c", 1, LOG_LEVEL_DEBUG);
 	miConfig = malloc(sizeof(t_miConfig));
     pedirPathConfig();
 	log_debug(logger,"Tamanio Memoria: %d",miConfig->tam_mem);
