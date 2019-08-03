@@ -10,7 +10,7 @@ cd lfs-base
 mkdir -p Bloques
 mkdir -p Tablas
 mkdir -p Metadata
-cd /home/utno/tp-2019-1c-UbUTNu
+cd /home/utnso/tp-2019-1c-UbUTNu
 cd Pruebas/ConfigPruebaBase/
 cp -a Metadata.bin ../../lfs-base/Metadata
 exit
