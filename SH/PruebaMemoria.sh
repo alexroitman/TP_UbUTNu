@@ -11,5 +11,5 @@ mkdir -p Tablas
 mkdir -p Metadata
 cd /home/utnso/tp-2019-1c-UbUTNu
 cd Pruebas/ConfigPruebaMemoria/
-cp -a Metadata.bin ../../lfs-prueba-memoria/Metadata
+cp -a Metadata.bin /home/utnso/lfs-prueba-memoria/Metadata
 exit
