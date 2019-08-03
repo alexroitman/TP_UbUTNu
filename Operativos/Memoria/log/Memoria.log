@@ -1,0 +1,12 @@
+[INFO] 00:49:48:148 Memoria.c/(7333:7333): Por favor ingrese el path de su archivo de configuracion
+[DEBUG] 00:49:49:374 Memoria.c/(7333:7333): Levanta archivo de config
+[DEBUG] 00:49:49:374 Memoria.c/(7333:7333): Tamanio Memoria: 320
+[ERROR] 00:49:49:374 Memoria.c/(7333:7333): No se pudo conectar a LFS
+[INFO] 00:55:45:78 Memoria.c/(7608:7608): Por favor ingrese el path de su archivo de configuracion
+[DEBUG] 00:55:46:48 Memoria.c/(7608:7608): Levanta archivo de config
+[DEBUG] 00:55:46:48 Memoria.c/(7608:7608): Tamanio Memoria: 320
+[DEBUG] 00:55:46:48 Memoria.c/(7608:7608): Handshake con LFS realizado. Tamanio max del value: 60
+[DEBUG] 00:55:46:48 Memoria.c/(7608:7608): Levanta conexion con LFS
+[DEBUG] 00:55:46:48 Memoria.c/(7608:7608): Cantidad maxima de paginas en memoria: 4
+[DEBUG] 00:55:46:49 Memoria.c/(7608:7614): cant seeds: 1
+[DEBUG] 00:55:46:49 Memoria.c/(7608:7613): entre al hilo
