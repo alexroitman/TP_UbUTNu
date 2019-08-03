@@ -826,7 +826,7 @@ int Select(registro* reg, char* NOMBRE_TABLA, uint16_t KEY) {
 		return false;
 	}
 	char* ruta = direccionarTabla(NOMBRE_TABLA);
-	int errorHandler = verificadorDeTabla(ruta);
+	int errorHandler = verificadorDeTabla(NOMBRE_TABLA);
 	log_debug(logger, "Se ha solicitado la key %d de la tabla %s.", KEY, NOMBRE_TABLA);
 	if (!errorHandler)
 		return noExisteTabla;
