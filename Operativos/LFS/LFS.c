@@ -18,7 +18,8 @@ config_FS* configLFS;
 metadataFS* configMetadata;
 pthread_mutex_t mem_table_mutex;
 pthread_mutex_t bitmapMutex;
-
+int sockets[20];
+int indexSock;
 pthread_t hiloSocket;
 pthread_t hiloCompactacion;
 pthread_t hiloConsola;
@@ -476,17 +477,24 @@ void abrirHiloSockets() {
 //	int errorHandler;
 	pthread_t threadPrincipal;
 	socket_sv = levantarServidor(configLFS->puerto);
+	printf("Encontre el socket: %d\n", socket_sv);
 	if (socket_sv < 0)
 		logeoDeErroresLFS(noLevantoServidor, logger);
 	socket_cli = aceptarCliente(socket_sv);
+	int a = 1;
+	setsockopt(socket_cli,SOL_SOCKET,SO_REUSEADDR,&a,sizeof(int));
 	log_debug(logger, "levante un cliente con socket: %d", socket_cli);
 	send(socket_cli, &configLFS->tamanioValue, 4, 0);
 	pthread_create(&threadPrincipal, NULL, (void*) receptorDeSockets,
 			&socket_cli);
+	indexSock = 0;
 	while (1) {
 		int *socketNuevo = malloc(sizeof(int));
 		pthread_t threadNuevo;
 		*socketNuevo = aceptarCliente(socket_sv);
+		setsockopt(*socketNuevo,SOL_SOCKET,SO_REUSEADDR,&a,sizeof(int));
+		sockets[indexSock] = *socketNuevo;
+		indexSock++;
 		send(*socketNuevo, &configLFS->tamanioValue, 4, 0);
 		pthread_create(&threadNuevo, NULL, (void*) receptorDeSockets, socketNuevo);
 		log_debug(logger, "levante otro cliente con socket: %d", *socketNuevo);
@@ -826,7 +834,7 @@ int Select(registro* reg, char* NOMBRE_TABLA, uint16_t KEY) {
 		return false;
 	}
 	char* ruta = direccionarTabla(NOMBRE_TABLA);
-	int errorHandler = verificadorDeTabla(ruta);
+	int errorHandler = verificadorDeTabla(NOMBRE_TABLA);
 	log_debug(logger, "Se ha solicitado la key %d de la tabla %s.", KEY, NOMBRE_TABLA);
 	if (!errorHandler)
 		return noExisteTabla;
@@ -2104,6 +2112,10 @@ void finalizarEjecutcion(int cierre) {
 	free(configMetadata->magicNumber);
 	free(configMetadata);
 	dictionary_destroy(bloqueoTablas);
+	do{
+		close(sockets[indexSock]);
+		indexSock--;
+	}while(indexSock != 0);
 	raise(SIGTERM);
 }
 

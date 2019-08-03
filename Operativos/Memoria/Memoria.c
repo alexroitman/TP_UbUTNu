@@ -13,8 +13,9 @@ int main() {
 	miConfig = malloc(sizeof(t_miConfig));
     pedirPathConfig();
 	log_debug(logger,"Tamanio Memoria: %d",miConfig->tam_mem);
-
+	int a = 1;
 	
+
 
 
 	//if (miConfig->numeroMemoria == 1) {
@@ -32,7 +33,7 @@ int main() {
 
 		}
 //}
-
+		setsockopt(socket_lfs,SOL_SOCKET,SO_REUSEADDR,&a,sizeof(int));
 	socket_sv = levantarServidor((char*) miConfig->puerto_escucha);
 	socket_gossip = levantarServidor((char*) miConfig->puerto_gossip);
 	tam_pag = sizeof(unsigned long long) + sizeof(uint16_t) + tamanioMaxValue;

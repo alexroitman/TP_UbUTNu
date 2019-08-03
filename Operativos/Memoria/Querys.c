@@ -169,6 +169,7 @@ void ejecutarConsulta(int socket, type header) {
 		enviarPaquete(socket_lfs, serializado, packDescribe->length);
 		bytes = desserializarDescribe_Response(packDescResp, socket_lfs);
 		while(bytes <= 0){
+			close(socket_lfs);
 			reconectarLFS();
 			enviarPaquete(socket_lfs, serializado, packDescribe->length);
 			bytes = desserializarDescribe_Response(packDescResp, socket_lfs);
@@ -260,12 +261,17 @@ int pedirRegistroALFS(int socket, tSelect* packSelect, tRegistroRespuesta* reg) 
 	log_debug(logger, "Pido registro a LFS");
 	char* selectAEnviar = serializarSelect(packSelect);
 	int bytes = enviarPaquete(socket, selectAEnviar, packSelect->length);
-	free(selectAEnviar);
 	if (bytes > 0) {
-		type header = leerHeader(socket);
+		type header;
+		int error = recv(socket, &header, sizeof(type), MSG_WAITALL);
+		if(0 >= error){
+			reconectarLFS();
+			error = recv(socket, &header, sizeof(type), MSG_WAITALL);
+		}
 		if (header == REGISTRO) {
 			desSerializarRegistro(reg, socket);
 			reg->tipo = REGISTRO;
+			free(selectAEnviar);
 			return 1;
 		} else {
 			return -3;
@@ -356,20 +362,18 @@ void journalAsincronico(){
 
 void reconectarLFS(){
 	int conexion = 0;
+	log_error(logger,"Error de conexion con LFS");
 	while(!conexion){
-		sleep(2);
-		socket_lfs = levantarClienteNoBloqueante((char*) miConfig->puerto_fs,
+		socket_lfs = levantarCliente((char*) miConfig->puerto_fs,
 				miConfig->ip_fs);
-		if (socket_lfs <= 0) {
-			log_error(logger, "No se pudo conectar a LFS");
-		} else {
 			tamanioMaxValue = handshakeLFS(socket_lfs);
 			log_debug(logger,
 					"Handshake con LFS realizado. Tamanio max del value: %d",
 					tamanioMaxValue);
 			log_debug(logger, "Levanta conexion con LFS");
 			conexion = 1;
-		}
+			setsockopt(socket_lfs,SOL_SOCKET,SO_REUSEADDR,&conexion,sizeof(int));
+
 	}
 }
 
