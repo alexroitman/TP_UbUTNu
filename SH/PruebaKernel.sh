@@ -12,7 +12,7 @@ cd lfs-prueba-kernel
 mkdir -p Bloques
 mkdir -p Tablas
 mkdir -p Metadata
-cd /home/utno/tp-2019-1c-UbUTNu
+cd /home/utnso/tp-2019-1c-UbUTNu
 cd Pruebas/ConfigPruebaKernel/
 cp -a Metadata.bin ../../lfs-prueba-kernel/Metadata
 exit
