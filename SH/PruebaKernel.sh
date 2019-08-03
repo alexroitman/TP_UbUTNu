@@ -8,7 +8,7 @@ cp -a Kernel.config ../../Operativos/
 cp -a LFS.config ../../Operativos/
 cd ../../
 mkdir -p lfs-prueba-kernel
-cd lfs-base
+cd lfs-prueba-kernel
 mkdir -p Bloques
 mkdir -p Tablas
 mkdir -p Metadata
