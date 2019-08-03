@@ -5,7 +5,7 @@ cp -a Kernel.config ../../Operativos/
 cp -a LFS.config ../../Operativos/
 cd ../../
 mkdir -p lfs-prueba-memoria
-cd lfs-base
+cd lfs-prueba-memoria
 mkdir -p Bloques
 mkdir -p Tablas
 mkdir -p Metadata
