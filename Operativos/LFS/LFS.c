@@ -1460,7 +1460,7 @@ int dumpeoMemoria() {
 	list_iterate(dumpMem, (void*) &paraDumpearTabla);
 //	log_debug(logger, "Sali de dumpear todo");
 	list_clean_and_destroy_elements(dumpMem, (void*) free);
-//	log_debug(logger,"termine");
+	log_debug(logger,"Dumpeo finalizado");
 
 	//pthread_mutex_lock(&cantidadDeDumpeos_mutex);
 	//cantidadDeDumpeos++;
