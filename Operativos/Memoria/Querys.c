@@ -266,7 +266,10 @@ int pedirRegistroALFS(int socket, tSelect* packSelect, tRegistroRespuesta* reg) 
 		int error = recv(socket, &header, sizeof(type), MSG_WAITALL);
 		if(0 >= error){
 			reconectarLFS();
-			error = recv(socket, &header, sizeof(type), MSG_WAITALL);
+			//bytes = enviarPaquete(socket_lfs, selectAEnviar, packSelect->length);
+			//error = recv(socket_lfs, &header, sizeof(type), MSG_WAITALL);
+			//log_warning(logger,"error: %d",error);
+			pedirRegistroALFS(socket_lfs, packSelect, reg);
 		}
 		if (header == REGISTRO) {
 			desSerializarRegistro(reg, socket);
@@ -375,6 +378,7 @@ void reconectarLFS(){
 			setsockopt(socket_lfs,SOL_SOCKET,SO_REUSEADDR,&conexion,sizeof(int));
 
 	}
+
 }
 
 void cargarPackSelect(tSelect* packSelect,bool leyoConsola,char consulta[], int socket){
