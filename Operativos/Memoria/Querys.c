@@ -169,7 +169,6 @@ void ejecutarConsulta(int socket, type header) {
 		enviarPaquete(socket_lfs, serializado, packDescribe->length);
 		bytes = desserializarDescribe_Response(packDescResp, socket_lfs);
 		while(bytes <= 0){
-			log_debug(logger,"entre el while");
 			reconectarLFS();
 			enviarPaquete(socket_lfs, serializado, packDescribe->length);
 			bytes = desserializarDescribe_Response(packDescResp, socket_lfs);
